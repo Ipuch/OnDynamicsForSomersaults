@@ -47,7 +47,7 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
 
     # --- Options --- #
     biorbd_model = biorbd.Model(biorbd_model_path)
-    tau_min, tau_max, tau_init = -100, 100, 0
+    tau_min, tau_max, tau_init = -200, 200, 0
 
     nb_q = biorbd_model.nbQ()
     nb_qdot = biorbd_model.nbQdot()
@@ -73,13 +73,13 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
         vertical_velocity_0 * np.linspace(0, duration, n_shooting + 1) + -9.81 / 2 * np.linspace(0, duration, n_shooting + 1) ** 2
     )
     x[3, :] = np.linspace(0, 4 * np.pi, n_shooting + 1)
-    x[5, :] = np.linspace(0, 6 * np.pi, n_shooting + 1)
+    x[5, :] = np.linspace(0, 4 * np.pi, n_shooting + 1)
     x[7, :] = np.random.random((1, n_shooting + 1)) * np.pi - np.pi
     x[9, :] = np.random.random((1, n_shooting + 1)) * np.pi
 
     x[nb_q + 2, :] = vertical_velocity_0 - 9.81 * np.linspace(0, duration, n_shooting + 1)
     x[nb_q + 3, :] = somerault_rate_0
-    x[nb_q + 5, :] = 6 * np.pi / duration
+    x[nb_q + 5, :] = 4 * np.pi / duration
 
     x_init = InitialGuessList()
     x_init.add(x, interpolation=InterpolationType.EACH_FRAME)
@@ -90,14 +90,14 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
     x_min = np.zeros((nb_q + nb_qdot, 3))
     x_max = np.zeros((nb_q + nb_qdot, 3))
     x_min[:, 0] = [0, 0, 0, 0, 0, 0, 0, -2.8, 0, 2.8,
-                   -1, -1, 7, x[nb_q + 3, 0], 0, x[nb_q + 5, 0], 0, 0, 0, 0]
+                   -1, -1, vertical_velocity_0 - 2, somerault_rate_0 - 1, 0, 0, 0, 0, 0, 0]
     x_max[:, 0] = [0, 0, 0, 0, 0, 0, 0, -2.8, 0, 2.8,
-                   1, 1, 10, x[nb_q + 3, 0], 0, x[nb_q + 5, 0], 0, 0, 0, 0]
-    x_min[:, 1] = [-1, -1, -0.001, -0.001, -np.pi / 4, -np.pi, -1, -np.pi, -1.27, 0,
+                   1, 1, vertical_velocity_0 + 2, somerault_rate_0 + 1, 0, 0, 0, 0, 0, 0]
+    x_min[:, 1] = [-3, -3, -0.001, -0.001, -np.pi / 4, -np.pi, -1, -np.pi, -1.27, 0,
                    -100, -100, -100, -100, -100, -100, -100, -100, -100, -100]
-    x_max[:, 1] = [1, 1, 10, 4 * np.pi + 0.1, np.pi / 4, 6 * np.pi + 0.1, 1.27, 0, 1, np.pi,
+    x_max[:, 1] = [3, 3, 10, 4 * np.pi + 0.1, np.pi / 4, 6 * np.pi + 0.1, 1.27, 0, 1, np.pi,
                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
-    x_min[:, 2] = [ -0.1, -0.1, -0.1, 4 * np.pi - 0.1, -15 * np.pi / 180, 6 * np.pi - 0.1, -1, -np.pi, -1.27, 0,
+    x_min[:, 2] = [ -0.1, -0.1, -0.1, 4 * np.pi - 0.1, -15 * np.pi / 180, 4 * np.pi - 0.1, -1, -np.pi, -1.27, 0,
                     -100, -100, -100, -100, -100, -100, -100, -100, -100, -100]
     x_max[:, 2] = [0.1, 0.1, 0.1, 4 * np.pi + 0.1, 15 * np.pi / 180, 6 * np.pi + 0.1, 1.27, 0, 1, np.pi,
                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
@@ -116,7 +116,7 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
 
     # Set time as a variable
     constraints = ConstraintList()
-    constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=duration-0.3, max_bound=duration+0.3)
+    constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=duration-0.5, max_bound=duration+0.5)
 
     return OptimalControlProgram(
         biorbd_model,
@@ -139,10 +139,10 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
 np.random.seed(0)
 
 solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
-ocp = prepare_ocp_explicit("Model_JeCh_10DoFs.bioMod", n_shooting=100, ode_solver=OdeSolver.RK4())
+solver.set_maximum_iterations(10000)
+ocp = prepare_ocp_explicit("Model_JeCh_10DoFs.bioMod", n_shooting=500, ode_solver=OdeSolver.RK4())
 # solver.set_convergence_tolerance(1e-2)
 # solver.set_acceptable_constr_viol_tol(1e-2)
-# solver.set_maximum_iterations(1000)
 
 ocp.add_plot_penalty(CostType.ALL)
 ocp.print(to_console=False, to_graph=False)
