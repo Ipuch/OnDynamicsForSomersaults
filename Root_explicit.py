@@ -32,6 +32,7 @@ from bioptim import (
     DynamicsFunctions,
 )
 
+
 def root_explicit_dynamic(
     states: Union[cas.MX, cas.SX],
     controls: Union[cas.MX, cas.SX],
@@ -67,7 +68,7 @@ def root_explicit_dynamic(
     #              (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
     # qddot_root = cas.solve(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()], cas.MX.eye(nlp.model.nbRoot())) @ \
     #              (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
-    qddot_root = cas.solve(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()], cas.MX.eye(nlp.model.nbRoot()), 'LDL') @ \
+    qddot_root = cas.solve(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()], cas.MX.eye(nlp.model.nbRoot()), 'ldl') @ \
                  (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
 
     return qdot, cas.vertcat(qddot_root, qddot_joints)
@@ -90,7 +91,6 @@ def custom_configure(ocp: OptimalControlProgram, nlp: NonLinearProgram):
     ConfigureProblem.configure_qdot(nlp, as_states=True, as_controls=False)
     ConfigureProblem.configure_qddot(nlp, as_states=False, as_controls=True)
     ConfigureProblem.configure_dynamics_function(ocp, nlp, root_explicit_dynamic)
-
 
 
 def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: Solver) -> OptimalControlProgram:
@@ -125,7 +125,7 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
 
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(custom_configure, dynamic_function=root_explicit_dynamic)
+    dynamics.add(custom_configure, dynamic_function=root_explicit_dynamic, expand=False)
 
     # Initial guesses
     duration = 1.545  # Real data : 103 * 1/200 * 3
