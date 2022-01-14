@@ -290,6 +290,7 @@ external_forces 0
 // Informations about CuisseM segment
 	// Segment
 	segment	CuisseM
+		parent	Pelvis
 		RT
 			1  0  0  -0.00429149
 			0  1  0  0.02974073
