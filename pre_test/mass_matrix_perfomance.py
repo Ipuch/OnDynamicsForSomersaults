@@ -47,22 +47,12 @@ print(toc)
 
 print("FD")
 qdot = MX.sym("qdot", m.nbQ(), 1)
-qddot_J = MX.sym("q", m.nbQ()-m.nbRoot(), 1)
+tau = MX.sym("tau", m.nbQ(), 1)
+FD = m.ForwardDynamics(q, qdot, tau).to_mx()
+FD_func = Function("FD", [q, qdot, tau], [FD])
 tic = time.time()
 for qi in Q.T:
-    m.ForwardDynamics(qi, qi, qi)
-toc = time.time() - tic
-print(toc)
-
-print("floating base dynamic")
-qddot_J = MX.sym("q", m.nbQ()-m.nbRoot(), 1)
-FD_fb = solve(M[:m.nbRoot(), :m.nbRoot()], MX.eye(m.nbRoot()), 'ldl') @ \
-                 (-M[:m.nbRoot(), m.nbRoot():] @ qddot_J - m.NonLinearEffect(q, qdot).to_mx()[:m.nbRoot()])
-FD_fb_func = Function("FD_fb", [q, qdot, qddot_J], [FD_fb])
-
-tic = time.time()
-for qi in Q.T:
-    FD_fb_func(qi, qi, qi[m.nbRoot():])
+    FD_func(qi, qi, qi)
 toc = time.time() - tic
 print(toc)
 
