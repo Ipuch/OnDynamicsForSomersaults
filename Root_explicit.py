@@ -65,7 +65,9 @@ def root_explicit_dynamic(
     # make sure of the index of mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():]
     # qddot_root = cas.inv(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()]) @ \
     #              (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
-    qddot_root = cas.solve(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()], cas.MX.eye(nlp.model.nbRoot())) @ \
+    # qddot_root = cas.solve(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()], cas.MX.eye(nlp.model.nbRoot())) @ \
+    #              (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
+    qddot_root = cas.solve(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()], cas.MX.eye(nlp.model.nbRoot()), 'LDL') @ \
                  (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
 
     return qdot, cas.vertcat(qddot_root, qddot_joints)
