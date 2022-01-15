@@ -102,16 +102,16 @@ class MillerOcp:
                 constraints=self.constraints,
                 n_threads=n_threads,
                 variable_mappings=self.mapping,
-                control_type=self.control_type,
+                # control_type=self.control_type,
                 ode_solver=ode_solver,
-                use_sx=True,
+                use_sx=False,
             )
 
     def _set_dynamics(self):
 
         #  if XXX
         self.dynamics.add(
-            DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=self.implicit_dynamics, with_contact=True, phase=0
+            DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=self.implicit_dynamics, with_contact=False, phase=0
         )
         # elif floating base
         # self.dynamics.add(custom_configure, dynamic_function=root_explicit_dynamic)

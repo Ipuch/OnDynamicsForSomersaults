@@ -25,15 +25,18 @@ def main():
 
     miller.ocp.add_plot_penalty(CostType.ALL)
 
-    solv = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
-    solv.set_print_level(5)
-    sol = miller.ocp.solve(solv)
+    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
+    solver.set_maximum_iterations(0)
+    solver.set_print_level(5)
+
+    sol = miller.ocp.solve(solver)
 
     # --- Show results --- #
     print(sol.status)
     # sol.print()
+    sol.graphs()
     sol.animate()
-    sol.graphs(show_bounds=True)
+    sol.animate(nb_frames=-1, show_meshes=False) # show_mesh=True
 
 
 if __name__ == "__main__":

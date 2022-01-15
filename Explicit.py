@@ -55,7 +55,7 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
 
     # Add objective functions
     objective_functions = ObjectiveList()
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=1)  # Regularization
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=5)  # Regularization
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=3, marker_index=6, weight=1000)  # Right hand trajetory
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=7, marker_index=11, weight=1000)  # Left hand trajectory
 
@@ -64,18 +64,25 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
     dynamics.add(DynamicsFcn.TORQUE_DRIVEN) # expand=False
 
     # Initial guesses
-    duration = 1.545  # Real data : 103 * 1/200 * 3
+    duration = 1.545  # Real data : 103 * 1/200 * 3,
     vertical_velocity_0 = 9.2 # Real data
     somerault_rate_0 = 4 * np.pi / duration
-    
+
     x = np.vstack((np.zeros((nb_q, n_shooting + 1)), np.ones((nb_qdot, n_shooting + 1))))
+
     x[2, :] = (
         vertical_velocity_0 * np.linspace(0, duration, n_shooting + 1) + -9.81 / 2 * np.linspace(0, duration, n_shooting + 1) ** 2
     )
     x[3, :] = np.linspace(0, 4 * np.pi, n_shooting + 1)
     x[5, :] = np.linspace(0, 4 * np.pi, n_shooting + 1)
-    x[7, :] = np.random.random((1, n_shooting + 1)) * np.pi - np.pi
-    x[9, :] = np.random.random((1, n_shooting + 1)) * np.pi
+    # x[7, :] = np.random.random((1, n_shooting + 1)) * np.pi/2 - (np.pi - np.pi/4)
+    # x[9, :] = np.random.random((1, n_shooting + 1)) * np.pi/2 + np.pi/4
+
+    x[7, :] = - np.pi/2 + np.pi/4 * np.sin(np.linspace(0, (2*np.pi), n_shooting+1) * duration * 2) \
+              + (np.random.random((1, n_shooting + 1))-0.5) * np.pi / 10
+
+    x[9, :] = np.pi/2 + np.pi/4 * np.sin(np.linspace(0, (2*np.pi), n_shooting+1) * duration * 2) \
+              - (np.random.random((1, n_shooting + 1))-0.5) * np.pi / 10
 
     x[nb_q + 2, :] = vertical_velocity_0 - 9.81 * np.linspace(0, duration, n_shooting + 1)
     x[nb_q + 3, :] = somerault_rate_0
@@ -129,7 +136,7 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
         u_bounds,
         objective_functions,
         constraints,
-        n_threads=4,
+        n_threads=8,
         variable_mappings=mapping,
         ode_solver=ode_solver,
     )
@@ -139,7 +146,7 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
 np.random.seed(0)
 
 solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
-solver.set_maximum_iterations(10000)
+solver.set_maximum_iterations(0)
 ocp = prepare_ocp_explicit("Model_JeCh_10DoFs.bioMod", n_shooting=150, ode_solver=OdeSolver.RK4())
 # solver.set_convergence_tolerance(1e-2)
 # solver.set_acceptable_constr_viol_tol(1e-2)
