@@ -16,7 +16,7 @@ def main():
         duration=duration,
         n_shooting=n_shooting,
         ode_solver=ode_solver,
-        implicit_dynamics=False,
+        implicit_dynamics=True,
         n_threads=n_threads,
         vertical_velocity_0=9.2,
         somersaults=4 * np.pi,
@@ -26,7 +26,7 @@ def main():
     miller.ocp.add_plot_penalty(CostType.ALL)
 
     solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
-    solver.set_maximum_iterations(0)
+    solver.set_maximum_iterations(10000)
     solver.set_print_level(5)
 
     sol = miller.ocp.solve(solver)

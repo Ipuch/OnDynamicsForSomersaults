@@ -187,8 +187,8 @@ class MillerOcp:
     def _set_initial_controls(self, U0: np.array = None):
         if U0 is None:
             if self.implicit_dynamics:
-                self.u_init = InitialGuess([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot
-                                           + [5] * self.biorbd_model.nbContacts())
+                self.u_init = InitialGuess([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
+
             elif self.semi_implicit_dynamics:
                 self.u_init = InitialGuess([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
             else:
@@ -257,10 +257,8 @@ class MillerOcp:
 
         if self.implicit_dynamics:
             self.u_bounds.add(
-                [self.tau_min] * self.n_tau + [self.qddot_min] * self.n_qddot
-                + [self.qddot_min] * self.biorbd_model.nbContacts(),
-                [self.tau_max] * self.n_tau + [self.qddot_max] * self.n_qddot
-                + [self.qddot_max] * self.biorbd_model.nbContacts(),
+                [self.tau_min] * self.n_tau + [self.qddot_min] * self.n_qddot,
+                [self.tau_max] * self.n_tau + [self.qddot_max] * self.n_qddot,
             )
         elif self.semi_implicit_dynamics:
             self.u_bounds.add(
