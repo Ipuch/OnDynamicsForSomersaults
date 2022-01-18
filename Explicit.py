@@ -100,7 +100,7 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
                    -1, -1, vertical_velocity_0 - 2, somerault_rate_0 - 1, 0, 0, 0, 0, 0, 0]
     x_max[:, 0] = [0, 0, 0, 0, 0, 0, 0, -2.8, 0, 2.8,
                    1, 1, vertical_velocity_0 + 2, somerault_rate_0 + 1, 0, 0, 0, 0, 0, 0]
-    x_min[:, 1] = [-3, -3, -0.001, -0.001, -np.pi / 4, np.pi, -1, -np.pi + 0.01, -1.27, 0.01,
+    x_min[:, 1] = [-3, -3, -0.001, -0.001, -np.pi / 4, -np.pi, -1, -np.pi + 0.01, -1.27, 0.01,
                    -100, -100, -100, -100, -100, -100, -100, -100, -100, -100]
     x_max[:, 1] = [3, 3, 10, 4 * np.pi + 0.1, np.pi / 4, 6 * np.pi + 0.1, 1.27, -0.01, 1, np.pi - 0.01,
                    100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
@@ -146,7 +146,7 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
 np.random.seed(0)
 
 solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
-solver.set_maximum_iterations(0)
+solver.set_maximum_iterations(10000)
 ocp = prepare_ocp_explicit("Model_JeCh_10DoFs.bioMod", n_shooting=150, ode_solver=OdeSolver.RK4())
 # solver.set_convergence_tolerance(1e-2)
 # solver.set_acceptable_constr_viol_tol(1e-2)
