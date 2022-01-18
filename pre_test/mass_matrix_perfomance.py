@@ -21,6 +21,9 @@ M_inv_solv_func = Function("M_inv_solv", [q], [M_inv_solv])
 M_inv_ldl = solve(M[:m.nbRoot(), :m.nbRoot()], MX.eye(m.nbRoot()), 'ldl')
 M_inv_ldl_func = Function("M_inv_ldl", [q], [M_inv_ldl])
 
+M_inv_qr = solve(M[:m.nbRoot(), :m.nbRoot()], MX.eye(m.nbRoot()), 'qr')
+M_inv_qr_func = Function("M_inv_qr", [q], [M_inv_qr])  # it still doesnt work with expand
+
 np.random.seed(0)
 Q = np.random.random((m.nbQ(), 10000))
 
@@ -42,6 +45,13 @@ print("solve LDL")
 tic = time.time()
 for qi in Q.T:
     M_inv_ldl_func(qi)
+toc = time.time() - tic
+print(toc)
+
+print("solve QR")
+tic = time.time()
+for qi in Q.T:
+    M_inv_qr_func(qi)
 toc = time.time() - tic
 print(toc)
 
