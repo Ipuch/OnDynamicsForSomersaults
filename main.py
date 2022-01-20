@@ -21,7 +21,7 @@ def main():
         n_threads=n_threads,
         vertical_velocity_0=9.2,
         somersaults=4 * np.pi,
-        twists=4 * np.pi,
+        twists=6 * np.pi,
     )
 
     miller.ocp.add_plot_penalty(CostType.ALL)
@@ -40,7 +40,7 @@ def main():
     sol.graphs()
     sol.animate()
     sol.animate(nb_frames=-1, show_meshes=False) # show_mesh=True
-
+    # ma57
 
 if __name__ == "__main__":
     main()

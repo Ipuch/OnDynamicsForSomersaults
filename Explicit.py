@@ -55,7 +55,7 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
 
     # Add objective functions
     objective_functions = ObjectiveList()
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=5)  # Regularization
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=1)  # Regularization
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=3, marker_index=6, weight=1000)  # Right hand trajetory
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=7, marker_index=11, weight=1000)  # Left hand trajectory
 
@@ -75,14 +75,8 @@ def prepare_ocp_explicit(biorbd_model_path: str, n_shooting: int, ode_solver: So
     )
     x[3, :] = np.linspace(0, 4 * np.pi, n_shooting + 1)
     x[5, :] = np.linspace(0, 4 * np.pi, n_shooting + 1)
-    # x[7, :] = np.random.random((1, n_shooting + 1)) * np.pi/2 - (np.pi - np.pi/4)
-    # x[9, :] = np.random.random((1, n_shooting + 1)) * np.pi/2 + np.pi/4
-
-    x[7, :] = - np.pi/2 + np.pi/4 * np.sin(np.linspace(0, (2*np.pi), n_shooting+1) * duration * 2) \
-              + (np.random.random((1, n_shooting + 1))-0.5) * np.pi / 10
-
-    x[9, :] = np.pi/2 + np.pi/4 * np.sin(np.linspace(0, (2*np.pi), n_shooting+1) * duration * 2) \
-              - (np.random.random((1, n_shooting + 1))-0.5) * np.pi / 10
+    x[7, :] = np.random.random((1, n_shooting + 1)) * np.pi/2 - (np.pi - np.pi/4)
+    x[9, :] = np.random.random((1, n_shooting + 1)) * np.pi/2 + np.pi/4
 
     x[nb_q + 2, :] = vertical_velocity_0 - 9.81 * np.linspace(0, duration, n_shooting + 1)
     x[nb_q + 3, :] = somerault_rate_0

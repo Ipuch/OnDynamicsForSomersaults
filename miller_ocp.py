@@ -27,11 +27,11 @@ class MillerOcp:
     def __init__(
             self,
             biorbd_model_path: str = None,
-            n_shooting: int = 100,
+            n_shooting: int = 150,
             duration: float = 1.545,
             n_threads: int = 8,
             control_type: ControlType = ControlType.CONSTANT,
-            ode_solver: OdeSolver = OdeSolver.COLLOCATION(),
+            ode_solver: OdeSolver = OdeSolver.RK4(), # OdeSolver.COLLOCATION(),
             implicit_dynamics: bool = False,
             semi_implicit_dynamics: bool = False,
             vertical_velocity_0=9.2,  # Real data
@@ -119,7 +119,7 @@ class MillerOcp:
     def _set_objective_functions(self):
         # --- Objective function --- #
         self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=5)  # Regularization
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=1)  # Regularization
         self.objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=3, marker_index=6,
             weight=1000)  # Right hand trajetory
@@ -130,7 +130,7 @@ class MillerOcp:
     def _set_constraints(self):
         # --- Constraints --- #
         # Set time as a variable
-        slack_duration = 0.5
+        slack_duration = 0.5 ###################################################################
         self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
                              node=Node.END,
                              min_bound=self.duration - slack_duration,
@@ -140,6 +140,7 @@ class MillerOcp:
         # --- Initial guess --- #
         # Initialize state vector
         self.x = np.zeros((self.n_q + self.n_qdot, self.n_shooting + 1))
+
         # data points
         data_point = np.linspace(0, self.duration, self.n_shooting + 1)
 
@@ -151,13 +152,8 @@ class MillerOcp:
         self.x[5, :] = np.linspace(0, self.twists, self.n_shooting + 1)
 
         # Handle second DoF of arms with Noise.
-        noise = np.random.random((1, self.n_shooting + 1))
-        # self.xx[7, :] = noise * np.pi/2 - (np.pi - np.pi/4)
-        # self.xx[9, :] = noise * np.pi/2 + np.pi/4
-        self.x[7, :] = - np.pi / 2 + np.pi / 4 * np.sin(np.linspace(0, (2 * np.pi), self.n_shooting + 1) * self.duration * 2) \
-                  + (noise - 0.5) * np.pi / 10
-        self.x[9, :] = np.pi / 2 + np.pi / 4 * np.sin(np.linspace(0, (2 * np.pi), self.n_shooting + 1) * self.duration * 2) \
-                  - (noise - 0.5) * np.pi / 10
+        self.x[7, :] = np.random.random((1, self.n_shooting + 1)) * np.pi/2 - (np.pi - np.pi/4)
+        self.x[9, :] = np.random.random((1, self.n_shooting + 1)) * np.pi/2 + np.pi/4
 
         # velocity on Y
         self.x[self.n_q + 2, :] = self.vertical_velocity_0 - 9.81 * data_point
@@ -177,26 +173,26 @@ class MillerOcp:
                 X0 = self._interpolate_initial_states(X0)
 
             if self.ode_solver.is_direct_shooting:
-                self.x_init = InitialGuess(X0, interpolation=InterpolationType.EACH_FRAME)
+                self.x_init = self.x_init.add(X0, interpolation=InterpolationType.EACH_FRAME)
             else:
                 n = self.ode_solver.polynomial_degree
                 X0 = np.repeat(X0, n + 1, axis=1)
                 X0 = X0[:, :-n]
-                self.x_init = InitialGuess(X0, interpolation=InterpolationType.EACH_FRAME)
+                self.x_init = self.x_init.add(X0, interpolation=InterpolationType.EACH_FRAME)
 
     def _set_initial_controls(self, U0: np.array = None):
         if U0 is None:
             if self.implicit_dynamics:
-                self.u_init = InitialGuess([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
+                self.u_init = self.u_init.add([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
 
             elif self.semi_implicit_dynamics:
-                self.u_init = InitialGuess([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
+                self.u_init = self.u_init.add([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
             else:
-                self.u_init = InitialGuess([self.tau_init] * self.n_tau)
+                self.u_init = self.u_init.add([self.tau_init] * self.n_tau)
         else:
             if U0.shape[1] != self.n_shooting:
                 U0 = self._interpolate_initial_controls(U0)
-            self.u_init = InitialGuess(U0, interpolation=InterpolationType.EACH_FRAME)
+            self.u_init = self.u_init.add(U0, interpolation=InterpolationType.EACH_FRAME)
 
     def _set_boundary_conditions(self):
         self.x_bounds = BoundsList()
@@ -208,16 +204,17 @@ class MillerOcp:
         initial_arm_elevation = 2.8
         arm_rotation_z_upp = np.pi/2
         arm_rotation_z_low = 1
-        arm_elevation_y_upp = np.pi
+        arm_elevation_y_low = 0.01
+        arm_elevation_y_upp = np.pi - 0.01
 
         slack_initial_vertical_velocity = 2
         slack_initial_somersault_rate = 1
 
-        slack_somersault = 0.1
-        slack_twist = 0.1
+        slack_somersault = 0.5
+        slack_twist = 0.5
 
-        slack_final_somersault = 0.1
-        slack_final_twist = 0.1
+        slack_final_somersault = np.pi / 24  # 7.5 degrees
+        slack_final_twist = np.pi / 24  # 7.5 degrees
 
         x_min = np.zeros((self.n_q + self.n_qdot, 3))
         x_max = np.zeros((self.n_q + self.n_qdot, 3))
@@ -227,28 +224,28 @@ class MillerOcp:
                                self.somersault_rate_0 - slack_initial_somersault_rate, 0, 0, 0, 0, 0, 0]
 
         x_max[:self.n_q, 0] = [0, 0, 0, 0, 0, 0, 0, -initial_arm_elevation, 0, initial_arm_elevation]
-        x_max[self.n_q:, 0] = [-1, -1, self.vertical_velocity_0 + slack_initial_vertical_velocity,
+        x_max[self.n_q:, 0] = [1, 1, self.vertical_velocity_0 + slack_initial_vertical_velocity,
                                self.somersault_rate_0 + slack_initial_somersault_rate, 0, 0, 0, 0, 0, 0]
 
-        x_min[:self.n_q, 1] = [-3, -3, -0.001, -0.001, -tilt_bound, -0.001,
+        x_min[:self.n_q, 1] = [-3, -3, -0.001, -0.001, -tilt_bound, -0.001, # -np.pi
                                -arm_rotation_z_low, -arm_elevation_y_upp,
-                               -arm_rotation_z_upp, 0]
+                               -arm_rotation_z_upp, arm_elevation_y_low]
         x_min[self.n_q:, 1] = - velocity_max
 
         x_max[:self.n_q, 1] = [3, 3, 10, self.somersaults + slack_somersault, tilt_bound, self.twists + slack_twist,
-                               arm_rotation_z_upp, 0,
+                               arm_rotation_z_upp, -arm_elevation_y_low,
                                arm_rotation_z_low, arm_elevation_y_upp]
         x_max[self.n_q:, 1] = + velocity_max
 
         x_min[:self.n_q, 2] = [-0.1, -0.1, -0.1,
                                self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_final_twist,
                                -arm_rotation_z_low, -arm_elevation_y_upp,
-                               -arm_rotation_z_upp, 0]
+                               -arm_rotation_z_upp, arm_elevation_y_low]
         x_min[self.n_q:, 2] = - velocity_max
 
         x_max[:self.n_q, 2] = [0.1, 0.1, 0.1,
                                self.somersaults + slack_final_somersault, tilt_final_bound, self.twists + slack_final_twist,
-                               arm_rotation_z_upp, 0,
+                               arm_rotation_z_upp, -arm_elevation_y_low,
                                arm_rotation_z_low, arm_elevation_y_upp]
         x_max[self.n_q:, 2] = + velocity_max
 
