@@ -1,9 +1,50 @@
+
 import os, shutil
 from Comparison import ComparisonAnalysis, ComparisonParameters
 import pickle
-from humanoid_2d import Humanoid2D
-from humanoid_ocp import HumanoidOcp
-from bioptim import Solver, OdeSolver
+import numpy as np
+from multiprocessing import Pool
+from datetime import date
+import smtplib, ssl
+
+# calls = []
+# pwd = getpass.getpass()
+# for a in range(-5, 6, 2):
+#     for b in range(-5, 6, 2):
+#         for c in range(-5, 6, 2):
+#             for d in range(-5, 6, 2):
+#                 calls.append([a / 10, b / 10, c / 10, d / 10, pwd])
+
+n_threads = 4
+
+
+Date = date.today()
+Date = Date.strftime("%d-%m-%y")
+f = open(f"Historique_{Date}.txt", "w+")
+f.write(" Debut ici \n\n\n")
+f.close()
+
+
+calls = []
+for weight in Weight_choices:
+    for i_salto in range(len(Salto_1)):
+        Salto1 = Salto_1[i_salto]
+        Salto2 = Salto_2[i_salto]
+        for i_rand in range(100):
+            calls.append([Date, weight, Salto1, Salto2, i_rand, n_threads])
+
+with Pool(2) as p:
+    p.map(Trampo_Sauteur_multiStart.main, calls)
+
+port = 465  # For SSL
+context = ssl.create_default_context()
+with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
+    server.login("evidoux@gmail.com", "Josee9596")
+    server.sendmail("evidoux@gmail.com", "evidoux@gmail.com", " * * * fini! * * * :D")
+
+
+
+
 
 
 nstep = 1
@@ -33,30 +74,6 @@ n_shooting = [10, 20]
 implicit_dynamics = [False, True]
 
 
-def delete_files(folder: str):
-    for filename in os.listdir(folder):
-        file_path = os.path.join(folder, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception as e:
-            print("Failed to delete %s. Reason: %s" % (file_path, e))
-
-
-def define_res_path(name: str):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    out_path = dir_path + "/" + name
-    if out_path not in [x[0] for x in os.walk(dir_path)]:
-        os.mkdir(out_path)
-    else:
-        print(f"deleting all files in {out_path}")
-        delete_files(out_path)
-    return out_path
-
-
-def main():
     model_path = Humanoid2D.HUMANOID_4DOF
     out_path = define_res_path(model_path.name)
 
