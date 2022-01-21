@@ -1,6 +1,8 @@
 import biorbd_casadi as biorbd
 import numpy as np
 from scipy import interpolate
+from typing import Union
+import casadi as cas
 from bioptim import (
     OdeSolver,
     Node,
@@ -20,7 +22,70 @@ from bioptim import (
     InterpolationType,
     PhaseTransitionList,
     BiMappingList,
+    NonLinearProgram,
+    ConfigureProblem,
+    DynamicsFunctions,
 )
+
+
+def root_explicit_dynamic(
+    states: Union[cas.MX, cas.SX],
+    controls: Union[cas.MX, cas.SX],
+    parameters: Union[cas.MX, cas.SX],
+    nlp: NonLinearProgram,
+) -> tuple:
+    """
+    Parameters
+    ----------
+    states: Union[MX, SX]
+        The state of the system
+    controls: Union[MX, SX]
+        The controls of the system
+    parameters: Union[MX, SX]
+        The parameters acting on the system
+    nlp: NonLinearProgram
+        A reference to the phase
+
+    Returns
+    -------
+    The derivative of the states in the tuple[Union[MX, SX]] format
+    """
+
+    DynamicsFunctions.apply_parameters(parameters, nlp)
+    q = DynamicsFunctions.get(nlp.states["q"], states)
+    qdot = DynamicsFunctions.get(nlp.states["qdot"], states)
+    qddot_joints = DynamicsFunctions.get(nlp.controls["qddot"], controls)[nlp.model.nbRoot():]
+
+    mass_matrix = nlp.model.massMatrix(q).to_mx()
+    nl_effects = nlp.model.NonLinearEffect(q, qdot).to_mx()
+    # make sure of the index of mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():]
+    # qddot_root = cas.inv(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()]) @ \
+    #              (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
+    # qddot_root = cas.solve(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()], cas.MX.eye(nlp.model.nbRoot())) @ \
+    #              (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
+    qddot_root = cas.solve(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()], cas.MX.eye(nlp.model.nbRoot()), 'ldl') @ \
+                 (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
+
+    return qdot, cas.vertcat(qddot_root, qddot_joints)
+
+
+def custom_configure_root_explicit(ocp: OptimalControlProgram, nlp: NonLinearProgram):
+    """
+    Tell the program which variables are states and controls.
+    The user is expected to use the ConfigureProblem.configure_xxx functions.
+
+    Parameters
+    ----------
+    ocp: OptimalControlProgram
+        A reference to the ocp
+    nlp: NonLinearProgram
+        A reference to the phase
+    """
+
+    ConfigureProblem.configure_q(nlp, as_states=True, as_controls=False)
+    ConfigureProblem.configure_qdot(nlp, as_states=True, as_controls=False)
+    ConfigureProblem.configure_qddot(nlp, as_states=False, as_controls=True)
+    ConfigureProblem.configure_dynamics_function(ocp, nlp, root_explicit_dynamic)
 
 
 class MillerOcp:
@@ -30,13 +95,12 @@ class MillerOcp:
             n_shooting: int = 150,
             duration: float = 1.545,
             n_threads: int = 8,
-            control_type: ControlType = ControlType.CONSTANT,
-            ode_solver: OdeSolver = OdeSolver.RK4(), # OdeSolver.COLLOCATION(),
-            implicit_dynamics: bool = False,
-            semi_implicit_dynamics: bool = False,
-            vertical_velocity_0=9.2,  # Real data
-            somersaults=4 * np.pi,
-            twists=4 * np.pi,
+            control_type: ControlType = ControlType.CONSTANT,  # Je vois que c'est une option, mais je crois qu'il ne faut pas changer ca
+            ode_solver: OdeSolver = OdeSolver.RK4(),  # OdeSolver.COLLOCATION(),
+            dynamics_type: str = "explicit",
+            vertical_velocity_0: float = 9.2,  # Real data
+            somersaults: float = 4 * np.pi,
+            twists: float = 4 * np.pi,
     ):
         self.biorbd_model_path = biorbd_model_path
         self.n_shooting = n_shooting
@@ -44,8 +108,7 @@ class MillerOcp:
         self.n_threads = n_threads
         self.control_type = control_type
         self.ode_solver = ode_solver
-        self.implicit_dynamics = implicit_dynamics
-        self.semi_implicit_dynamics = semi_implicit_dynamics
+        self.dynamics_type = dynamics_type
 
         self.vertical_velocity_0 = vertical_velocity_0
         self.somersaults = somersaults
@@ -57,14 +120,14 @@ class MillerOcp:
 
             self.n_q = self.biorbd_model.nbQ()
             self.n_qdot = self.biorbd_model.nbQdot()
-            self.n_qddot = self.biorbd_model.nbQddot()
+            self.n_qddot = self.biorbd_model.nbQddot() - self.biorbd_model.nbRoot()
             self.n_tau = self.biorbd_model.nbGeneralizedTorque() - self.biorbd_model.nbRoot()
 
             self.tau_min, self.tau_init, self.tau_max = -200, 0, 200
             self.qddot_min, self.qddot_init, self.qddot_max = -1000, 0, 1000
 
-            self.implicit_dynamics = implicit_dynamics
-            self.mod = 2 if self.implicit_dynamics else 1
+            self.dynamics_type = dynamics_type
+            self.mod = 2 if dynamics_type=="implicit" or dynamics_type=="root_implicit" else 1  # j'imagine que root_implicit aussi
 
             self.dynamics = DynamicsList()
             self.constraints = ConstraintList()
@@ -75,6 +138,7 @@ class MillerOcp:
             self.initial_states = []
             self.x_init = InitialGuessList()
             self.u_init = InitialGuessList()
+            self.mapping = BiMappingList()
 
             self.control_type = control_type
             self.control_nodes = Node.ALL if self.control_type == ControlType.LINEAR_CONTINUOUS else Node.ALL_SHOOTING
@@ -86,8 +150,7 @@ class MillerOcp:
             self._set_boundary_conditions()
             self._set_initial_guesses()
 
-            self.mapping = BiMappingList()
-            self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
+            self._set_mapping()
 
             self.ocp = OptimalControlProgram(
                 self.biorbd_model,
@@ -102,19 +165,22 @@ class MillerOcp:
                 constraints=self.constraints,
                 n_threads=n_threads,
                 variable_mappings=self.mapping,
-                # control_type=self.control_type,
+                control_type=self.control_type,
                 ode_solver=ode_solver,
                 use_sx=False,
             )
 
     def _set_dynamics(self):
-
-        #  if XXX
-        self.dynamics.add(
-            DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=self.implicit_dynamics, with_contact=False, phase=0
-        )
-        # elif floating base
-        # self.dynamics.add(custom_configure, dynamic_function=root_explicit_dynamic)
+        if self.dynamics_type == "explicit":
+            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=False)
+        elif self.dynamics_type == "root_explicit":
+            self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, expand=False)
+        elif self.dynamics_type == "implicit":
+            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False)
+        elif self.dynamics_type == "root_implicit":
+            raise ValueError("to be implemented")
+        else:
+            raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 
     def _set_objective_functions(self):
         # --- Objective function --- #
@@ -167,32 +233,35 @@ class MillerOcp:
 
     def _set_initial_states(self, X0: np.array = None):
         if X0 is None:
-            self.x_init = InitialGuess([0] * (self.n_q + self.n_q))
+            self.x_init.add([0] * (self.n_q + self.n_q))
         else:
             if X0.shape[1] != self.n_shooting + 1:
                 X0 = self._interpolate_initial_states(X0)
 
             if self.ode_solver.is_direct_shooting:
-                self.x_init = self.x_init.add(X0, interpolation=InterpolationType.EACH_FRAME)
+                self.x_init.add(X0, interpolation=InterpolationType.EACH_FRAME)
             else:
                 n = self.ode_solver.polynomial_degree
                 X0 = np.repeat(X0, n + 1, axis=1)
                 X0 = X0[:, :-n]
-                self.x_init = self.x_init.add(X0, interpolation=InterpolationType.EACH_FRAME)
+                self.x_init.add(X0, interpolation=InterpolationType.EACH_FRAME)
 
     def _set_initial_controls(self, U0: np.array = None):
         if U0 is None:
-            if self.implicit_dynamics:
-                self.u_init = self.u_init.add([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
-
-            elif self.semi_implicit_dynamics:
-                self.u_init = self.u_init.add([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
+            if self.dynamics_type == "explicit":
+                self.u_init.add([self.tau_init] * self.n_tau)
+            elif self.dynamics_type == "root_explicit":
+                self.u_init.add([self.qddot_init] * self.n_qddot)
+            elif self.dynamics_type == "implicit":
+                self.u_init.add([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
+            elif self.dynamics_type == "root_implicit":
+                self.u_init.add([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
             else:
-                self.u_init = self.u_init.add([self.tau_init] * self.n_tau)
+                raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
         else:
             if U0.shape[1] != self.n_shooting:
                 U0 = self._interpolate_initial_controls(U0)
-            self.u_init = self.u_init.add(U0, interpolation=InterpolationType.EACH_FRAME)
+            self.u_init.add(U0, interpolation=InterpolationType.EACH_FRAME)
 
     def _set_boundary_conditions(self):
         self.x_bounds = BoundsList()
@@ -252,18 +321,22 @@ class MillerOcp:
         self.x_bounds.add(
             bounds=Bounds(x_min, x_max, interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT))
 
-        if self.implicit_dynamics:
+        if self.dynamics_type == "explicit":
+            self.u_bounds.add([self.tau_min] * self.n_tau, [self.tau_max] * self.n_tau)
+        elif self.dynamics_type == "root_explicit":
+            self.u_bounds.add([self.qddot_min] * self.n_qddot, [self.qddot_max] * self.n_qddot)
+        elif self.dynamics_type == "implicit":
             self.u_bounds.add(
                 [self.tau_min] * self.n_tau + [self.qddot_min] * self.n_qddot,
                 [self.tau_max] * self.n_tau + [self.qddot_max] * self.n_qddot,
             )
-        elif self.semi_implicit_dynamics:
+        elif self.dynamics_type == "root_implicit":
             self.u_bounds.add(
                 [self.tau_min] * self.n_tau + [self.qddot_min] * self.n_qddot,
                 [self.tau_max] * self.n_tau + [self.qddot_max] * self.n_qddot,
             )
         else:
-            self.u_bounds.add([self.tau_min] * self.n_tau, [self.tau_max] * self.n_tau)
+            raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 
     def _interpolate_initial_states(self, X0: np.array):
         print("interpolating initial states to match the number of shooting nodes")
@@ -283,3 +356,19 @@ class MillerOcp:
         y_new = f(x_new)  # use interpolation function returned by `interp1d`
         return y_new
 
+    def _set_mapping(self):
+        if self.dynamics_type == "explicit":
+            self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
+        elif self.dynamics_type == "root_explicit":
+            self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
+        elif self.dynamics_type == "implicit":
+            raise ValueError("to be implemented")
+        elif self.dynamics_type == "root_implicit":
+            raise ValueError("to be implemented")
+        # elif self.dynamics_type == "implicit":
+        #     self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
+        # elif self.dynamics_type == "root_implicit":
+        #     self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
+        #     self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
+        else:
+            raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")

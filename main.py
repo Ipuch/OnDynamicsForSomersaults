@@ -10,19 +10,21 @@ def main():
     duration = 1.545
     n_threads = 8
     model_path = "Model_JeCh_10DoFs.bioMod"
+    dynamics_type = "implicit"  # "explicit"  # "implicit"  # "root_explicit"  # "root_implicit"
+
     # --- Solve the program --- #
     miller = MillerOcp(
         biorbd_model_path=model_path,
         duration=duration,
         n_shooting=n_shooting,
         ode_solver=ode_solver,
-        implicit_dynamics=False,
-        semi_implicit_dynamics=False,
+        dynamics_type=dynamics_type,
         n_threads=n_threads,
         vertical_velocity_0=9.2,
         somersaults=4 * np.pi,
         twists=6 * np.pi,
     )
+
 
     miller.ocp.add_plot_penalty(CostType.ALL)
 
