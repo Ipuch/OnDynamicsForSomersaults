@@ -117,17 +117,18 @@ class MillerOcp:
 
         if biorbd_model_path is not None:
             self.biorbd_model = biorbd.Model(biorbd_model_path)
+            self.dynamics_type = dynamics_type
 
             self.n_q = self.biorbd_model.nbQ()
             self.n_qdot = self.biorbd_model.nbQdot()
-            self.n_qddot = self.biorbd_model.nbQddot() - self.biorbd_model.nbRoot()
+            if self.dynamics_type == "implicit":
+                self.n_qddot = self.biorbd_model.nbQddot()
+            else:
+                self.n_qddot = self.biorbd_model.nbQddot() - self.biorbd_model.nbRoot()
             self.n_tau = self.biorbd_model.nbGeneralizedTorque() - self.biorbd_model.nbRoot()
 
             self.tau_min, self.tau_init, self.tau_max = -200, 0, 200
             self.qddot_min, self.qddot_init, self.qddot_max = -1000, 0, 1000
-
-            self.dynamics_type = dynamics_type
-            self.mod = 2 if dynamics_type=="implicit" or dynamics_type=="root_implicit" else 1  # j'imagine que root_implicit aussi
 
             self.dynamics = DynamicsList()
             self.constraints = ConstraintList()
@@ -176,9 +177,9 @@ class MillerOcp:
         elif self.dynamics_type == "root_explicit":
             self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, expand=False)
         elif self.dynamics_type == "implicit":
-            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False)
+            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False, phase=0)
         elif self.dynamics_type == "root_implicit":
-            raise ValueError("to be implemented")
+            self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, implicit_dynamics=True, expand=False)
         else:
             raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 
@@ -362,13 +363,8 @@ class MillerOcp:
         elif self.dynamics_type == "root_explicit":
             self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
         elif self.dynamics_type == "implicit":
-            raise ValueError("to be implemented")
+            self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
         elif self.dynamics_type == "root_implicit":
-            raise ValueError("to be implemented")
-        # elif self.dynamics_type == "implicit":
-        #     self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
-        # elif self.dynamics_type == "root_implicit":
-        #     self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
-        #     self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
+            self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
         else:
             raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
