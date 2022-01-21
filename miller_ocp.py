@@ -27,65 +27,9 @@ from bioptim import (
     DynamicsFunctions,
 )
 
+from custom_dynamics.root_explicit import root_explicit_dynamic, custom_configure_root_explicit
+from custom_dynamics.root_implicit import root_implicit_dynamic, custom_configure_root_implicit
 
-def root_explicit_dynamic(
-    states: Union[cas.MX, cas.SX],
-    controls: Union[cas.MX, cas.SX],
-    parameters: Union[cas.MX, cas.SX],
-    nlp: NonLinearProgram,
-) -> tuple:
-    """
-    Parameters
-    ----------
-    states: Union[MX, SX]
-        The state of the system
-    controls: Union[MX, SX]
-        The controls of the system
-    parameters: Union[MX, SX]
-        The parameters acting on the system
-    nlp: NonLinearProgram
-        A reference to the phase
-
-    Returns
-    -------
-    The derivative of the states in the tuple[Union[MX, SX]] format
-    """
-
-    DynamicsFunctions.apply_parameters(parameters, nlp)
-    q = DynamicsFunctions.get(nlp.states["q"], states)
-    qdot = DynamicsFunctions.get(nlp.states["qdot"], states)
-    qddot_joints = DynamicsFunctions.get(nlp.controls["qddot"], controls)[nlp.model.nbRoot():]
-
-    mass_matrix = nlp.model.massMatrix(q).to_mx()
-    nl_effects = nlp.model.NonLinearEffect(q, qdot).to_mx()
-    # make sure of the index of mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():]
-    # qddot_root = cas.inv(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()]) @ \
-    #              (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
-    # qddot_root = cas.solve(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()], cas.MX.eye(nlp.model.nbRoot())) @ \
-    #              (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
-    qddot_root = cas.solve(mass_matrix[:nlp.model.nbRoot(), :nlp.model.nbRoot()], cas.MX.eye(nlp.model.nbRoot()), 'ldl') @ \
-                 (-mass_matrix[:nlp.model.nbRoot(), nlp.model.nbRoot():] @ qddot_joints - nl_effects[:nlp.model.nbRoot()])
-
-    return qdot, cas.vertcat(qddot_root, qddot_joints)
-
-
-def custom_configure_root_explicit(ocp: OptimalControlProgram, nlp: NonLinearProgram):
-    """
-    Tell the program which variables are states and controls.
-    The user is expected to use the ConfigureProblem.configure_xxx functions.
-
-    Parameters
-    ----------
-    ocp: OptimalControlProgram
-        A reference to the ocp
-    nlp: NonLinearProgram
-        A reference to the phase
-    """
-
-    ConfigureProblem.configure_q(nlp, as_states=True, as_controls=False)
-    ConfigureProblem.configure_qdot(nlp, as_states=True, as_controls=False)
-    ConfigureProblem.configure_qddot(nlp, as_states=False, as_controls=True)
-    ConfigureProblem.configure_dynamics_function(ocp, nlp, root_explicit_dynamic)
 
 
 class MillerOcp:
@@ -256,7 +200,7 @@ class MillerOcp:
             elif self.dynamics_type == "implicit":
                 self.u_init.add([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
             elif self.dynamics_type == "root_implicit":
-                self.u_init.add([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
+                self.u_init.add([self.qddot_init] * self.n_qddot)
             else:
                 raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
         else:
@@ -332,10 +276,7 @@ class MillerOcp:
                 [self.tau_max] * self.n_tau + [self.qddot_max] * self.n_qddot,
             )
         elif self.dynamics_type == "root_implicit":
-            self.u_bounds.add(
-                [self.tau_min] * self.n_tau + [self.qddot_min] * self.n_qddot,
-                [self.tau_max] * self.n_tau + [self.qddot_max] * self.n_qddot,
-            )
+            self.u_bounds.add([self.qddot_min] * self.n_qddot, [self.qddot_max] * self.n_qddot)
         else:
             raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 

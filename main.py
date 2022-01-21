@@ -10,7 +10,7 @@ def main():
     duration = 1.545
     n_threads = 8
     model_path = "Model_JeCh_10DoFs.bioMod"
-    dynamics_type = "implicit"  # "explicit"  # "implicit"  # "root_explicit"  # "root_implicit"
+    dynamics_type = "root_explicit" #"implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
 
     # --- Solve the program --- #
     miller = MillerOcp(
@@ -38,7 +38,7 @@ def main():
 
     # --- Show results --- #
     print(sol.status)
-    # sol.print()
+    sol.print()
     sol.graphs()
     sol.animate()
     sol.animate(nb_frames=-1, show_meshes=False) # show_mesh=True
