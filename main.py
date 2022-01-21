@@ -11,7 +11,7 @@ def main():
     n_threads = 8
     model_path = "Model_JeCh_10DoFs.bioMod"
     dynamics_type = "root_explicit" #"implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
-
+    # mettre une contrainte
     # --- Solve the program --- #
     miller = MillerOcp(
         biorbd_model_path=model_path,
@@ -24,7 +24,6 @@ def main():
         somersaults=4 * np.pi,
         twists=6 * np.pi,
     )
-
 
     miller.ocp.add_plot_penalty(CostType.ALL)
 
@@ -39,9 +38,9 @@ def main():
     # --- Show results --- #
     print(sol.status)
     sol.print()
-    sol.graphs()
-    sol.animate()
-    sol.animate(nb_frames=-1, show_meshes=False) # show_mesh=True
+    # sol.graphs()
+    # sol.animate()
+    sol.animate(nb_frames=-1, show_meshes=True) # show_mesh=True
     # ma57
 
 if __name__ == "__main__":

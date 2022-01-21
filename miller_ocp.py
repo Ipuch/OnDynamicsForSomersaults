@@ -123,7 +123,7 @@ class MillerOcp:
         elif self.dynamics_type == "implicit":
             self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False, phase=0)
         elif self.dynamics_type == "root_implicit":
-            self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, implicit_dynamics=True, expand=False)
+            self.dynamics.add(custom_configure_root_implicit, dynamic_function=root_implicit_dynamic, expand=False)
         else:
             raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 
@@ -146,6 +146,11 @@ class MillerOcp:
                              node=Node.END,
                              min_bound=self.duration - slack_duration,
                              max_bound=self.duration + slack_duration)
+
+        if self.dynamics_type == "root_explicit":
+            # not helping that much to look better.
+            # acceleration at zero for twist and tilt for the first frame.
+            self.constraints.add(ConstraintFcn.TRACK_STATE, key="qdot", derivative=True, index=[5, 6], node=Node.START)
 
     def _set_initial_guesses(self):
         # --- Initial guess --- #
@@ -269,7 +274,13 @@ class MillerOcp:
         if self.dynamics_type == "explicit":
             self.u_bounds.add([self.tau_min] * self.n_tau, [self.tau_max] * self.n_tau)
         elif self.dynamics_type == "root_explicit":
-            self.u_bounds.add([self.qddot_min] * self.n_qddot, [self.qddot_max] * self.n_qddot)
+            u_min = np.ones((self.n_qddot, 3)) * self.qddot_min
+            u_max = np.ones((self.n_qddot, 3)) * self.qddot_max
+            u_min[4:6, 0] = 0 # no acceleration in tilt and twist at for the first frame.
+            u_max[4:6, 0] = 0
+            self.u_bounds.add(bounds=Bounds(u_min, u_max,
+                                            interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT))
+            # self.u_bounds.add([self.qddot_min] * self.n_qddot, [self.qddot_max] * self.n_qddot)
         elif self.dynamics_type == "implicit":
             self.u_bounds.add(
                 [self.tau_min] * self.n_tau + [self.qddot_min] * self.n_qddot,
