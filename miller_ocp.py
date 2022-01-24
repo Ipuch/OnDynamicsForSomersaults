@@ -36,21 +36,19 @@ class MillerOcp:
     def __init__(
             self,
             biorbd_model_path: str = None,
-            n_shooting: int = 150,
+            n_shooting: tuple = (125, 25),
             duration: float = 1.545,
             n_threads: int = 8,
-            control_type: ControlType = ControlType.CONSTANT,  # Je vois que c'est une option, mais je crois qu'il ne faut pas changer ca
-            ode_solver: OdeSolver = OdeSolver.RK4(),  # OdeSolver.COLLOCATION(),
+            ode_solver: OdeSolver = OdeSolver.RK4(),
             dynamics_type: str = "explicit",
             vertical_velocity_0: float = 9.2,  # Real data
             somersaults: float = 4 * np.pi,
-            twists: float = 4 * np.pi,
+            twists: float = 6 * np.pi,
     ):
-        self.biorbd_model_path = biorbd_model_path
+        self.biorbd_model_path = (biorbd.Model(biorbd_model_path), biorbd.Model(biorbd_model_path))
         self.n_shooting = n_shooting
         self.duration = duration
         self.n_threads = n_threads
-        self.control_type = control_type
         self.ode_solver = ode_solver
         self.dynamics_type = dynamics_type
 
@@ -85,9 +83,6 @@ class MillerOcp:
             self.u_init = InitialGuessList()
             self.mapping = BiMappingList()
 
-            self.control_type = control_type
-            self.control_nodes = Node.ALL if self.control_type == ControlType.LINEAR_CONTINUOUS else Node.ALL_SHOOTING
-
             self._set_dynamics()
             self._set_constraints()
             self._set_objective_functions()
@@ -101,7 +96,7 @@ class MillerOcp:
                 self.biorbd_model,
                 self.dynamics,
                 self.n_shooting,
-                self.duration,
+                (7/8*self.duration, 1/8*self.duration),
                 x_init=self.x_init,
                 x_bounds=self.x_bounds,
                 u_init=self.u_init,
@@ -110,7 +105,7 @@ class MillerOcp:
                 constraints=self.constraints,
                 n_threads=n_threads,
                 variable_mappings=self.mapping,
-                control_type=self.control_type,
+                control_type=ControlType.CONSTANT,
                 ode_solver=ode_solver,
                 use_sx=False,
             )
@@ -118,11 +113,15 @@ class MillerOcp:
     def _set_dynamics(self):
         if self.dynamics_type == "explicit":
             self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=False)
+            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=False)
         elif self.dynamics_type == "root_explicit":
             self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, expand=False)
+            self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, expand=False)
         elif self.dynamics_type == "implicit":
-            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False, phase=0)
+            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False)
+            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False)
         elif self.dynamics_type == "root_implicit":
+            self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, implicit_dynamics=True, expand=False)
             self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, implicit_dynamics=True, expand=False)
         else:
             raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
@@ -132,11 +131,16 @@ class MillerOcp:
         self.objective_functions.add(
             ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=1)  # Regularization
         self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=3, marker_index=6,
+            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=6,
             weight=1000)  # Right hand trajetory
         self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=7, marker_index=11,
+            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=11,
             weight=1000)  # Left hand trajectory
+        self.objective_functions.add(
+            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=16,
+            weight=1000)  # Left hand trajectory
+        # self.objective_functions.add(
+        #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(12, 13, 14), key="q", weight=1000)  # thorax DoFs
 
     def _set_constraints(self):
         # --- Constraints --- #
@@ -145,26 +149,28 @@ class MillerOcp:
         self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
                              node=Node.END,
                              min_bound=self.duration - slack_duration,
-                             max_bound=self.duration + slack_duration)
+                             max_bound=self.duration + slack_duration, phase=1)
 
     def _set_initial_guesses(self):
         # --- Initial guess --- #
         # Initialize state vector
-        self.x = np.zeros((self.n_q + self.n_qdot, self.n_shooting + 1))
+        self.x = np.zeros((self.n_q + self.n_qdot, np.sum(self.n_shooting) + len(self.n_shooting)))
 
         # data points
-        data_point = np.linspace(0, self.duration, self.n_shooting + 1)
+        data_point = np.linspace(0, self.duration, np.sum(self.n_shooting) + len(self.n_shooting))
 
         # parabolic trajectory on Y
         self.x[2, :] = self.vertical_velocity_0 * data_point + -9.81 / 2 * data_point ** 2
         # Somersaults
-        self.x[3, :] = np.linspace(0, self.somersaults, self.n_shooting + 1)
+        self.x[3, :] = np.linspace(0, self.somersaults, np.sum(self.n_shooting) + len(self.n_shooting))
         # Twists
-        self.x[5, :] = np.linspace(0, self.twists, self.n_shooting + 1)
+        self.x[5, :] = np.linspace(0, self.twists, np.sum(self.n_shooting) + len(self.n_shooting))
 
         # Handle second DoF of arms with Noise.
-        self.x[7, :] = np.random.random((1, self.n_shooting + 1)) * np.pi/2 - (np.pi - np.pi/4)
-        self.x[9, :] = np.random.random((1, self.n_shooting + 1)) * np.pi/2 + np.pi/4
+        self.x[6:9, :] = np.random.random((3, np.sum(self.n_shooting) + len(self.n_shooting))) * np.pi / 12 - np.pi / 24
+        self.x[10, :] = np.random.random((1, np.sum(self.n_shooting) + len(self.n_shooting))) * np.pi/2 - (np.pi - np.pi/4)
+        self.x[12, :] = np.random.random((1, np.sum(self.n_shooting) + len(self.n_shooting))) * np.pi/2 + np.pi/4
+        self.x[13:15, :] = np.random.random((2, np.sum(self.n_shooting) + len(self.n_shooting))) * np.pi / 12 - np.pi / 24
 
         # velocity on Y
         self.x[self.n_q + 2, :] = self.vertical_velocity_0 - 9.81 * data_point
@@ -180,7 +186,7 @@ class MillerOcp:
         if X0 is None:
             self.x_init.add([0] * (self.n_q + self.n_q))
         else:
-            if X0.shape[1] != self.n_shooting + 1:
+            if X0.shape[1] != np.sum(self.n_shooting) + len(self.n_shooting):
                 X0 = self._interpolate_initial_states(X0)
 
             if self.ode_solver.is_direct_shooting:
@@ -220,6 +226,7 @@ class MillerOcp:
         arm_rotation_z_low = 1
         arm_elevation_y_low = 0.01
         arm_elevation_y_upp = np.pi - 0.01
+        thorax_hips_xyz = np.pi/6
 
         slack_initial_vertical_velocity = 2
         slack_initial_somersault_rate = 1
@@ -229,42 +236,91 @@ class MillerOcp:
 
         slack_final_somersault = np.pi / 24  # 7.5 degrees
         slack_final_twist = np.pi / 24  # 7.5 degrees
+        slack_final_dofs = np.pi / 24  # 7.5 degrees
 
-        x_min = np.zeros((self.n_q + self.n_qdot, 3))
-        x_max = np.zeros((self.n_q + self.n_qdot, 3))
+        x_min = np.zeros((2, self.n_q + self.n_qdot, 3))
+        x_max = np.zeros((2, self.n_q + self.n_qdot, 3))
 
-        x_min[:self.n_q, 0] = [0, 0, 0, 0, 0, 0, 0, -initial_arm_elevation, 0, initial_arm_elevation]
-        x_min[self.n_q:, 0] = [-1, -1, self.vertical_velocity_0 - slack_initial_vertical_velocity,
-                               self.somersault_rate_0 - slack_initial_somersault_rate, 0, 0, 0, 0, 0, 0]
+        x_min[0, :self.n_q, 0] = [0, 0, 0, 0, 0, 0,
+                               0, 0, 0,
+                               0, -initial_arm_elevation, 0, initial_arm_elevation,
+                               0, 0]
+        x_min[0, self.n_q:, 0] = [-1, -1, self.vertical_velocity_0 - slack_initial_vertical_velocity,
+                               self.somersault_rate_0 - slack_initial_somersault_rate, 0, 0,
+                               0, 0, 0,
+                               0, 0, 0, 0,
+                               0, 0]
 
-        x_max[:self.n_q, 0] = [0, 0, 0, 0, 0, 0, 0, -initial_arm_elevation, 0, initial_arm_elevation]
-        x_max[self.n_q:, 0] = [1, 1, self.vertical_velocity_0 + slack_initial_vertical_velocity,
-                               self.somersault_rate_0 + slack_initial_somersault_rate, 0, 0, 0, 0, 0, 0]
+        x_max[0, :self.n_q, 0] = [0, 0, 0, 0, 0, 0,
+                               0, 0, 0,
+                               0, -initial_arm_elevation, 0, initial_arm_elevation,
+                               0, 0]
+        x_max[0, self.n_q:, 0] = [1, 1, self.vertical_velocity_0 + slack_initial_vertical_velocity,
+                               self.somersault_rate_0 + slack_initial_somersault_rate, 0, 0,
+                               0, 0, 0,
+                               0, 0, 0, 0,
+                               0, 0]
 
-        x_min[:self.n_q, 1] = [-3, -3, -0.001, -0.001, -tilt_bound, -0.001, # -np.pi
-                               -arm_rotation_z_low, -arm_elevation_y_upp,
-                               -arm_rotation_z_upp, arm_elevation_y_low]
-        x_min[self.n_q:, 1] = - velocity_max
+        x_min[0, :self.n_q, 1] = [-3, -3, -0.001, -0.001, -tilt_bound, -0.001,
+                               -thorax_hips_xyz, -thorax_hips_xyz, -thorax_hips_xyz,
+                               -arm_rotation_z_low, -arm_elevation_y_upp, -arm_rotation_z_upp, arm_elevation_y_low,
+                               -thorax_hips_xyz, -thorax_hips_xyz]
+        x_min[0, self.n_q:, 1] = - velocity_max
 
-        x_max[:self.n_q, 1] = [3, 3, 10, self.somersaults + slack_somersault, tilt_bound, self.twists + slack_twist,
-                               arm_rotation_z_upp, -arm_elevation_y_low,
-                               arm_rotation_z_low, arm_elevation_y_upp]
-        x_max[self.n_q:, 1] = + velocity_max
+        x_max[0, :self.n_q, 1] = [3, 3, 10, self.somersaults + slack_somersault, tilt_bound, self.twists + slack_twist,
+                               thorax_hips_xyz, thorax_hips_xyz, thorax_hips_xyz,
+                               arm_rotation_z_upp, -arm_elevation_y_low, arm_rotation_z_low, arm_elevation_y_upp,
+                               thorax_hips_xyz, thorax_hips_xyz]
+        x_max[0, self.n_q:, 1] = + velocity_max
 
-        x_min[:self.n_q, 2] = [-0.1, -0.1, -0.1,
-                               self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_final_twist,
-                               -arm_rotation_z_low, -arm_elevation_y_upp,
-                               -arm_rotation_z_upp, arm_elevation_y_low]
-        x_min[self.n_q:, 2] = - velocity_max
+        x_min[0, :self.n_q, 2] = [-3, -3, -0.001, 7/8 * self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_final_twist,
+                               -slack_final_dofs, -slack_final_dofs, -slack_final_dofs,
+                               -arm_rotation_z_low, -arm_elevation_y_upp, -arm_rotation_z_upp, arm_elevation_y_low,
+                               thorax_hips_xyz-slack_final_dofs, -slack_final_dofs]
+        x_min[0, self.n_q:, 2] = - velocity_max
 
-        x_max[:self.n_q, 2] = [0.1, 0.1, 0.1,
+        x_max[0, :self.n_q, 2] = [3, 3, 10, 7/8 * self.somersaults + slack_final_somersault, tilt_final_bound, self.twists + slack_final_twist,
+                               slack_final_dofs, slack_final_dofs, slack_final_dofs,
+                               arm_rotation_z_upp, -arm_elevation_y_low, arm_rotation_z_low, arm_elevation_y_upp,
+                               thorax_hips_xyz, slack_final_dofs]
+        x_max[0, self.n_q:, 2] = + velocity_max
+
+
+        x_min[1, :self.n_q, 0] = x_min[0, :self.n_q, 2]
+        x_min[1, self.n_q:, 0] = x_min[0, self.n_q:, 2]
+
+        x_max[1, :self.n_q, 0] = x_max[0, :self.n_q, 2]
+        x_max[1, self.n_q:, 0] = x_max[0, self.n_q:, 2]
+
+        x_min[1, :self.n_q, 1] = [-3, -3, -0.001, 7/8 * self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_final_twist,
+                               -slack_final_dofs, -slack_final_dofs, -slack_final_dofs,
+                               -arm_rotation_z_low, -arm_elevation_y_upp, -arm_rotation_z_upp, arm_elevation_y_low,
+                               -slack_final_dofs, -slack_final_dofs]
+        x_min[1, self.n_q:, 1] = - velocity_max
+
+        x_max[1, :self.n_q, 1] = [3, 3, 10, self.somersaults + slack_somersault, tilt_bound, self.twists + slack_twist,
+                               slack_final_dofs, slack_final_dofs, slack_final_dofs,
+                               arm_rotation_z_upp, -arm_elevation_y_low, arm_rotation_z_low, arm_elevation_y_upp,
+                               thorax_hips_xyz, slack_final_dofs]
+        x_max[1, self.n_q:, 1] = + velocity_max
+
+        x_min[1, :self.n_q, 2] = [-0.1, -0.1, -0.1, self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_final_twist,
+                               -slack_final_dofs, -slack_final_dofs, -slack_final_dofs,
+                               -arm_rotation_z_low, -arm_elevation_y_upp, -arm_rotation_z_upp, arm_elevation_y_low,
+                               thorax_hips_xyz-slack_final_dofs, -slack_final_dofs]
+        x_min[1, self.n_q:, 2] = - velocity_max
+
+        x_max[1, :self.n_q, 2] = [0.1, 0.1, 0.1,
                                self.somersaults + slack_final_somersault, tilt_final_bound, self.twists + slack_final_twist,
-                               arm_rotation_z_upp, -arm_elevation_y_low,
-                               arm_rotation_z_low, arm_elevation_y_upp]
-        x_max[self.n_q:, 2] = + velocity_max
+                               slack_final_dofs, slack_final_dofs, slack_final_dofs,
+                               arm_rotation_z_upp, -arm_elevation_y_low, arm_rotation_z_low, arm_elevation_y_upp,
+                               thorax_hips_xyz, slack_final_dofs]
+        x_max[1, self.n_q:, 2] = + velocity_max
 
         self.x_bounds.add(
-            bounds=Bounds(x_min, x_max, interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT))
+            bounds=Bounds(x_min[0, :, :], x_max[0, :, :], interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT))
+        self.x_bounds.add(
+            bounds=Bounds(x_min[1, :, :], x_max[1, :, :], interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT))
 
         if self.dynamics_type == "explicit":
             self.u_bounds.add([self.tau_min] * self.n_tau, [self.tau_max] * self.n_tau)
@@ -285,7 +341,7 @@ class MillerOcp:
         x = np.linspace(0, self.phase_time, X0.shape[1])
         y = X0
         f = interpolate.interp1d(x, y)
-        x_new = np.linspace(0, self.phase_time, self.n_shooting + 1)
+        x_new = np.linspace(0, self.phase_time, np.sum(self.n_shooting) + len(self.n_shooting))
         y_new = f(x_new)  # use interpolation function returned by `interp1d`
         return y_new
 
