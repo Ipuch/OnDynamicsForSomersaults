@@ -45,7 +45,7 @@ class MillerOcp:
             somersaults: float = 4 * np.pi,
             twists: float = 6 * np.pi,
     ):
-        self.biorbd_model_path = (biorbd.Model(biorbd_model_path), biorbd.Model(biorbd_model_path))
+        self.biorbd_model_path = biorbd_model_path
         self.n_shooting = n_shooting
         self.duration = duration
         self.n_threads = n_threads
@@ -58,16 +58,16 @@ class MillerOcp:
         self.somersault_rate_0 = somersaults / duration
 
         if biorbd_model_path is not None:
-            self.biorbd_model = biorbd.Model(biorbd_model_path)
+            self.biorbd_model =  (biorbd.Model(biorbd_model_path), biorbd.Model(biorbd_model_path))
             self.dynamics_type = dynamics_type
 
-            self.n_q = self.biorbd_model.nbQ()
-            self.n_qdot = self.biorbd_model.nbQdot()
+            self.n_q = self.biorbd_model[0].nbQ()
+            self.n_qdot = self.biorbd_model[0].nbQdot()
             if self.dynamics_type == "implicit":
-                self.n_qddot = self.biorbd_model.nbQddot()
+                self.n_qddot = self.biorbd_model[0].nbQddot()
             else:
-                self.n_qddot = self.biorbd_model.nbQddot() - self.biorbd_model.nbRoot()
-            self.n_tau = self.biorbd_model.nbGeneralizedTorque() - self.biorbd_model.nbRoot()
+                self.n_qddot = self.biorbd_model[0].nbQddot() - self.biorbd_model[0].nbRoot()
+            self.n_tau = self.biorbd_model[0].nbGeneralizedTorque() - self.biorbd_model[0].nbRoot()
 
             self.tau_min, self.tau_init, self.tau_max = -200, 0, 200
             self.qddot_min, self.qddot_init, self.qddot_max = -1000, 0, 1000
@@ -111,20 +111,17 @@ class MillerOcp:
             )
 
     def _set_dynamics(self):
-        if self.dynamics_type == "explicit":
-            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=False)
-            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=False)
-        elif self.dynamics_type == "root_explicit":
-            self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, expand=False)
-            self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, expand=False)
-        elif self.dynamics_type == "implicit":
-            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False)
-            self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False)
-        elif self.dynamics_type == "root_implicit":
-            self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, implicit_dynamics=True, expand=False)
-            self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, implicit_dynamics=True, expand=False)
-        else:
-            raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
+        for phase in range(len(self.n_shooting)):
+            if self.dynamics_type == "explicit":
+                self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=False)
+            elif self.dynamics_type == "root_explicit":
+                self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, expand=False)
+            elif self.dynamics_type == "implicit":
+                self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False)
+            elif self.dynamics_type == "root_implicit":
+                self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, implicit_dynamics=True, expand=False)
+            else:
+                raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 
     def _set_objective_functions(self):
         # --- Objective function --- #
@@ -146,6 +143,10 @@ class MillerOcp:
         # --- Constraints --- #
         # Set time as a variable
         slack_duration = 0.5 ###################################################################
+        self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
+                             node=Node.END,
+                             min_bound=self.duration - 2*slack_duration,
+                             max_bound=self.duration, phase=0)
         self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
                              node=Node.END,
                              min_bound=self.duration - slack_duration,
@@ -190,29 +191,37 @@ class MillerOcp:
                 X0 = self._interpolate_initial_states(X0)
 
             if self.ode_solver.is_direct_shooting:
-                self.x_init.add(X0, interpolation=InterpolationType.EACH_FRAME)
-            else:
-                n = self.ode_solver.polynomial_degree
-                X0 = np.repeat(X0, n + 1, axis=1)
-                X0 = X0[:, :-n]
-                self.x_init.add(X0, interpolation=InterpolationType.EACH_FRAME)
+                shooting = 0
+                for i in range(len(self.n_shooting)):
+                    self.x_init.add(X0[:, shooting : shooting + self.n_shooting[i]+1], interpolation=InterpolationType.EACH_FRAME)
+                    shooting += self.n_shooting[i]
+            # else:
+            #     n = self.ode_solver.polynomial_degree
+            #     X0 = np.repeat(X0, n + 1, axis=1)
+            #     X0 = X0[:, :-n]
+            #     self.x_init.add(X0, interpolation=InterpolationType.EACH_FRAME)
 
     def _set_initial_controls(self, U0: np.array = None):
         if U0 is None:
-            if self.dynamics_type == "explicit":
-                self.u_init.add([self.tau_init] * self.n_tau)
-            elif self.dynamics_type == "root_explicit":
-                self.u_init.add([self.qddot_init] * self.n_qddot)
-            elif self.dynamics_type == "implicit":
-                self.u_init.add([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
-            elif self.dynamics_type == "root_implicit":
-                self.u_init.add([self.qddot_init] * self.n_qddot)
-            else:
-                raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
+            for phase in range(len(self.n_shooting)):
+                if self.dynamics_type == "explicit":
+                    self.u_init.add([self.tau_init] * self.n_tau)
+                elif self.dynamics_type == "root_explicit":
+                    self.u_init.add([self.qddot_init] * self.n_qddot)
+                elif self.dynamics_type == "implicit":
+                    self.u_init.add([self.tau_init] * self.n_tau + [self.qddot_init] * self.n_qddot)
+                elif self.dynamics_type == "root_implicit":
+                    self.u_init.add([self.qddot_init] * self.n_qddot)
+                else:
+                    raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
         else:
             if U0.shape[1] != self.n_shooting:
                 U0 = self._interpolate_initial_controls(U0)
-            self.u_init.add(U0, interpolation=InterpolationType.EACH_FRAME)
+
+                shooting = 0
+                for i in range(len(self.n_shooting)):
+                    self.u_init.add(U0[:, shooting : shooting + self.n_shooting[i]], interpolation=InterpolationType.EACH_FRAME)
+                    shooting += self.n_shooting[i]
 
     def _set_boundary_conditions(self):
         self.x_bounds = BoundsList()
@@ -275,13 +284,13 @@ class MillerOcp:
 
         x_min[0, :self.n_q, 2] = [-3, -3, -0.001, 7/8 * self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_final_twist,
                                -slack_final_dofs, -slack_final_dofs, -slack_final_dofs,
-                               -arm_rotation_z_low, -arm_elevation_y_upp, -arm_rotation_z_upp, arm_elevation_y_low,
+                               -arm_rotation_z_low, -0.2, -arm_rotation_z_upp, arm_elevation_y_low,
                                thorax_hips_xyz-slack_final_dofs, -slack_final_dofs]
         x_min[0, self.n_q:, 2] = - velocity_max
 
         x_max[0, :self.n_q, 2] = [3, 3, 10, 7/8 * self.somersaults + slack_final_somersault, tilt_final_bound, self.twists + slack_final_twist,
                                slack_final_dofs, slack_final_dofs, slack_final_dofs,
-                               arm_rotation_z_upp, -arm_elevation_y_low, arm_rotation_z_low, arm_elevation_y_upp,
+                               arm_rotation_z_upp, -arm_elevation_y_low, arm_rotation_z_low, 0.2,
                                thorax_hips_xyz, slack_final_dofs]
         x_max[0, self.n_q:, 2] = + velocity_max
 
@@ -317,24 +326,23 @@ class MillerOcp:
                                thorax_hips_xyz, slack_final_dofs]
         x_max[1, self.n_q:, 2] = + velocity_max
 
-        self.x_bounds.add(
-            bounds=Bounds(x_min[0, :, :], x_max[0, :, :], interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT))
-        self.x_bounds.add(
-            bounds=Bounds(x_min[1, :, :], x_max[1, :, :], interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT))
+        for phase in range(len(self.n_shooting)):
+            self.x_bounds.add(
+                bounds=Bounds(x_min[phase, :, :], x_max[phase, :, :], interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT))
 
-        if self.dynamics_type == "explicit":
-            self.u_bounds.add([self.tau_min] * self.n_tau, [self.tau_max] * self.n_tau)
-        elif self.dynamics_type == "root_explicit":
-            self.u_bounds.add([self.qddot_min] * self.n_qddot, [self.qddot_max] * self.n_qddot)
-        elif self.dynamics_type == "implicit":
-            self.u_bounds.add(
-                [self.tau_min] * self.n_tau + [self.qddot_min] * self.n_qddot,
-                [self.tau_max] * self.n_tau + [self.qddot_max] * self.n_qddot,
-            )
-        elif self.dynamics_type == "root_implicit":
-            self.u_bounds.add([self.qddot_min] * self.n_qddot, [self.qddot_max] * self.n_qddot)
-        else:
-            raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
+            if self.dynamics_type == "explicit":
+                self.u_bounds.add([self.tau_min] * self.n_tau, [self.tau_max] * self.n_tau)
+            elif self.dynamics_type == "root_explicit":
+                self.u_bounds.add([self.qddot_min] * self.n_qddot, [self.qddot_max] * self.n_qddot)
+            elif self.dynamics_type == "implicit":
+                self.u_bounds.add(
+                    [self.tau_min] * self.n_tau + [self.qddot_min] * self.n_qddot,
+                    [self.tau_max] * self.n_tau + [self.qddot_max] * self.n_qddot,
+                )
+            elif self.dynamics_type == "root_implicit":
+                self.u_bounds.add([self.qddot_min] * self.n_qddot, [self.qddot_max] * self.n_qddot)
+            else:
+                raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 
     def _interpolate_initial_states(self, X0: np.array):
         print("interpolating initial states to match the number of shooting nodes")
@@ -356,12 +364,12 @@ class MillerOcp:
 
     def _set_mapping(self):
         if self.dynamics_type == "explicit":
-            self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
+            self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14])
         elif self.dynamics_type == "root_explicit":
-            self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
+            self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14])
         elif self.dynamics_type == "implicit":
-            self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
+            self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14])
         elif self.dynamics_type == "root_implicit":
-            self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3], [6, 7, 8, 9])
+            self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14])
         else:
             raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
