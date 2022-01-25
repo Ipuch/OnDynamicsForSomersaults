@@ -5,7 +5,7 @@ from miller_ocp import MillerOcp
 
 
 def main():
-    n_shooting = 150
+    n_shooting = (125, 25)
     ode_solver = OdeSolver.RK4(n_integration_steps=5)
     duration = 1.545
     n_threads = 8
@@ -45,4 +45,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
