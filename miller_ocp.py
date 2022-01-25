@@ -69,7 +69,7 @@ class MillerOcp:
                 self.n_qddot = self.biorbd_model[0].nbQddot() - self.biorbd_model[0].nbRoot()
             self.n_tau = self.biorbd_model[0].nbGeneralizedTorque() - self.biorbd_model[0].nbRoot()
 
-            self.tau_min, self.tau_init, self.tau_max = -200, 0, 200
+            self.tau_min, self.tau_init, self.tau_max = -100, 0, 100
             self.qddot_min, self.qddot_init, self.qddot_max = -1000, 0, 1000
 
             self.dynamics = DynamicsList()
@@ -125,19 +125,20 @@ class MillerOcp:
 
     def _set_objective_functions(self):
         # --- Objective function --- #
-        self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=1)  # Regularization
-        self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=6,
-            weight=1000)  # Right hand trajetory
-        self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=11,
-            weight=1000)  # Left hand trajectory
-        self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=16,
-            weight=1000)  # Left hand trajectory
-        # self.objective_functions.add(
-        #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(12, 13, 14), key="q", weight=1000)  # thorax DoFs
+        for i in range(len(self.n_shooting)):
+            self.objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=1, phase=i)  # Regularization
+            self.objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=6,
+                weight=1000, phase=i)  # Right hand trajetory
+            self.objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=11,
+                weight=1000, phase=i)  # Left hand trajectory
+            self.objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=16,
+                weight=1000, phase=i)  # Left hand trajectory
+            # self.objective_functions.add(
+            #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(12, 13, 14), key="q", weight=1000)  # thorax DoFs
 
     def _set_constraints(self):
         # --- Constraints --- #
@@ -282,13 +283,13 @@ class MillerOcp:
                                thorax_hips_xyz, thorax_hips_xyz]
         x_max[0, self.n_q:, 1] = + velocity_max
 
-        x_min[0, :self.n_q, 2] = [-3, -3, -0.001, 7/8 * self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_final_twist,
+        x_min[0, :self.n_q, 2] = [-3, -3, -0.001, 7/8 * self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_twist,
                                -slack_final_dofs, -slack_final_dofs, -slack_final_dofs,
                                -arm_rotation_z_low, -0.2, -arm_rotation_z_upp, arm_elevation_y_low,
                                thorax_hips_xyz-slack_final_dofs, -slack_final_dofs]
         x_min[0, self.n_q:, 2] = - velocity_max
 
-        x_max[0, :self.n_q, 2] = [3, 3, 10, 7/8 * self.somersaults + slack_final_somersault, tilt_final_bound, self.twists + slack_final_twist,
+        x_max[0, :self.n_q, 2] = [3, 3, 10, 7/8 * self.somersaults + slack_final_somersault, tilt_final_bound, self.twists + slack_twist,
                                slack_final_dofs, slack_final_dofs, slack_final_dofs,
                                arm_rotation_z_upp, -arm_elevation_y_low, arm_rotation_z_low, 0.2,
                                thorax_hips_xyz, slack_final_dofs]
@@ -301,7 +302,7 @@ class MillerOcp:
         x_max[1, :self.n_q, 0] = x_max[0, :self.n_q, 2]
         x_max[1, self.n_q:, 0] = x_max[0, self.n_q:, 2]
 
-        x_min[1, :self.n_q, 1] = [-3, -3, -0.001, 7/8 * self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_final_twist,
+        x_min[1, :self.n_q, 1] = [-3, -3, -0.001, 7/8 * self.somersaults - slack_final_somersault, -tilt_bound, self.twists - slack_final_twist,
                                -slack_final_dofs, -slack_final_dofs, -slack_final_dofs,
                                -arm_rotation_z_low, -arm_elevation_y_upp, -arm_rotation_z_upp, arm_elevation_y_low,
                                -slack_final_dofs, -slack_final_dofs]
