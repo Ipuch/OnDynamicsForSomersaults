@@ -12,10 +12,10 @@ from bioptim.misc.enums import ConstraintType
 
 
 def root_implicit_dynamic(
-        states: Union[cas.MX, cas.SX],
-        controls: Union[cas.MX, cas.SX],
-        parameters: Union[cas.MX, cas.SX],
-        nlp: NonLinearProgram,
+    states: Union[cas.MX, cas.SX],
+    controls: Union[cas.MX, cas.SX],
+    parameters: Union[cas.MX, cas.SX],
+    nlp: NonLinearProgram,
 ) -> tuple:
     """
     Parameters

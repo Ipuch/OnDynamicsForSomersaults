@@ -30,19 +30,20 @@ from bioptim import (
 from custom_dynamics.root_explicit import root_explicit_dynamic, custom_configure_root_explicit
 from custom_dynamics.root_implicit import root_implicit_dynamic, custom_configure_root_implicit
 
+
 class MillerOcp:
     def __init__(
-            self,
-            biorbd_model_path: str = None,
-            n_shooting: int = 150,
-            duration: float = 1.545,
-            n_threads: int = 8,
-            control_type: ControlType = ControlType.CONSTANT,  # Je vois que c'est une option, mais je crois qu'il ne faut pas changer ca
-            ode_solver: OdeSolver = OdeSolver.RK4(),  # OdeSolver.COLLOCATION(),
-            dynamics_type: str = "explicit",
-            vertical_velocity_0: float = 9.2,  # Real data
-            somersaults: float = 4 * np.pi,
-            twists: float = 4 * np.pi,
+        self,
+        biorbd_model_path: str = None,
+        n_shooting: int = 150,
+        duration: float = 1.545,
+        n_threads: int = 8,
+        control_type: ControlType = ControlType.CONSTANT,  # Je vois que c'est une option, mais je crois qu'il ne faut pas changer ca
+        ode_solver: OdeSolver = OdeSolver.RK4(),  # OdeSolver.COLLOCATION(),
+        dynamics_type: str = "explicit",
+        vertical_velocity_0: float = 9.2,  # Real data
+        somersaults: float = 4 * np.pi,
+        twists: float = 4 * np.pi,
     ):
         self.biorbd_model_path = biorbd_model_path
         self.n_shooting = n_shooting
@@ -121,29 +122,37 @@ class MillerOcp:
         elif self.dynamics_type == "implicit":
             self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False, phase=0)
         elif self.dynamics_type == "root_implicit":
-            self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, implicit_dynamics=True, expand=False)
+            self.dynamics.add(
+                custom_configure_root_explicit,
+                dynamic_function=root_explicit_dynamic,
+                implicit_dynamics=True,
+                expand=False,
+            )
         else:
             raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 
     def _set_objective_functions(self):
         # --- Objective function --- #
         self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=1)  # Regularization
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=1
+        )  # Regularization
         self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=3, marker_index=6,
-            weight=1000)  # Right hand trajetory
+            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=3, marker_index=6, weight=1000
+        )  # Right hand trajetory
         self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=7, marker_index=11,
-            weight=1000)  # Left hand trajectory
+            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=7, marker_index=11, weight=1000
+        )  # Left hand trajectory
 
     def _set_constraints(self):
         # --- Constraints --- #
         # Set time as a variable
-        slack_duration = 0.5 ###################################################################
-        self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
-                             node=Node.END,
-                             min_bound=self.duration - slack_duration,
-                             max_bound=self.duration + slack_duration)
+        slack_duration = 0.05  # 0.5
+        self.constraints.add(
+            ConstraintFcn.TIME_CONSTRAINT,
+            node=Node.END,
+            min_bound=self.duration - slack_duration,
+            max_bound=self.duration + slack_duration,
+        )
 
     def _set_initial_guesses(self):
         # --- Initial guess --- #
@@ -161,8 +170,8 @@ class MillerOcp:
         self.x[5, :] = np.linspace(0, self.twists, self.n_shooting + 1)
 
         # Handle second DoF of arms with Noise.
-        self.x[7, :] = np.random.random((1, self.n_shooting + 1)) * np.pi/2 - (np.pi - np.pi/4)
-        self.x[9, :] = np.random.random((1, self.n_shooting + 1)) * np.pi/2 + np.pi/4
+        self.x[7, :] = np.random.random((1, self.n_shooting + 1)) * np.pi / 2 - (np.pi - np.pi / 4)
+        self.x[9, :] = np.random.random((1, self.n_shooting + 1)) * np.pi / 2 + np.pi / 4
 
         # velocity on Y
         self.x[self.n_q + 2, :] = self.vertical_velocity_0 - 9.81 * data_point
@@ -214,7 +223,7 @@ class MillerOcp:
         tilt_final_bound = np.pi / 12  # 15 degrees
 
         initial_arm_elevation = 2.8
-        arm_rotation_z_upp = np.pi/2
+        arm_rotation_z_upp = np.pi / 2
         arm_rotation_z_low = 1
         arm_elevation_y_low = 0.01
         arm_elevation_y_upp = np.pi - 0.01
@@ -231,38 +240,93 @@ class MillerOcp:
         x_min = np.zeros((self.n_q + self.n_qdot, 3))
         x_max = np.zeros((self.n_q + self.n_qdot, 3))
 
-        x_min[:self.n_q, 0] = [0, 0, 0, 0, 0, 0, 0, -initial_arm_elevation, 0, initial_arm_elevation]
-        x_min[self.n_q:, 0] = [-1, -1, self.vertical_velocity_0 - slack_initial_vertical_velocity,
-                               self.somersault_rate_0 - slack_initial_somersault_rate, 0, 0, 0, 0, 0, 0]
+        x_min[: self.n_q, 0] = [0, 0, 0, 0, 0, 0, 0, -initial_arm_elevation, 0, initial_arm_elevation]
+        x_min[self.n_q :, 0] = [
+            -1,
+            -1,
+            self.vertical_velocity_0 - slack_initial_vertical_velocity,
+            self.somersault_rate_0 - slack_initial_somersault_rate,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ]
 
-        x_max[:self.n_q, 0] = [0, 0, 0, 0, 0, 0, 0, -initial_arm_elevation, 0, initial_arm_elevation]
-        x_max[self.n_q:, 0] = [1, 1, self.vertical_velocity_0 + slack_initial_vertical_velocity,
-                               self.somersault_rate_0 + slack_initial_somersault_rate, 0, 0, 0, 0, 0, 0]
+        x_max[: self.n_q, 0] = [0, 0, 0, 0, 0, 0, 0, -initial_arm_elevation, 0, initial_arm_elevation]
+        x_max[self.n_q :, 0] = [
+            1,
+            1,
+            self.vertical_velocity_0 + slack_initial_vertical_velocity,
+            self.somersault_rate_0 + slack_initial_somersault_rate,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ]
 
-        x_min[:self.n_q, 1] = [-3, -3, -0.001, -0.001, -tilt_bound, -0.001, # -np.pi
-                               -arm_rotation_z_low, -arm_elevation_y_upp,
-                               -arm_rotation_z_upp, arm_elevation_y_low]
-        x_min[self.n_q:, 1] = - velocity_max
+        x_min[: self.n_q, 1] = [
+            -3,
+            -3,
+            -0.001,
+            -0.001,
+            -tilt_bound,
+            -0.001,  # -np.pi
+            -arm_rotation_z_low,
+            -arm_elevation_y_upp,
+            -arm_rotation_z_upp,
+            arm_elevation_y_low,
+        ]
+        x_min[self.n_q :, 1] = -velocity_max
 
-        x_max[:self.n_q, 1] = [3, 3, 10, self.somersaults + slack_somersault, tilt_bound, self.twists + slack_twist,
-                               arm_rotation_z_upp, -arm_elevation_y_low,
-                               arm_rotation_z_low, arm_elevation_y_upp]
-        x_max[self.n_q:, 1] = + velocity_max
+        x_max[: self.n_q, 1] = [
+            3,
+            3,
+            10,
+            self.somersaults + slack_somersault,
+            tilt_bound,
+            self.twists + slack_twist,
+            arm_rotation_z_upp,
+            -arm_elevation_y_low,
+            arm_rotation_z_low,
+            arm_elevation_y_upp,
+        ]
+        x_max[self.n_q :, 1] = +velocity_max
 
-        x_min[:self.n_q, 2] = [-0.1, -0.1, -0.1,
-                               self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_final_twist,
-                               -arm_rotation_z_low, -arm_elevation_y_upp,
-                               -arm_rotation_z_upp, arm_elevation_y_low]
-        x_min[self.n_q:, 2] = - velocity_max
+        x_min[: self.n_q, 2] = [
+            -0.1,
+            -0.1,
+            -0.1,
+            self.somersaults - slack_final_somersault,
+            -tilt_final_bound,
+            self.twists - slack_final_twist,
+            -arm_rotation_z_low,
+            -arm_elevation_y_upp,
+            -arm_rotation_z_upp,
+            arm_elevation_y_low,
+        ]
+        x_min[self.n_q :, 2] = -velocity_max
 
-        x_max[:self.n_q, 2] = [0.1, 0.1, 0.1,
-                               self.somersaults + slack_final_somersault, tilt_final_bound, self.twists + slack_final_twist,
-                               arm_rotation_z_upp, -arm_elevation_y_low,
-                               arm_rotation_z_low, arm_elevation_y_upp]
-        x_max[self.n_q:, 2] = + velocity_max
+        x_max[: self.n_q, 2] = [
+            0.1,
+            0.1,
+            0.1,
+            self.somersaults + slack_final_somersault,
+            tilt_final_bound,
+            self.twists + slack_final_twist,
+            arm_rotation_z_upp,
+            -arm_elevation_y_low,
+            arm_rotation_z_low,
+            arm_elevation_y_upp,
+        ]
+        x_max[self.n_q :, 2] = +velocity_max
 
         self.x_bounds.add(
-            bounds=Bounds(x_min, x_max, interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT))
+            bounds=Bounds(x_min, x_max, interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT)
+        )
 
         if self.dynamics_type == "explicit":
             self.u_bounds.add([self.tau_min] * self.n_tau, [self.tau_max] * self.n_tau)

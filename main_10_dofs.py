@@ -7,10 +7,10 @@ from miller_ocp_10_dofs import MillerOcp
 def main():
     n_shooting = 150
     ode_solver = OdeSolver.RK4(n_integration_steps=5)
-    duration = 1.545
+    duration = 1.3  # 1.545
     n_threads = 8
     model_path = "Model_JeCh_10DoFs.bioMod"
-    dynamics_type = "explicit" #"implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
+    dynamics_type = "explicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
 
     # --- Solve the program --- #
     miller = MillerOcp(
@@ -24,7 +24,6 @@ def main():
         somersaults=4 * np.pi,
         twists=6 * np.pi,
     )
-
 
     miller.ocp.add_plot_penalty(CostType.ALL)
 
@@ -41,8 +40,9 @@ def main():
     sol.print()
     sol.graphs()
     sol.animate()
-    sol.animate(nb_frames=-1, show_meshes=False) # show_mesh=True
+    # sol.animate(nb_frames=-1, show_meshes=False) # show_mesh=True
     # ma57
+
 
 if __name__ == "__main__":
     main()
