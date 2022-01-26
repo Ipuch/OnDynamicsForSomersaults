@@ -1,11 +1,13 @@
-
 import os, shutil
-from Comparison import ComparisonAnalysis, ComparisonParameters
+# from Comparison import ComparisonAnalysis, ComparisonParameters
 import pickle
 import numpy as np
 from multiprocessing import Pool
 from datetime import date
 import smtplib, ssl
+import miller_run
+
+# still skeleton
 
 Date = date.today()
 Date = Date.strftime("%d-%m-%y")
@@ -20,10 +22,10 @@ nstep = 5
 n_threads = 4 # Should be 8
 
 calls = []
-for weight in Weight_choices:
-    for dynamics_type in dynamics_types:
-        for i_rand in range(100):  # Should be 100
-            calls.append([Date, i_rand, n_shooting, duration, dynamics_type, nstep, n_threads])
+# for weight in Weight_choices:
+for dynamics_type in dynamics_types:
+    for i_rand in range(100):  # Should be 100
+        calls.append([Date, i_rand, n_shooting, duration, dynamics_type, nstep, n_threads])
 
 with Pool(1) as p: # should be 8
     p.map(miller_run.main, calls)
