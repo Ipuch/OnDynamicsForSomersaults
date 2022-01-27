@@ -7,7 +7,7 @@ from miller_ocp_10_dofs import MillerOcp
 def main():
     n_shooting = 150
     ode_solver = OdeSolver.RK4(n_integration_steps=5)
-    duration = 1.3  # 1.545
+    duration = 1.46  # 1.545
     n_threads = 8
     model_path = "Model_JeCh_10DoFs.bioMod"
     dynamics_type = "explicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
@@ -39,6 +39,8 @@ def main():
     print(sol.status)
     sol.print()
     sol.graphs()
+    miller.ocp.save(sol, "Model_JeCh_10DoFs.bo")  # you don't have to specify the extension ".bo"
+
     sol.animate()
     # sol.animate(nb_frames=-1, show_meshes=False) # show_mesh=True
     # ma57

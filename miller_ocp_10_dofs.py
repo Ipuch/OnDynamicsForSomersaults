@@ -25,10 +25,38 @@ from bioptim import (
     NonLinearProgram,
     ConfigureProblem,
     DynamicsFunctions,
+    PenaltyNodeList,
+    BiorbdInterface,
 )
 
 from custom_dynamics.root_explicit import root_explicit_dynamic, custom_configure_root_explicit
 from custom_dynamics.root_implicit import root_implicit_dynamic, custom_configure_root_implicit
+
+
+def custom_minimize_angular_momentum(all_pn: PenaltyNodeList):
+    """
+    The used-defined objective function minimizing angular momentum
+    Except for the last two
+
+    Parameters
+    ----------
+    all_pn: PenaltyNodeList
+        The penalty node elements
+
+    Returns
+    -------
+    The cost that should be minimize in the MX format. If the cost is quadratic, do not put
+    the square here, but use the quadratic=True parameter instead
+    """
+    nlp = all_pn.nlp
+    q = nlp.states["q"].mx
+    qdot = nlp.states["qdot"].mx
+    var = [nlp.states["q"], nlp.states["qdot"]]
+
+    angular_momentum = BiorbdInterface.mx_to_cx("angular_momentum",
+                                                nlp.model.angularMomentum(q, qdot).to_mx(), *var)
+
+    return angular_momentum
 
 
 class MillerOcp:
@@ -88,7 +116,7 @@ class MillerOcp:
             self.control_nodes = Node.ALL if self.control_type == ControlType.LINEAR_CONTINUOUS else Node.ALL_SHOOTING
 
             self._set_dynamics()
-            self._set_constraints()
+            # self._set_constraints()
             self._set_objective_functions()
 
             self._set_boundary_conditions()
@@ -134,19 +162,38 @@ class MillerOcp:
     def _set_objective_functions(self):
         # --- Objective function --- #
         self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=1
+            ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=10
         )  # Regularization
+        # self.objective_functions.add(
+        #     ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=3, marker_index=6, weight=1000
+        # )  # Right hand trajectory
+        # self.objective_functions.add(
+        #     ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=7, marker_index=11, weight=1000
+        # )  # Left penalize left hand
+        # self.objective_functions.add(
+        #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[7, 9], weight=100)
         self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=3, marker_index=6, weight=1000
-        )  # Right hand trajetory
+            ObjectiveFcn.Mayer.TRACK_STATE, key="q", index=3, target=self.somersaults, weight=100, node=Node.END)
         self.objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=7, marker_index=11, weight=1000
-        )  # Left hand trajectory
+            ObjectiveFcn.Mayer.TRACK_STATE, key="q", index=4, target=0, weight=100, node=Node.END)
+        self.objective_functions.add(
+            ObjectiveFcn.Mayer.TRACK_STATE, key="q", index=5, target=self.twists, weight=100, node=Node.END)
+        self.objective_functions.add(
+            custom_minimize_angular_momentum,
+            custom_type=ObjectiveFcn.Lagrange,
+            quadratic=True,
+            weight=100,
+        )
+        # slack_duration = 0.05
+        # self.objective_functions.add(
+        #     ObjectiveFcn.Mayer.MINIMIZE_TIME, weight=1000, node=Node.END,
+        #     min_bound=self.duration - slack_duration,
+        #     max_bound=self.duration + slack_duration)
 
     def _set_constraints(self):
         # --- Constraints --- #
         # Set time as a variable
-        slack_duration = 0.05  # 0.5
+        slack_duration = 0.1  # 0.5
         self.constraints.add(
             ConstraintFcn.TIME_CONSTRAINT,
             node=Node.END,
@@ -218,7 +265,7 @@ class MillerOcp:
     def _set_boundary_conditions(self):
         self.x_bounds = BoundsList()
 
-        velocity_max = 100
+        velocity_max = 200 # 100
         tilt_bound = np.pi / 4
         tilt_final_bound = np.pi / 12  # 15 degrees
 
