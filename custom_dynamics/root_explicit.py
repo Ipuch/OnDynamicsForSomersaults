@@ -1,11 +1,11 @@
 from typing import Union
 import casadi as cas
 from bioptim import (
-        OptimalControlProgram,
-        NonLinearProgram,
-        ConfigureProblem,
-        DynamicsFunctions,
-    )
+    OptimalControlProgram,
+    NonLinearProgram,
+    ConfigureProblem,
+    DynamicsFunctions,
+)
 
 
 def root_explicit_dynamic(
@@ -37,11 +37,14 @@ def root_explicit_dynamic(
     nb_root = nlp.model.nbRoot()
 
     qddot_joints = DynamicsFunctions.get(nlp.controls["qddot"], controls)[nb_root:]
-    mass_matrix = nlp.model.massMatrixInverse(q).to_mx()
+
+    mass_matrix_nl_effects = nlp.model.InverseDynamics(
+        q, qdot, cas.vertcat(cas.MX.zeros((nb_root, 1)), qddot_joints)
+    ).to_mx()[:6]
     mass_matrix_inverse = nlp.model.massMatrixInverse(q).to_mx()
-    nl_effects = nlp.model.NonLinearEffect(q, qdot).to_mx()
-    qddot_root = mass_matrix_inverse[:nb_root, :nb_root] @ \
-                 (-mass_matrix[:nb_root, nb_root:] @ qddot_joints - nl_effects[:nb_root])
+
+    # qddot_root = -M_BB^-1 * ( M_BJ  * qddot_joints + N_B )
+    qddot_root = -mass_matrix_inverse[:nb_root, :nb_root] @ mass_matrix_nl_effects
 
     return qdot, cas.vertcat(qddot_root, qddot_joints)
 

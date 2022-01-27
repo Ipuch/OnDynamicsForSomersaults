@@ -39,12 +39,12 @@ def filename(params: dict):
 
 class ComparisonParameters:
     def __init__(
-            self,
-            biorbd_model_path: Union[str, list] = None,
-            ode_solver: Union[OdeSolver, list] = None,
-            tolerance: Union[float, list] = None,
-            n_shooting: Union[int, list] = None,
-            implicit_dynamics: Union[bool, list] = False,
+        self,
+        biorbd_model_path: Union[str, list] = None,
+        ode_solver: Union[OdeSolver, list] = None,
+        tolerance: Union[float, list] = None,
+        n_shooting: Union[int, list] = None,
+        implicit_dynamics: Union[bool, list] = False,
     ):
 
         self.biorbd_model_path = self._is_a_list(biorbd_model_path)
@@ -110,8 +110,9 @@ class ComparisonParameters:
             raise ValueError(f"This parameter {parameter_name} is not in this ComparisonParameters object.")
 
     def size(self, parameter_name):
-        return 1 if not isinstance(self.get_parameter(parameter_name), list) else len(
-            self.get_parameter(parameter_name))
+        return (
+            1 if not isinstance(self.get_parameter(parameter_name), list) else len(self.get_parameter(parameter_name))
+        )
 
 
 class ComparisonAnalysis:
@@ -206,21 +207,21 @@ class ComparisonAnalysis:
     # def initial_guess(self):
 
     def graphs(
-            self,
-            first_parameter: str = "ode_solver",
-            second_parameter: str = "n_shooting",
-            third_parameter: str = "tolerance",
-            fixed_parameters: dict = {},
-            res_path: str = None,
-            show: bool = True,
-            figsize: tuple = (12, 12),
-            tick_width: float = 0.2,
-            dot_width: float = 0.03,
-            size: int = 10,
-            marker: str = "o",
-            alpha: float = 1,
-            markeredgewidth=0.1,
-            markeredgecolor="black",
+        self,
+        first_parameter: str = "ode_solver",
+        second_parameter: str = "n_shooting",
+        third_parameter: str = "tolerance",
+        fixed_parameters: dict = {},
+        res_path: str = None,
+        show: bool = True,
+        figsize: tuple = (12, 12),
+        tick_width: float = 0.2,
+        dot_width: float = 0.03,
+        size: int = 10,
+        marker: str = "o",
+        alpha: float = 1,
+        markeredgewidth=0.1,
+        markeredgecolor="black",
     ):
         def abscissa_computations(nb_first: int, nb_second: int, width: float = tick_width):
             x = np.arange(nb_first)
@@ -251,14 +252,21 @@ class ComparisonAnalysis:
         pal = sns.color_palette(palette="coolwarm", n_colors=n3)
         pal.reverse()
 
-        first_parameter_labels = [i.__str__() for i in
-                                  self.Parameters.get_parameter(first_parameter)] if n1 > 1 else [str(
-            self.Parameters.get_parameter(first_parameter))]
-        second_parameter_labels = [str(j) for j in
-                                   self.Parameters.get_parameter(second_parameter)] * n1 if n2 > 1 else [str(
-            self.Parameters.get_parameter(second_parameter))] * n1
-        third_parameter_labels = list(map(str, self.Parameters.get_parameter(third_parameter))) if n3 > 1 else [str(
-            self.Parameters.get_parameter(third_parameter))]
+        first_parameter_labels = (
+            [i.__str__() for i in self.Parameters.get_parameter(first_parameter)]
+            if n1 > 1
+            else [str(self.Parameters.get_parameter(first_parameter))]
+        )
+        second_parameter_labels = (
+            [str(j) for j in self.Parameters.get_parameter(second_parameter)] * n1
+            if n2 > 1
+            else [str(self.Parameters.get_parameter(second_parameter))] * n1
+        )
+        third_parameter_labels = (
+            list(map(str, self.Parameters.get_parameter(third_parameter)))
+            if n3 > 1
+            else [str(self.Parameters.get_parameter(third_parameter))]
+        )
 
         args = ["time", "iter", "cost", "constraints", "translation consistency", "angular consistency"]
         args_y_label = [
@@ -277,9 +285,11 @@ class ComparisonAnalysis:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
 
             # Plot dots
-            T = [self.Parameters.get_parameter(third_parameter)] if not isinstance(
-                self.Parameters.get_parameter(third_parameter), list) else self.Parameters.get_parameter(
-                third_parameter)
+            T = (
+                [self.Parameters.get_parameter(third_parameter)]
+                if not isinstance(self.Parameters.get_parameter(third_parameter), list)
+                else self.Parameters.get_parameter(third_parameter)
+            )
             for ii, i_3rd in enumerate(T):
                 # Get elements in dataframe TODO: Exclude other varying conditions if any
                 ddf = df[df[third_parameter] == i_3rd]
@@ -351,20 +361,20 @@ class ComparisonAnalysis:
             plt.show()
 
     def graphs_states(
-            self,
-            first_parameter: str = "ode_solver",
-            second_parameter: str = "n_shooting",
-            third_parameter: str = "tolerance",
-            res_path: str = None,
-            show: bool = True,
-            figsize: tuple = (12, 12),
-            tick_width: float = 0.2,
-            dot_width: float = 0.03,
-            size: int = 10,
-            marker: str = "o",
-            alpha: float = 1,
-            markeredgewidth=0.1,
-            markeredgecolor="black",
+        self,
+        first_parameter: str = "ode_solver",
+        second_parameter: str = "n_shooting",
+        third_parameter: str = "tolerance",
+        res_path: str = None,
+        show: bool = True,
+        figsize: tuple = (12, 12),
+        tick_width: float = 0.2,
+        dot_width: float = 0.03,
+        size: int = 10,
+        marker: str = "o",
+        alpha: float = 1,
+        markeredgewidth=0.1,
+        markeredgecolor="black",
     ):
         def abscissa_computations(nb_first: int, nb_second: int, width: float = tick_width):
             x = np.arange(nb_first)
