@@ -4,6 +4,7 @@ from casadi import MX, SX, DM, Function, inv, solve, ldl_solve, mtimes, lt, Code
 # SX : scalar symbolic
 import numpy as np
 import time
+#unfinished
 
 model_path = "../Model_JeCh_15DoFs.bioMod"
 m = biorbd.Model(model_path)
