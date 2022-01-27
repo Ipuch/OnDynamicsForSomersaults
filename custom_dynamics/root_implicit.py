@@ -62,6 +62,7 @@ def custom_configure_root_implicit(ocp: OptimalControlProgram, nlp: NonLinearPro
         ImplicitConstraintFcn.QDDOT_ROOT_EQUALS_ROOT_DYNAMICS,
         node=Node.ALL_SHOOTING,
         constraint_type=ConstraintType.IMPLICIT,
+        phase=nlp.phase_idx,
     )
 
     ConfigureProblem.configure_dynamics_function(ocp, nlp, root_implicit_dynamic)
