@@ -153,6 +153,11 @@ class MillerOcp:
                              min_bound=self.duration - slack_duration,
                              max_bound=self.duration + slack_duration, phase=1)
 
+        if self.dynamics_type == "root_explicit":
+            # not helping that much to look better.
+            # acceleration at zero for twist and tilt for the first frame.
+            self.constraints.add(ConstraintFcn.TRACK_STATE, key="qdot", derivative=True, index=[5, 6], node=Node.START)
+
     def _set_initial_guesses(self):
         # --- Initial guess --- #
         # Initialize state vector

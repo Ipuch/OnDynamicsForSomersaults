@@ -13,15 +13,28 @@ from viz import add_custom_plots
 from Comparison import integrate_sol, compute_error_single_shooting
 
 
-# def filename(params: dict):
-#     file_str = ""
-#     for ii in params.values():
-#         file_str += f"{ii}_"
-#     file_str = file_str.replace("\n", "_")
-#     file_str = file_str.replace(".", "_")
-#     file_str = file_str.replace(" ", "_")
-#     file_str.join(".bo")
-#     return file_str[:-1]
+def integrator_name(ode_solver: OdeSolver):
+    if ode_solver.is_direct_collocation or ode_solver.rk_integrator.__name__ == "IRK":
+        ode_solver_string = f"{ode_solver.rk_integrator.__name__}\n{ode_solver.method}\n{ode_solver.polynomial_degree}"
+    elif ode_solver.rk_integrator.__name__ == "CVODES":
+        ode_solver_string = f"{ode_solver.rk_integrator.__name__}"
+    else:
+        ode_solver_string = f"{ode_solver.rk_integrator.__name__}\n{ode_solver.steps} step"
+        if ode_solver.steps > 1:
+            ode_solver_string += "s"
+
+    return ode_solver_string
+
+
+def filename(params: dict):
+    file_str = ""
+    for ii in params.values():
+        file_str += f"{ii}_"
+    file_str = file_str.replace("\n", "_")
+    file_str = file_str.replace(".", "_")
+    file_str = file_str.replace(" ", "_")
+    file_str.join(".bo")
+    return file_str[:-1]
 
 
 class ComparisonParameters:
