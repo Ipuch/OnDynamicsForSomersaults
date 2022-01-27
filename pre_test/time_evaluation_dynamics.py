@@ -19,6 +19,7 @@ Minv_func = Function("Minv_func", [q], [Minv], ["q"], ["Minv"]).expand()
 np.random.seed(0)
 n = 100000
 Q = np.random.random((m.nbQ(), n))
+t = np.zeros(4)
 
 print("FD")
 qdot = MX.sym("qdot", m.nbQ(), 1)
@@ -30,6 +31,7 @@ for qi in Q.T:
     FD_func(qi, qi, qi)
 toc = time.time() - tic
 print(toc/n, " second")
+t[0] = toc/n
 
 print("Inverse Dynamics")
 qddot = MX.sym("qddot", m.nbQ(), 1)
@@ -40,6 +42,7 @@ for qi in Q.T:
     ID_func(qi, qi, qi)
 toc = time.time() - tic
 print(toc/n, " second")
+t[1] = toc/n
 
 print("floating base forward dynamics with analytic inv V2")
 qdot = MX.sym("qdot", m.nbQ(), 1)
@@ -53,6 +56,7 @@ for qi in Q.T:
     FD_fb_v2_func(qi, qi, qi[m.nbRoot():])
 toc = time.time() - tic
 print(toc/n, " second")
+t[2] = toc/n
 
 print("floating base inverse dynamics")
 ID = m.InverseDynamics(q, qdot, qddot).to_mx()[:6]
@@ -62,8 +66,7 @@ for qi in Q.T:
     ID_fb_func(qi, qi, qi)
 toc = time.time() - tic
 print(toc/n, " second")
+t[3] = toc/n
 
-
-
-
+np.savetxt('time_evaluation_dynamics.out', t * 1e6, delimiter='    ', header="FD, ID, floating base FD, floating base ID in microsec")
 

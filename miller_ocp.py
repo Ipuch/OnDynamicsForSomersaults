@@ -65,10 +65,12 @@ class MillerOcp:
 
             self.n_q = self.biorbd_model[0].nbQ()
             self.n_qdot = self.biorbd_model[0].nbQdot()
-            if self.dynamics_type == "implicit":
+
+            if self.dynamics_type == "implicit" or self.dynamics_type == "root_implicit":
                 self.n_qddot = self.biorbd_model[0].nbQddot()
-            else:
+            elif self.dynamics_type == "explicit" or self.dynamics_type == "root_explicit":
                 self.n_qddot = self.biorbd_model[0].nbQddot() - self.biorbd_model[0].nbRoot()
+
             self.n_tau = self.biorbd_model[0].nbGeneralizedTorque() - self.biorbd_model[0].nbRoot()
 
             self.tau_min, self.tau_init, self.tau_max = -100, 0, 100
@@ -121,7 +123,7 @@ class MillerOcp:
             elif self.dynamics_type == "implicit":
                 self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False)
             elif self.dynamics_type == "root_implicit":
-                self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, implicit_dynamics=True, expand=False)
+                self.dynamics.add(custom_configure_root_implicit, dynamic_function=root_implicit_dynamic, expand=False)
             else:
                 raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 
@@ -396,6 +398,7 @@ class MillerOcp:
         elif self.dynamics_type == "implicit":
             self.mapping.add("tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14])
         elif self.dynamics_type == "root_implicit":
-            self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14])
+            pass
+            # self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14])
         else:
             raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
