@@ -25,6 +25,8 @@ from bioptim import (
     NonLinearProgram,
     ConfigureProblem,
     DynamicsFunctions,
+    PenaltyNodeList,
+    BiorbdInterface,
 )
 
 from custom_dynamics.root_explicit import root_explicit_dynamic, custom_configure_root_explicit
@@ -84,7 +86,7 @@ class MillerOcp:
             self.mapping = BiMappingList()
 
             self._set_dynamics()
-            self._set_constraints()
+            # self._set_constraints()
             self._set_objective_functions()
 
             self._set_boundary_conditions()
@@ -102,7 +104,7 @@ class MillerOcp:
                 u_init=self.u_init,
                 u_bounds=self.u_bounds,
                 objective_functions=self.objective_functions,
-                constraints=self.constraints,
+                # constraints=self.constraints,
                 n_threads=n_threads,
                 variable_mappings=self.mapping,
                 control_type=ControlType.CONSTANT,
@@ -130,10 +132,10 @@ class MillerOcp:
                 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=1, phase=i)  # Regularization
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=6,
-                weight=1000, phase=i)  # Right hand trajetory
+                weight=10, phase=i)  # Right hand trajetory
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=11,
-                weight=1000, phase=i)  # Left hand trajectory
+                weight=10, phase=i)  # Left hand trajectory
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=16,
                 weight=1000, phase=i)  # Left hand trajectory
@@ -143,21 +145,26 @@ class MillerOcp:
     def _set_constraints(self):
         # --- Constraints --- #
         # Set time as a variable
-        slack_duration = 0.5 ###################################################################
-        self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
-                             node=Node.END,
-                             min_bound=self.duration - 2*slack_duration,
-                             max_bound=self.duration, phase=0)
-        self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
-                             node=Node.END,
-                             min_bound=self.duration - slack_duration,
-                             max_bound=self.duration + slack_duration, phase=1)
+        slack_duration = 0.3
+        self.objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_TIME,
+                             min_bound= 7/8 * self.duration - 1/2*slack_duration,
+                             max_bound= 7/8 * self.duration + 1/2*slack_duration, phase=0, weight=1e-6)
+        self.objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_TIME,
+                             min_bound= 1/8 * self.duration - 1/2*slack_duration,
+                             max_bound= 1/8 * self.duration + 1/2*slack_duration, phase=1, weight=1e-6)
 
-        if self.dynamics_type == "root_explicit":
-            # not helping that much to look better.
-            # acceleration at zero for twist and tilt for the first frame.
-            self.constraints.add(ConstraintFcn.TRACK_STATE, key="qdot", derivative=True, index=[5, 6], node=Node.START)
-
+    # def _set_constraints(self):
+    #     --- Constraints --- #
+    #     Set time as a variable
+    #     slack_duration = 0.3
+    #     self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
+    #                          node=Node.END,
+    #                          min_bound=7/8 * self.duration - 1/2*slack_duration,
+    #                          max_bound=7/8 * self.duration + 1/2*slack_duration, phase=0)
+    #     self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
+    #                          node=Node.END,
+    #                          min_bound=1/8 * self.duration - 1/2*slack_duration,
+    #                          max_bound=1/8 * self.duration + 1/2*slack_duration, phase=1)
     def _set_initial_guesses(self):
         # --- Initial guess --- #
         # Initialize state vector
@@ -233,6 +240,7 @@ class MillerOcp:
         self.x_bounds = BoundsList()
 
         velocity_max = 100
+        velocity_max_phase_transition = 10
         tilt_bound = np.pi / 4
         tilt_final_bound = np.pi / 12  # 15 degrees
 
@@ -242,6 +250,7 @@ class MillerOcp:
         arm_elevation_y_low = 0.01
         arm_elevation_y_upp = np.pi - 0.01
         thorax_hips_xyz = np.pi/6
+        arm_rotation_y_final = 2.4
 
         slack_initial_vertical_velocity = 2
         slack_initial_somersault_rate = 1
@@ -291,13 +300,13 @@ class MillerOcp:
         x_min[0, :self.n_q, 2] = [-3, -3, -0.001, 7/8 * self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_twist,
                                -slack_final_dofs, -slack_final_dofs, -slack_final_dofs,
                                -arm_rotation_z_low, -0.2, -arm_rotation_z_upp, arm_elevation_y_low,
-                               thorax_hips_xyz-slack_final_dofs, -slack_final_dofs]
+                               thorax_hips_xyz-slack_final_dofs, -slack_final_dofs] #x_min[0, :self.n_q, 1]
         x_min[0, self.n_q:, 2] = - velocity_max
 
         x_max[0, :self.n_q, 2] = [3, 3, 10, 7/8 * self.somersaults + slack_final_somersault, tilt_final_bound, self.twists + slack_twist,
                                slack_final_dofs, slack_final_dofs, slack_final_dofs,
                                arm_rotation_z_upp, -arm_elevation_y_low, arm_rotation_z_low, 0.2,
-                               thorax_hips_xyz, slack_final_dofs]
+                               thorax_hips_xyz, slack_final_dofs] #x_max[0, :self.n_q, 1]
         x_max[0, self.n_q:, 2] = + velocity_max
 
 
@@ -310,27 +319,38 @@ class MillerOcp:
         x_min[1, :self.n_q, 1] = [-3, -3, -0.001, 7/8 * self.somersaults - slack_final_somersault, -tilt_bound, self.twists - slack_final_twist,
                                -slack_final_dofs, -slack_final_dofs, -slack_final_dofs,
                                -arm_rotation_z_low, -arm_elevation_y_upp, -arm_rotation_z_upp, arm_elevation_y_low,
-                               -slack_final_dofs, -slack_final_dofs]
-        x_min[1, self.n_q:, 1] = - velocity_max
+                               -slack_final_dofs, -slack_final_dofs] # x_min[0, :self.n_q, 1]
+        x_min[1, self.n_q:, 1] = [-velocity_max, -velocity_max, -velocity_max, -velocity_max, -velocity_max_phase_transition, -velocity_max_phase_transition,
+                                  -velocity_max_phase_transition, -velocity_max_phase_transition, -velocity_max_phase_transition,
+                                  -velocity_max, -velocity_max, -velocity_max, -velocity_max,
+                                  -velocity_max, -velocity_max_phase_transition]
 
         x_max[1, :self.n_q, 1] = [3, 3, 10, self.somersaults + slack_somersault, tilt_bound, self.twists + slack_twist,
                                slack_final_dofs, slack_final_dofs, slack_final_dofs,
                                arm_rotation_z_upp, -arm_elevation_y_low, arm_rotation_z_low, arm_elevation_y_upp,
-                               thorax_hips_xyz, slack_final_dofs]
-        x_max[1, self.n_q:, 1] = + velocity_max
+                               thorax_hips_xyz, slack_final_dofs]  #  x_max[0, :self.n_q, 1]
+        x_max[1, self.n_q:, 1] = [velocity_max, velocity_max, velocity_max, velocity_max, velocity_max_phase_transition, velocity_max_phase_transition,
+                                  velocity_max_phase_transition, velocity_max_phase_transition, velocity_max_phase_transition,
+                                  velocity_max, velocity_max, velocity_max, velocity_max,
+                                  velocity_max, velocity_max_phase_transition]
 
-        x_min[1, :self.n_q, 2] = [-0.1, -0.1, -0.1, self.somersaults - slack_final_somersault, -tilt_final_bound, self.twists - slack_final_twist,
+        x_min[1, :self.n_q, 2] = [-0.1, -0.1, -0.1, self.somersaults - thorax_hips_xyz - slack_final_somersault, -tilt_final_bound, self.twists - slack_final_twist,
                                -slack_final_dofs, -slack_final_dofs, -slack_final_dofs,
-                               -arm_rotation_z_low, -arm_elevation_y_upp, -arm_rotation_z_upp, arm_elevation_y_low,
+                               -arm_rotation_z_low, -arm_elevation_y_upp, -arm_rotation_z_upp, arm_rotation_y_final,
                                thorax_hips_xyz-slack_final_dofs, -slack_final_dofs]
-        x_min[1, self.n_q:, 2] = - velocity_max
+        x_min[1, self.n_q:, 2] = [-velocity_max, -velocity_max, -velocity_max, -velocity_max, -velocity_max_phase_transition, -velocity_max_phase_transition,
+                                  -velocity_max_phase_transition, -velocity_max_phase_transition, -velocity_max_phase_transition,
+                                  -velocity_max, -velocity_max, -velocity_max, -velocity_max,
+                                  -velocity_max, -velocity_max_phase_transition]
 
-        x_max[1, :self.n_q, 2] = [0.1, 0.1, 0.1,
-                               self.somersaults + slack_final_somersault, tilt_final_bound, self.twists + slack_final_twist,
+        x_max[1, :self.n_q, 2] = [0.1, 0.1, 0.1, self.somersaults - thorax_hips_xyz + slack_final_somersault, tilt_final_bound, self.twists + slack_final_twist,
                                slack_final_dofs, slack_final_dofs, slack_final_dofs,
-                               arm_rotation_z_upp, -arm_elevation_y_low, arm_rotation_z_low, arm_elevation_y_upp,
+                               arm_rotation_z_upp, -arm_rotation_y_final, arm_rotation_z_low, arm_elevation_y_upp,
                                thorax_hips_xyz, slack_final_dofs]
-        x_max[1, self.n_q:, 2] = + velocity_max
+        x_max[1, self.n_q:, 2] = [velocity_max, velocity_max, velocity_max, velocity_max, velocity_max_phase_transition, velocity_max_phase_transition,
+                                  velocity_max_phase_transition, velocity_max_phase_transition, velocity_max_phase_transition,
+                                  velocity_max, velocity_max, velocity_max, velocity_max,
+                                  velocity_max, velocity_max_phase_transition]
 
         for phase in range(len(self.n_shooting)):
             self.x_bounds.add(

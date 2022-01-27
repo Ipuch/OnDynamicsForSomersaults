@@ -22,7 +22,6 @@ nstep = 5
 n_threads = 4 # Should be 8
 
 calls = []
-# for weight in Weight_choices:
 for dynamics_type in dynamics_types:
     for i_rand in range(100):  # Should be 100
         calls.append([Date, i_rand, n_shooting, duration, dynamics_type, nstep, n_threads])
