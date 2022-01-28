@@ -10,7 +10,7 @@ def main():
     duration = 1.46  # 1.545
     n_threads = 8
     model_path = "Model_JeCh_10DoFs.bioMod"
-    dynamics_type = "explicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
+    dynamics_type = "implicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
 
     # --- Solve the program --- #
     miller = MillerOcp(
@@ -29,7 +29,7 @@ def main():
 
     np.random.seed(0)
 
-    solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
+    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
     solver.set_maximum_iterations(1000)
     solver.set_print_level(5)
 
@@ -38,13 +38,19 @@ def main():
     # --- Show results --- #
     print(sol.status)
     sol.print()
-    sol.graphs()
+    # sol.graphs()
     miller.ocp.save(sol, "Model_JeCh_10DoFs.bo")  # you don't have to specify the extension ".bo"
 
-    sol.animate()
+    # sol.animate()
     # sol.animate(nb_frames=-1, show_meshes=False) # show_mesh=True
     # ma57
-
+    q = sol.states["q"]
+    qdot = sol.states["qdot"]
+    qddot = sol.controls["qddot"]
+    import biorbd as biorbd
+    m = biorbd.Model(model_path)
+    for qi, qdoti, qddoti in zip(q.T, qdot.T, qddot.T):
+        print(m.InverseDynamics(qi, qdoti, qddoti).to_array()[:6])
 
 if __name__ == "__main__":
     main()

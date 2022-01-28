@@ -60,11 +60,12 @@ class MillerOcp:
         self.somersault_rate_0 = somersaults / duration
 
         if biorbd_model_path is not None:
-            self.biorbd_model =  (biorbd.Model(biorbd_model_path), biorbd.Model(biorbd_model_path))
+            self.biorbd_model = (biorbd.Model(biorbd_model_path), biorbd.Model(biorbd_model_path))
             self.dynamics_type = dynamics_type
 
             self.n_q = self.biorbd_model[0].nbQ()
             self.n_qdot = self.biorbd_model[0].nbQdot()
+            self.nb_root = self.biorbd_model[0].nbRoot()
 
             if self.dynamics_type == "implicit" or self.dynamics_type == "root_implicit":
                 self.n_qddot = self.biorbd_model[0].nbQddot()

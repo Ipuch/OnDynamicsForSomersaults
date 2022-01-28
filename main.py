@@ -9,8 +9,8 @@ def main():
     ode_solver = OdeSolver.RK4(n_integration_steps=5)
     duration = 1.545
     n_threads = 8
-    model_path = "Model_JeCh_10DoFs.bioMod"
-    dynamics_type = "root_explicit" #"implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
+    model_path = "Model_JeCh_15DoFs.bioMod"
+    dynamics_type = "implicit" #"implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
     # mettre une contrainte
     # --- Solve the program --- #
     miller = MillerOcp(
@@ -25,8 +25,9 @@ def main():
         twists=6 * np.pi,
     )
 
-    miller.ocp.add_plot_penalty(CostType.ALL)
+    miller.ocp.print(to_console=True)
 
+    miller.ocp.add_plot_penalty(CostType.ALL)
     np.random.seed(0)
 
     solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
@@ -42,6 +43,13 @@ def main():
     # sol.animate()
     sol.animate(nb_frames=-1, show_meshes=True) # show_mesh=True
     # ma57
+    q = sol.states[0]["q"]
+    qdot = sol.states[0]["qdot"]
+    qddot = sol.controls[0]["qddot"]
+    import biorbd as biorbd
+    m = biorbd.Model(model_path)
+    for qi, qdoti, qddoti in zip(q.T, qdot.T, qddot.T):
+        print(m.InverseDynamics(qi, qdoti, qddoti).to_array())
 
 if __name__ == "__main__":
     main()

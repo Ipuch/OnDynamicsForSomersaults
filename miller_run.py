@@ -6,7 +6,6 @@ import pickle
 from time import time
 
 
-
 def main(args=None):
     if args:
         Date = args[0]
@@ -14,14 +13,18 @@ def main(args=None):
         n_shooting = args[2]
         duration = args[3]
         dynamics_type = args[4]
-        nstep = args[5]
-        n_threads = args[6]
+        ode_solver = args[5]
+        nstep = args[6]
+        n_threads = args[7]
+        out_path_raw = args[8]
+        out_path_secondary_variables = args[9]
     else:
         Date = '24jan2022'
         i_rand = 0
         n_shooting = (125, 25)
         duration = 1.545
         dynamics_type = "explicit"
+        ode_solver = OdeSolver.RK4
         nstep = 5
         n_threads = 1
 
@@ -30,7 +33,7 @@ def main(args=None):
         biorbd_model_path="Model_JeCh_15DoFs.bioMod",
         duration=duration,
         n_shooting=n_shooting,
-        ode_solver=OdeSolver.RK4(n_integration_steps=nstep),
+        ode_solver=ode_solver(n_integration_steps=nstep),
         dynamics_type=dynamics_type,
         n_threads=n_threads,
         vertical_velocity_0=9.2,
@@ -50,9 +53,6 @@ def main(args=None):
 
     if sol.status == 0:
         print(f"Time to solve dynamics_type={dynamics_type}, random={i_rand}: {toc}sec")
-
-        out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
-        out_path_secondary_variables = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/secondary_variables"
 
         f = open(f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.pckl", "wb")
         data = {"computation_time" : toc,
