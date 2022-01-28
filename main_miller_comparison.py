@@ -32,7 +32,7 @@ calls = []
 for i, dynamics_type in enumerate(dynamics_types):
     for i_rand in range(100):  # Should be 100
         calls.append([Date, i_rand, n_shooting, duration, dynamics_type, ode_solver[i], nstep, n_threads,
-                      out_path_raw, out_path_secondary_variables])
+                      out_path_raw, "Model_JeCh_15DoFs.bioMod"])
 
 with Pool(4) as p:  # should be 8
     p.map(miller_run.main, calls)

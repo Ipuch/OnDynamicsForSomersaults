@@ -1,10 +1,9 @@
 import numpy as np
 from bioptim import OdeSolver, CostType
-from bioptim import Solver
+from bioptim import Solver, Shooting
 from miller_ocp import MillerOcp
 import pickle
 from time import time
-from analyses.analyses import Analyses
 
 
 def main(args=None):
@@ -18,7 +17,7 @@ def main(args=None):
         nstep = args[6]
         n_threads = args[7]
         out_path_raw = args[8]
-        out_path_secondary_variables = args[9]
+        biorbd_model_path = args[9]
     else:
         Date = '24jan2022'
         i_rand = 0
@@ -28,6 +27,8 @@ def main(args=None):
         ode_solver = OdeSolver.RK4
         nstep = 5
         n_threads = 3
+        out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
+        biorbd_model_path = "Model_JeCh_15DoFs.bioMod"
 
     # --- Solve the program --- #
     miller = MillerOcp(
@@ -56,8 +57,13 @@ def main(args=None):
     # if sol.status == 0:
     print(f"Time to solve dynamics_type={dynamics_type}, random={i_rand}: {toc}sec")
 
+    sol_integrated = sol.integrate(shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False)
+
+    q_integrated = sol_integrated.states["q"]
+    qdot_integrated = sol_integrated.states["qdot"]
+
     f = open(f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.pckl", "wb")
-     data = {"model" : biorbd_model_path,
+    data = {"model_path" : biorbd_model_path,
             "computation_time" : toc,
             "cost" : sol.cost,
             # "inf_du" : sol.inf_du,
@@ -67,11 +73,14 @@ def main(args=None):
             "states" : sol.states,
             "controls" : sol.controls,
             "parameters" : sol.parameters,
-            "dynamics_type" : dynamics_type}
+            "dynamics_type" : dynamics_type,
+            "q_integrated" : q_integrated,
+            "qdot_integrated" : qdot_integrated,
+            }
     pickle.dump(data, f)
     f.close()
 
-    ocp.save(sol, f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
+    # miller.ocp.save(sol, f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
 
 
 
