@@ -129,10 +129,16 @@ class MillerOcp:
                 raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 
     def _set_objective_functions(self):
+
+        def custom_angular_momentum(all_pn: PenaltyNodeList) -> cas.MX:
+            angular_momentum = BiorbdInterface.mx_to_cx("angularMomentum", all_pn.nlp.model.angularMomentum, all_pn.nlp.states["q"], all_pn.nlp.states["qdot"])
+            angular_momentum_norm = cas.norm_2(angular_momentum)
+            return angular_momentum_norm
+
         # --- Objective function --- #
         for i in range(len(self.n_shooting)):
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", weight=1, phase=i)  # Regularization
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", index=(6, 7, 8, 9, 10, 11, 12, 13, 14), weight=1, phase=i)  # Regularization
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=6,
                 weight=10, phase=i)  # Right hand trajetory
@@ -141,13 +147,13 @@ class MillerOcp:
                 weight=10, phase=i)  # Left hand trajectory
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=16,
-                weight=1000, phase=i)  # Left hand trajectory
+                weight=100000, phase=i)  # feet trajectory
             # self.objective_functions.add(
             #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(12, 13, 14), key="q", weight=1000)  # thorax DoFs
 
-    def _set_constraints(self):
-        # --- Constraints --- #
-        # Set time as a variable
+
+        self.objective_functions.add(custom_angular_momentum, custom_type=ObjectiveFcn.Mayer, node=Node.START, weight=100000)
+
         slack_duration = 0.3
         self.objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_TIME,
                              min_bound= 7/8 * self.duration - 1/2*slack_duration,
@@ -168,6 +174,7 @@ class MillerOcp:
     #                          node=Node.END,
     #                          min_bound=1/8 * self.duration - 1/2*slack_duration,
     #                          max_bound=1/8 * self.duration + 1/2*slack_duration, phase=1)
+
     def _set_initial_guesses(self):
         # --- Initial guess --- #
         # Initialize state vector
@@ -256,7 +263,7 @@ class MillerOcp:
         arm_rotation_y_final = 2.4
 
         slack_initial_vertical_velocity = 2
-        slack_initial_somersault_rate = 1
+        slack_initial_somersault_rate = 3
 
         slack_somersault = 0.5
         slack_twist = 0.5
@@ -346,7 +353,7 @@ class MillerOcp:
                                   -velocity_max, -velocity_max, -velocity_max, -velocity_max,
                                   -velocity_max, -velocity_max_phase_transition]
 
-        x_max[1, :self.n_q, 2] = [0.1, 0.1, 0.1, self.somersaults - thorax_hips_xyz + slack_final_somersault, tilt_final_bound, self.twists + slack_final_twist,
+        x_max[1, :self.n_q, 2] = [0.1, 0.1, 0.1, self.somersaults - thorax_hips_xyz, tilt_final_bound, self.twists + slack_final_twist,
                                slack_final_dofs, slack_final_dofs, slack_final_dofs,
                                arm_rotation_z_upp, -arm_rotation_y_final, arm_rotation_z_low, arm_elevation_y_upp,
                                thorax_hips_xyz, slack_final_dofs]
