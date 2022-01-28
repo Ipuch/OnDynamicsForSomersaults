@@ -10,7 +10,7 @@ def main():
     duration = 1.545
     n_threads = 8
     model_path = "Model_JeCh_15DoFs.bioMod"
-    dynamics_type = "implicit" #"implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
+    dynamics_type = "implicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
     # mettre une contrainte
     # --- Solve the program --- #
     miller = MillerOcp(
@@ -41,15 +41,17 @@ def main():
     sol.print()
     # sol.graphs()
     # sol.animate()
-    sol.animate(nb_frames=-1, show_meshes=True) # show_mesh=True
+    sol.animate(nb_frames=-1, show_meshes=True)  # show_mesh=True
     # ma57
     q = sol.states[0]["q"]
     qdot = sol.states[0]["qdot"]
     qddot = sol.controls[0]["qddot"]
     import biorbd as biorbd
+
     m = biorbd.Model(model_path)
     for qi, qdoti, qddoti in zip(q.T, qdot.T, qddot.T):
         print(m.InverseDynamics(qi, qdoti, qddoti).to_array())
+
 
 if __name__ == "__main__":
     main()

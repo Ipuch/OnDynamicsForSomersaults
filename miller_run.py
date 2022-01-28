@@ -19,7 +19,7 @@ def main(args=None):
         out_path_raw = args[8]
         out_path_secondary_variables = args[9]
     else:
-        Date = '24jan2022'
+        Date = "24jan2022"
         i_rand = 0
         n_shooting = (125, 25)
         duration = 1.545
@@ -55,19 +55,20 @@ def main(args=None):
         print(f"Time to solve dynamics_type={dynamics_type}, random={i_rand}: {toc}sec")
 
         f = open(f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.pckl", "wb")
-        data = {"computation_time" : toc,
-                "cost" : sol.cost,
-                "inf_du" : sol.inf_du,
-                "inf_pr" : sol.inf_pr,
-                "iterations" : sol.iterations,
-                "status" : sol.status,
-                "states" : sol.states,
-                "parameters" : sol.parameters,
-                "controls" : sol.controls}
+        data = {
+            "computation_time": toc,
+            "cost": sol.cost,
+            "inf_du": sol.inf_du,
+            "inf_pr": sol.inf_pr,
+            "iterations": sol.iterations,
+            "status": sol.status,
+            "states": sol.states,
+            "parameters": sol.parameters,
+            "controls": sol.controls,
+        }
         pickle.dump(data, f)
         f.close()
 
+
 if __name__ == "__main__":
     main()
-
-

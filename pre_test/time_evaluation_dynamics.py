@@ -1,5 +1,6 @@
 import biorbd_casadi as biorbd
 from casadi import MX, SX, DM, Function, inv, solve, ldl_solve, mtimes, lt, vertcat
+
 # MX : matrix symbolic
 # SX : scalar symbolic
 import numpy as np
@@ -30,8 +31,8 @@ tic = time.time()
 for qi in Q.T:
     FD_func(qi, qi, qi)
 toc = time.time() - tic
-print(toc/n, " second")
-t[0] = toc/n
+print(toc / n, " second")
+t[0] = toc / n
 
 print("Inverse Dynamics")
 qddot = MX.sym("qddot", m.nbQ(), 1)
@@ -41,22 +42,21 @@ tic = time.time()
 for qi in Q.T:
     ID_func(qi, qi, qi)
 toc = time.time() - tic
-print(toc/n, " second")
-t[1] = toc/n
+print(toc / n, " second")
+t[1] = toc / n
 
 print("floating base forward dynamics with analytic inv V2")
 qdot = MX.sym("qdot", m.nbQ(), 1)
 qddot_J = MX.sym("qddot_J", m.nbQ() - m.nbRoot(), 1)
-FD_fb_v2 = mtimes(Minv_func(q)[:m.nbRoot(), :m.nbRoot()],
-                   - ID_func(q, qdot, vertcat(MX.zeros((6, 1)), qddot_J))[:6])
+FD_fb_v2 = mtimes(Minv_func(q)[: m.nbRoot(), : m.nbRoot()], -ID_func(q, qdot, vertcat(MX.zeros((6, 1)), qddot_J))[:6])
 FD_fb_v2_func = Function("FD_fb_v2", [q, qdot, qddot_J], [FD_fb_v2]).expand()
 
 tic = time.time()
 for qi in Q.T:
-    FD_fb_v2_func(qi, qi, qi[m.nbRoot():])
+    FD_fb_v2_func(qi, qi, qi[m.nbRoot() :])
 toc = time.time() - tic
-print(toc/n, " second")
-t[2] = toc/n
+print(toc / n, " second")
+t[2] = toc / n
 
 print("floating base inverse dynamics")
 ID = m.InverseDynamics(q, qdot, qddot).to_mx()[:6]
@@ -65,8 +65,12 @@ tic = time.time()
 for qi in Q.T:
     ID_fb_func(qi, qi, qi)
 toc = time.time() - tic
-print(toc/n, " second")
-t[3] = toc/n
+print(toc / n, " second")
+t[3] = toc / n
 
-np.savetxt('time_evaluation_dynamics.out', t * 1e6, delimiter='    ', header="FD, ID, floating base FD, floating base ID in microsec")
-
+np.savetxt(
+    "time_evaluation_dynamics.out",
+    t * 1e6,
+    delimiter="    ",
+    header="FD, ID, floating base FD, floating base ID in microsec",
+)

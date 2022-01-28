@@ -4,10 +4,12 @@ from miller_ocp import MillerOcp
 from time import perf_counter
 import pandas as pd
 
-ode_solvers = [OdeSolver.RK4(n_integration_steps=5),
-               OdeSolver.RK4(n_integration_steps=5),
-               OdeSolver.RK2(n_integration_steps=5),
-               OdeSolver.RK2(n_integration_steps=5)]
+ode_solvers = [
+    OdeSolver.RK4(n_integration_steps=5),
+    OdeSolver.RK4(n_integration_steps=5),
+    OdeSolver.RK2(n_integration_steps=5),
+    OdeSolver.RK2(n_integration_steps=5),
+]
 dynamics_types = ["explicit", "root_explicit", "implicit", "root_implicit"]
 times = np.zeros(4)
 
@@ -18,7 +20,7 @@ model_path = "../Model_JeCh_15DoFs.bioMod"
 
 np.random.seed(0)
 
-n_eval = 1  #100000
+n_eval = 1  # 100000
 
 for i in range(4):
     miller = MillerOcp(
@@ -70,4 +72,9 @@ for i in range(4):
 percent = times / np.max(times) * 100
 xfaster = np.divide(np.repeat(np.max(times), 4, axis=0), times)
 
-np.savetxt('time_evaluation_integrators.out', (times,percent,xfaster), delimiter='    ', header="time, percent of time, x time faster (in microsec)")
+np.savetxt(
+    "time_evaluation_integrators.out",
+    (times, percent, xfaster),
+    delimiter="    ",
+    header="time, percent of time, x time faster (in microsec)",
+)

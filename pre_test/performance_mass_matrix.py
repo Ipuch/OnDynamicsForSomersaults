@@ -1,5 +1,6 @@
 import biorbd_casadi as biorbd
 from casadi import MX, SX, DM, Function, inv, solve, ldl_solve, mtimes, lt
+
 # MX : matrix symbolic
 # SX : scalar symbolic
 import numpy as np
@@ -23,23 +24,23 @@ M_inv_func = Function("Minv", [q], [M_inv])
 M_inv_solv = solve(M, MX.eye(m.nbQ()))
 M_inv_solv_func = Function("M_inv_solv", [q], [M_inv_solv])
 
-M_inv_root = inv(M[:m.nbRoot(), :m.nbRoot()])
+M_inv_root = inv(M[: m.nbRoot(), : m.nbRoot()])
 M_inv_root_func = Function("M", [q], [M_inv_root])
 
-M_inv_root_solv = solve(M[:m.nbRoot(), :m.nbRoot()], MX.eye(m.nbRoot()))
+M_inv_root_solv = solve(M[: m.nbRoot(), : m.nbRoot()], MX.eye(m.nbRoot()))
 M_inv_root_solv_func = Function("M_inv_solv", [q], [M_inv_root_solv])
 
-M_inv_root_ldl = solve(M[:m.nbRoot(), :m.nbRoot()], MX.eye(m.nbRoot()), 'ldl')
+M_inv_root_ldl = solve(M[: m.nbRoot(), : m.nbRoot()], MX.eye(m.nbRoot()), "ldl")
 M_inv_root_ldl_func = Function("M_inv_ldl", [q], [M_inv_root_ldl])
 
-M_inv_root_qr = solve(M[:m.nbRoot(), :m.nbRoot()], MX.eye(m.nbRoot()), 'qr')
+M_inv_root_qr = solve(M[: m.nbRoot(), : m.nbRoot()], MX.eye(m.nbRoot()), "qr")
 M_inv_root_qr_func = Function("M_inv_qr", [q], [M_inv_root_qr])  # it still doesnt work with expand
 
 np.random.seed(0)
 Q = np.random.random((m.nbQ(), 10000))
 
 print("Val")
-qi = Q[:,0]
+qi = Q[:, 0]
 print(lt(M_inv_func(qi) - Minv_func(qi), 1e-9))
 print(lt(M_inv_solv_func(qi) - Minv_func(qi), 1e-9))
 
@@ -100,25 +101,29 @@ print(toc)
 print("floating base dynamic with ldl")
 qdot = MX.sym("qdot", m.nbQ(), 1)
 qddot_J = MX.sym("q", m.nbQ() - m.nbRoot(), 1)
-FD_fb = mtimes(solve(M[:m.nbRoot(), :m.nbRoot()], MX.eye(m.nbRoot()), 'ldl'),
-               (-M[:m.nbRoot(), m.nbRoot():] @ qddot_J - m.NonLinearEffect(q, qdot).to_mx()[:m.nbRoot()]))
+FD_fb = mtimes(
+    solve(M[: m.nbRoot(), : m.nbRoot()], MX.eye(m.nbRoot()), "ldl"),
+    (-M[: m.nbRoot(), m.nbRoot() :] @ qddot_J - m.NonLinearEffect(q, qdot).to_mx()[: m.nbRoot()]),
+)
 FD_fb_func = Function("FD_fb", [q, qdot, qddot_J], [FD_fb])
 
 tic = time.time()
 for qi in Q.T:
-    FD_fb_func(qi, qi, qi[m.nbRoot():])
+    FD_fb_func(qi, qi, qi[m.nbRoot() :])
 toc = time.time() - tic
 print(toc)
 
 print("floating base dynamic with analytic inv")
 qdot = MX.sym("qdot", m.nbQ(), 1)
 qddot_J = MX.sym("q", m.nbQ() - m.nbRoot(), 1)
-FD_fb_inv = mtimes(Minv_func(q)[:m.nbRoot(), :m.nbRoot()],
-                   (-M_func(q)[:m.nbRoot(), m.nbRoot():] @ qddot_J - m.NonLinearEffect(q, qdot).to_mx()[:m.nbRoot()]))
+FD_fb_inv = mtimes(
+    Minv_func(q)[: m.nbRoot(), : m.nbRoot()],
+    (-M_func(q)[: m.nbRoot(), m.nbRoot() :] @ qddot_J - m.NonLinearEffect(q, qdot).to_mx()[: m.nbRoot()]),
+)
 FD_fb_inv_func = Function("FD_fb_inv", [q, qdot, qddot_J], [FD_fb_inv]).expand()
 
 tic = time.time()
 for qi in Q.T:
-    FD_fb_inv_func(qi, qi, qi[m.nbRoot():])
+    FD_fb_inv_func(qi, qi, qi[m.nbRoot() :])
 toc = time.time() - tic
 print(toc)

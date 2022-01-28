@@ -1,11 +1,11 @@
-import biorbd # biorbd_casadi as biorbd
+import biorbd  # biorbd_casadi as biorbd
 import numpy as np
 import time
 
 m = biorbd.Model("../OnDynamicsForSommersaults/Model_JeCh_10DoFs.bioMod")
 
 # print(f"\n\n\n --------------------- Random {i} -------------------------\n")
-Q_aleat = np.array([10, 20, 30, 44, 50, 60, 70, 80, 90, 100])/100
+Q_aleat = np.array([10, 20, 30, 44, 50, 60, 70, 80, 90, 100]) / 100
 print(Q_aleat)
 print("\n")
 tic = time.time()
@@ -27,13 +27,3 @@ print(toc)
 print(np.round(M_inv - M_inv2, 9) == 0)
 # print(M_inv)
 # print(M_inv2)
-
-
-
-
-
-
-
-
-
-

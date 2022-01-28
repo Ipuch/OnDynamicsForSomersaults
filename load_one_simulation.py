@@ -1,4 +1,3 @@
-
 import bioviz
 import numpy as np
 from bioptim import OptimalControlProgram
@@ -17,7 +16,7 @@ if manually_animate:
     i = 0
     while biorbd_viz.vtk_window.is_active:
         biorbd_viz.set_q(q[:, i])
-        i = (i+1)
+        i = i + 1
 else:
     biorbd_viz.load_movement(q)
     biorbd_viz.exec()
