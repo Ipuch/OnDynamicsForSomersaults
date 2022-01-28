@@ -9,10 +9,9 @@ import smtplib, ssl
 import miller_run
 from bioptim import OdeSolver
 
-out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
-out_path_secondary_variables = (
-    "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/secondary_variables"
-)
+
+out_path_raw = "../OnDynamicsForSommersaults_results/raw"
+out_path_secondary_variables = "../OnDynamicsForSommersaults_resultsresults/secondary_variables"
 
 Date = date.today()
 Date = Date.strftime("%d-%m-%y")

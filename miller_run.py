@@ -48,7 +48,8 @@ def main(args=None):
     solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
     solver.set_maximum_iterations(1)
     solver.set_print_level(5)
-    solver.set_linear_solver("ma57")
+    # solver.set_linear_solver("ma57")
+    solver.set_linear_solver("mumps")
 
     tic = time()
     sol = miller.ocp.solve(solver)
