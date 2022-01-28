@@ -132,7 +132,7 @@ class MillerOcp:
 
         def custom_angular_momentum(all_pn: PenaltyNodeList) -> cas.MX:
             angular_momentum = BiorbdInterface.mx_to_cx("angularMomentum", all_pn.nlp.model.angularMomentum, all_pn.nlp.states["q"], all_pn.nlp.states["qdot"])
-            angular_momentum_norm = cas.norm_2(angular_momentum)
+            angular_momentum_norm = cas.sum1(angular_momentum**2)
             return angular_momentum_norm
 
         # --- Objective function --- #
@@ -140,16 +140,16 @@ class MillerOcp:
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key="qdot", index=(6, 7, 8, 9, 10, 11, 12, 13, 14), weight=1, phase=i)  # Regularization
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=6,
+                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=1, marker_index=6,
                 weight=10, phase=i)  # Right hand trajetory
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=11,
+                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=1, marker_index=11,
                 weight=10, phase=i)  # Left hand trajectory
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=16,
                 weight=100000, phase=i)  # feet trajectory
-            # self.objective_functions.add(
-            #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(12, 13, 14), key="q", weight=1000)  # thorax DoFs
+            self.objective_functions.add(
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(6, 7, 8, 13, 14), key="q", weight=10)  # core DoFs
 
 
         self.objective_functions.add(custom_angular_momentum, custom_type=ObjectiveFcn.Mayer, node=Node.START, weight=100000)

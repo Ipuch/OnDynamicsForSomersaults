@@ -8,7 +8,7 @@ def main():
     n_shooting = (125, 25)
     ode_solver = OdeSolver.RK4(n_integration_steps=5)
     duration = 1.545
-    n_threads = 8
+    n_threads = 3
     model_path = "Model_JeCh_15DoFs.bioMod"
     dynamics_type = "implicit" #"implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
     # mettre une contrainte
@@ -37,7 +37,16 @@ def main():
     sol = miller.ocp.solve(solver)
 
     # --- Show results --- #
-    print(sol.status)
+    if sol.status == 0:
+        q = np.hstack((sol.states[0]['q'], sol.states[1]['q']))
+        qdot = np.hstack((sol.states[0]['qdot'], sol.states[1]['qdot']))
+        u = np.hstack((sol.controls[0]['tau'], sol.controls[1]['tau']))
+        t = sol.parameters['time']
+        np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_q", q)
+        np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_qdot", qdot)
+        np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_u", u)
+        np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_t", t)
+
     sol.print()
     # sol.graphs()
     # sol.animate()

@@ -4,6 +4,7 @@ from bioptim import Solver
 from miller_ocp import MillerOcp
 import pickle
 from time import time
+from analyses.analyses import Analyses
 
 
 def main(args=None):
@@ -26,7 +27,7 @@ def main(args=None):
         dynamics_type = "explicit"
         ode_solver = OdeSolver.RK4
         nstep = 5
-        n_threads = 1
+        n_threads = 3
 
     # --- Solve the program --- #
     miller = MillerOcp(
@@ -46,26 +47,33 @@ def main(args=None):
     solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
     solver.set_maximum_iterations(1)
     solver.set_print_level(5)
+    solver.set_linear_solver("ma57")
 
     tic = time()
     sol = miller.ocp.solve(solver)
     toc = time() - tic
 
-    if sol.status == 0:
-        print(f"Time to solve dynamics_type={dynamics_type}, random={i_rand}: {toc}sec")
+    # if sol.status == 0:
+    print(f"Time to solve dynamics_type={dynamics_type}, random={i_rand}: {toc}sec")
 
-        f = open(f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.pckl", "wb")
-        data = {"computation_time" : toc,
-                "cost" : sol.cost,
-                "inf_du" : sol.inf_du,
-                "inf_pr" : sol.inf_pr,
-                "iterations" : sol.iterations,
-                "status" : sol.status,
-                "states" : sol.states,
-                "parameters" : sol.parameters,
-                "controls" : sol.controls}
-        pickle.dump(data, f)
-        f.close()
+    f = open(f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.pckl", "wb")
+     data = {"model" : biorbd_model_path,
+            "computation_time" : toc,
+            "cost" : sol.cost,
+            # "inf_du" : sol.inf_du,
+            "iterations" : sol.iterations,
+            # "inf_pr" : sol.inf_pr,
+            "status" : sol.status,
+            "states" : sol.states,
+            "controls" : sol.controls,
+            "parameters" : sol.parameters,
+            "dynamics_type" : dynamics_type}
+    pickle.dump(data, f)
+    f.close()
+
+    ocp.save(sol, f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
+
+
 
 if __name__ == "__main__":
     main()
