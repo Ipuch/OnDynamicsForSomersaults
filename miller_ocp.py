@@ -131,9 +131,9 @@ class MillerOcp:
     def _set_objective_functions(self):
 
         def custom_angular_momentum(all_pn: PenaltyNodeList) -> cas.MX:
-            angular_momentum = BiorbdInterface.mx_to_cx("angularMomentum", all_pn.nlp.model.angularMomentum, all_pn.nlp.states["q"], all_pn.nlp.states["qdot"])
-            angular_momentum_norm = cas.sum1(angular_momentum**2)
-            return angular_momentum_norm
+            angular_momentum = BiorbdInterface.mx_to_cx("angularMomentum", all_pn.nlp.model.angularMomentum,
+                                                        all_pn.nlp.states["q"], all_pn.nlp.states["qdot"])
+            return angular_momentum
 
         # --- Objective function --- #
         for i in range(len(self.n_shooting)):
