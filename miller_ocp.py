@@ -149,7 +149,7 @@ class MillerOcp:
                 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=16,
                 weight=100000, phase=i)  # feet trajectory
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(6, 7, 8, 13, 14), key="q", weight=10)  # core DoFs
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(6, 7, 8, 13, 14), key="q", weight=10, phase=i)  # core DoFs
 
 
         self.objective_functions.add(custom_angular_momentum, custom_type=ObjectiveFcn.Mayer, node=Node.START, weight=100000)
