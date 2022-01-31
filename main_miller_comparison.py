@@ -9,13 +9,10 @@ import miller_run
 from bioptim import OdeSolver
 
 out_path_raw = "../OnDynamicsForSommersaults_results/raw"
-out_path_secondary_variables = "../OnDynamicsForSommersaults_resultsresults/secondary_variables"
+out_path_secondary_variables = "../OnDynamicsForSommersaults_results/secondary_variables"
 
 Date = date.today()
 Date = Date.strftime("%d-%m-%y")
-f = open(f"Historique_{Date}.txt", "w+")
-f.write(" Debut ici \n\n\n")
-f.close()
 
 # duration = np.mean(np.array([1.44, 1.5, 1.545, 1.5, 1.545]))
 n_shooting = (125, 25)
@@ -31,5 +28,5 @@ for i, dynamics_type in enumerate(dynamics_types):
         calls.append([Date, i_rand, n_shooting, duration, dynamics_type, ode_solver[i], nstep, n_threads,
                       out_path_raw, "Model_JeCh_15DoFs.bioMod"])
 
-with Pool(8) as p:  # should be 8
+with Pool(4) as p:  # should be 4
     p.map(miller_run.main, calls)

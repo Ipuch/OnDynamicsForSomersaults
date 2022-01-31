@@ -43,20 +43,26 @@ def main(args=None):
         twists=6 * np.pi,
     )
 
-    np.random.seed(i_rand)
+    # np.random.seed(i_rand)
+    # np.random.seed(0)
 
     solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
-    solver.set_maximum_iterations(1)
+    solver.set_maximum_iterations(1000)
     solver.set_print_level(5)
-    # solver.set_linear_solver("ma57")
-    solver.set_linear_solver("mumps")
+    solver.set_linear_solver("ma57")
+
+    print(f"##########################################################")
+    print(f"Solving dynamics_type={dynamics_type}, random={i_rand}\n")
+    print(f"##########################################################")
 
     tic = time()
     sol = miller.ocp.solve(solver)
     toc = time() - tic
 
     # if sol.status == 0:
-    print(f"Time to solve dynamics_type={dynamics_type}, random={i_rand}: {toc}sec")
+    print(f"##########################################################")
+    print(f"Time to solve dynamics_type={dynamics_type}, random={i_rand}: {toc}sec\n")
+    print(f"##########################################################")
 
     sol_integrated = sol.integrate(shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False)
 
