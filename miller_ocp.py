@@ -45,6 +45,7 @@ class MillerOcp:
         vertical_velocity_0: float = 9.2,  # Real data
         somersaults: float = 4 * np.pi,
         twists: float = 6 * np.pi,
+        use_sx: bool = False,
     ):
         self.biorbd_model_path = biorbd_model_path
         self.n_shooting = n_shooting
@@ -111,7 +112,7 @@ class MillerOcp:
                 variable_mappings=self.mapping,
                 control_type=ControlType.CONSTANT,
                 ode_solver=ode_solver,
-                use_sx=False,
+                use_sx=use_sx,
             )
 
     def _set_dynamics(self):

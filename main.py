@@ -23,6 +23,7 @@ def main():
         vertical_velocity_0=9.2,
         somersaults=4 * np.pi,
         twists=6 * np.pi,
+        use_sx=False,
     )
 
     miller.ocp.print(to_console=True)
