@@ -119,11 +119,11 @@ class MillerOcp:
             if self.dynamics_type == "explicit":
                 self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=False)
             elif self.dynamics_type == "root_explicit":
-                self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic, expand=False)
+                self.dynamics.add(custom_configure_root_explicit, dynamic_function=root_explicit_dynamic)
             elif self.dynamics_type == "implicit":
                 self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False)
             elif self.dynamics_type == "root_implicit":
-                self.dynamics.add(custom_configure_root_implicit, dynamic_function=root_implicit_dynamic, expand=False)
+                self.dynamics.add(custom_configure_root_implicit, dynamic_function=root_implicit_dynamic)
             else:
                 raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 
