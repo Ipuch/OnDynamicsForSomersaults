@@ -6,58 +6,174 @@ import biorbd
 import os
 import pickle
 
-
 def graphs_analyses(angular_momentum_rmsd_all, linear_momentum_rmsd_all, residual_tau_sum_all, computation_time_all, cost_all, iterations_all):
+
+    figure_type_1 = False # True  # Tous sur le meme,
+    figure_type_2 = False # True  # Tous sur le meme avec lignes qui relient les points
+    figure_type_3 = False # True  # Séparés
+
 
     colors = ['#2E5A90FF', '#00BA87FF', '#DDEA00FF', '#BE2AD0FF', '#76DF1FFF', '#13BBF2FF', '#500375FF']
     shift = [-0.3, -0.1, 0.1, 0.3]
-    labels = ["Angular Momentum RMSD",
-              "Linear Momentum RMSD",
-              "Resirual Tau",
-              "Computation Time",
-              "Optimal Cost",
-              "Number of iterations"]
+    labels = ["Angular\nMomentum\nRMSD",
+              "Linear\nMomentum\nRMSD",
+              "Resirual\nTau",
+              "Computation\nTime",
+              "Optimal\nCost",
+              "Number\nof\niterations"]
+    dynamics_type = ["Explicit", "Root explicit", "Implicit", "Root Implicit"]
 
-    angular_momentum_rmsd_all_mean = np.mean(angular_momentum_rmsd_all, axis=1)
-    linear_momentum_rmsd_all_mean = np.mean(linear_momentum_rmsd_all, axis=1)
-    residual_tau_sum_all_mean = np.mean(residual_tau_sum_all, axis=1)
-    computation_time_all_mean = np.mean(computation_time_all, axis=1)
-    cost_all_mean = np.mean(cost_all, axis=1)
-    iterations_all_mean = np.mean(iterations_all, axis=1)
+    weights = np.array([1e-1, 1, 1, 1, 1e-9, 1])
 
-    angular_momentum_rmsd_all_std = np.std(angular_momentum_rmsd_all, axis=1)
-    linear_momentum_rmsd_all_std = np.std(linear_momentum_rmsd_all, axis=1)
-    residual_tau_sum_all_std = np.std(residual_tau_sum_all, axis=1)
-    computation_time_all_std = np.std(computation_time_all, axis=1)
-    cost_all_std = np.std(ancost_all, axis=1)
-    iterations_all_std = np.std(iterations_all, axis=1)
+    variables_list = np.array([angular_momentum_rmsd_all,
+                      linear_momentum_rmsd_all,
+                      residual_tau_sum_all,
+                      computation_time_all,
+                      cost_all,
+                      iterations_all])
 
-    variables_list = [angular_momentum_rmsd_all, linear_momentum_rmsd_all, residual_tau_sum_all, computation_time_all,
-                      cost_all, iterations_all]
-    variables_mean_list = [angular_momentum_rmsd_all_mean, linear_momentum_rmsd_all_mean, residual_tau_sum_all_mean,
-                           computation_time_all_mean, cost_all_mean, iterations_all_mean]
-    variables_std_list = [angular_momentum_rmsd_all_std, linear_momentum_rmsd_all_std, residual_tau_sum_all_std,
-                           computation_time_all_std, cost_all_std, iterations_all_std]
+    variables_list_weighted = np.array([variables_list[j] * weights[j] for j in range(6)])
 
-    fig, ax = plt.subplots(1, 1, tight_layout=True)
-
+    variables_mean_list = np.zeros((6, 4))
+    variables_std_list = np.zeros((6, 4))
+    variables_mean_list_weighted = np.zeros((6, 4))
+    variables_std_list_weighted = np.zeros((6, 4))
     for j in range(6):
-        for i in range(4):
-            ax.bar(j + shift[i],variables_mean_list[j][i] + variables_std_list[j][i],
-                            color=colors[i],
-                            bottom=variables_mean_list[j][i] - variables_std_list[j][i],
-                            label=labels[j],
-                            alpha=0.3)
+        variables_mean_list[j, :] = np.mean(variables_list[j, :, :], axis=1)
+        variables_std_list[j, :] = np.std(variables_list[j, :, :], axis=1)
+        variables_mean_list_weighted[j, :] = np.mean(variables_list_weighted[j, :, :], axis=1)
+        variables_std_list_weighted[j, :] = np.std(variables_list_weighted[j, :, :], axis=1)
 
-            plt.plot(j + shift[i], variables_list[j][i, :], '.', color=colors[i])
 
-    plt.legend()
-    plt.show()
-    plt.savefig('Comparaison.png', dpi=900)
+
+    if figure_type_1:
+        fig, ax = plt.subplots(1, 1, tight_layout=True)
+
+        ax.set_xticks(np.arange(6))
+        ax.set_xticklabels(labels)
+
+        for j in range(6):
+            for i in range(4):
+                ax.plot(np.array([j + shift[i] - 0.05, + shift[i] + 0.05]), np.ones(2, ) * variables_mean_list_weighted[j, i],
+                        color=colors[i], linewidth=2)
+                if j == 0:
+                    ax.bar(j + shift[i],
+                           variables_mean_list_weighted[j, i] + 2*variables_std_list_weighted[j, i],
+                           width=0.1,
+                           color=colors[i],
+                           bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
+                           label=dynamics_type[i] + " mean $\pm$ std",
+                           alpha=0.3)
+                    ax.plot(np.ones((100,)) * (j + shift[i]), variables_list_weighted[j, i, :], '.', color=colors[i], label=dynamics_type[i])
+                else:
+                    ax.bar(j + shift[i],
+                           variables_mean_list_weighted[j, i] + 2*variables_std_list_weighted[j, i],
+                           width=0.1,
+                           color=colors[i],
+                           bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
+                           alpha=0.3)
+                    ax.plot(np.ones((100, )) * (j + shift[i]), variables_list_weighted[j, i, :], '.', color=colors[i])
+
+        plt.legend(loc="upper center",
+                   frameon=False,
+                   ncol=2,
+                   # fontsize=12,
+                   bbox_to_anchor=(0.5, 1.5),
+                   )
+
+
+        plt.show()
+        plt.savefig('Comparaison.png', dpi=900)
+
+    if figure_type_2:
+        fig, ax = plt.subplots(1, 1, tight_layout=True)
+
+        ax.set_xticks(np.arange(6))
+        ax.set_xticklabels(labels)
+
+        for k in range(100):
+            for i in range(4):
+                if k == 0:
+                    ax.plot(np.arange(6) + shift[i], variables_list_weighted[:, i, k], '-', marker='.',
+                            color=colors[i], linewidth=0.5, label=dynamics_type[i])
+                else:
+                    ax.plot(np.arange(6) + shift[i], variables_list_weighted[:, i, k], '-', marker='.',
+                            color=colors[i], linewidth=0.5)
+
+        for j in range(6):
+            for i in range(4):
+                if j == 0:
+                    ax.bar(j + shift[i],
+                           variables_mean_list_weighted[j, i] + 2*variables_std_list_weighted[j, i],
+                           width=0.1,
+                           color=colors[i],
+                           bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
+                           label=dynamics_type[i] + " mean $\pm$ std",
+                           alpha=0.3)
+                else:
+                    ax.bar(j + shift[i],
+                           variables_mean_list_weighted[j, i] + 2*variables_std_list_weighted[j, i],
+                           width=0.1,
+                           color=colors[i],
+                           bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
+                           alpha=0.3)
+
+        plt.legend(loc="upper center",
+                   frameon=False,
+                   ncol=2,
+                   # fontsize=12,
+                   bbox_to_anchor=(0.5, 1.5),
+                   )
+        plt.show()
+        plt.savefig('Comparaison_lignes.png', dpi=900)
+
+
+    if figure_type_3:
+        # fig, axs = plt.subplots(2, 3, tight_layout=True)
+        # axs = axs.ravel()
+
+        for j in range(6):
+            plt.figure()
+            plt.xticks(shift, labels=dynamics_type)
+
+            for i in range(4):
+                plt.plot(np.array([shift[i] - 0.05, shift[i] + 0.05]), np.ones((2, )) * variables_mean_list[j, i],
+                        color='k', linewidth=2, alpha=0.3)
+
+                if j == 0:
+                    plt.bar(shift[i],
+                           variables_mean_list[j, i] + 2*variables_std_list[j, i],
+                           width=0.1,
+                           color='k',
+                           bottom=variables_mean_list[j, i] - variables_std_list[j, i],
+                           label="mean $\pm$ std",
+                           alpha=0.1)
+                    plt.scatter(np.ones((100,)) * shift[i], variables_list[j, i, :], c=np.linspace(0, 1, 100),
+                                cmap='viridis')
+                else:
+                    plt.bar(shift[i],
+                           variables_mean_list[j, i] + 2*variables_std_list[j, i],
+                           width=0.1,
+                           color='k',
+                           bottom=variables_mean_list[j, i] - variables_std_list[j, i],
+                           alpha=0.1)
+                    plt.scatter(np.ones((100,)) * shift[i], variables_list[j, i, :], c=np.linspace(0, 1, 100), cmap = 'viridis')
+
+            plt.legend(loc="upper center",
+                       frameon=False,
+                       ncol=2,
+                       # fontsize=12,
+                       bbox_to_anchor=(0.5, 1.5),
+                       )
+            plt.title(labels[j])
+            plt.show()
+            plt.savefig(f'Comparaison_separes_{labels[j]}.png', dpi=900)
+
 
     return
 
-def Analyses(out_path_raw, file_name, out_path_secondary_variables):
+
+def Analyses(out_path_raw, file_name, out_path_secondary_variables, i_rand, i_dynamics_type, axs, figure_type_4, time_min, q_min, qdot_min, qddot_min, tau_min, min_cost):
 
     file = open(f"{out_path_raw}/{file_name}", "rb")
     data = pickle.load(file)
@@ -106,9 +222,20 @@ def Analyses(out_path_raw, file_name, out_path_secondary_variables):
     if dynamics_type == "root_explicit" or dynamics_type == "root_implicit":
         residual_tau_integrated = np.zeros((m.nbRoot(), N_integrated))
         for node_integrated in range(N_integrated):
-            residual_tau_integrated = m.inverseDynamics(q_integrated, qdot_integrated, qddot_integrated).to_array()[:6]
+            residual_tau_integrated[:, node_integrated] = m.inverseDynamics(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], qddot_integrated[:, node_integrated]).to_array()[:6]
+
+        tau = np.zeros((m.nbQ(), N))
+        for node in range(N):
+            tau[:, node] = m.inverseDynamics(q[:, node], qdot[:, node], qddot[:, node]).to_array()
+
     else:
         residual_tau_integrated = 0
+
+        qddot = np.zeros((m.nbQ(), N))
+        for node in range(N):
+            qddot[:, node] = m.ForwardDynamics(q[:, node], qdot[:, node], np.hstack((np.zeros((6,)), tau[:, node]))).to_array()
+
+        tau = np.vstack((np.zeros((6,N)), tau))
 
     residual_tau_sum = np.sum(np.abs(residual_tau_integrated))
 
@@ -122,16 +249,70 @@ def Analyses(out_path_raw, file_name, out_path_secondary_variables):
             "linear_momentum_rmsd" : linear_momentum_rmsd,
             "residual_tau_sum" : residual_tau_sum}
 
-    pickle.dump(data_secondary , f)
+    pickle.dump(data_secondary, f)
     f.close()
 
-    return np.sum(np.abs(angular_momentum_rmsd)), np.sum(np.abs(linear_momentum_rmsd)), np.sum(residual_tau_sum), computation_time, cost, iterations
+    colors = ['#2E5A90FF', '#00BA87FF', '#DDEA00FF', '#BE2AD0FF', '#76DF1FFF', '#13BBF2FF', '#500375FF']
+    if figure_type_4:
+        for i in range(15):
+            axs[0][i].plot(time, q[i, :], '-', color=colors[i_dynamics_type])
+            axs[1][i].plot(time, qdot[i, :], '-', color=colors[i_dynamics_type])
+            axs[2][i].plot(time, qddot[i, :], '-', color=colors[i_dynamics_type])
+            axs[3][i].step(time, tau[i, :], '-', color=colors[i_dynamics_type])
+
+    if cost < min_cost[i_dynamics_type]:
+        time_min[i_dynamics_type] = time
+        q_min[i_dynamics_type] = q
+        qdot_min[i_dynamics_type] = qdot
+        qddot_min[i_dynamics_type] = qddot
+        tau_min[i_dynamics_type] = tau
+        min_cost[i_dynamics_type] = cost
+
+    return np.sum(np.abs(angular_momentum_rmsd)), np.sum(np.abs(linear_momentum_rmsd)), np.sum(residual_tau_sum), computation_time, cost, iterations, time_min, q_min, qdot_min, qddot_min, tau_min, min_cost
 
 
 
 
 out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
 out_path_secondary_variables = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/secondary_variables"
+figure_type_4 = True  # Techniques
+min_cost = np.ones((4, )) * 1e30
+q_min = [[], [], [], []]
+qdot_min = [[], [], [], []]
+qddot_min = [[], [], [], []]
+tau_min = [[], [], [], []]
+time_min = [[], [], [], []]
+
+if figure_type_4:
+    fig_1, axs_1 = plt.subplots(5, 3, tight_layout=True, figsize=(20, 15))  # Q
+    axs_1 = axs_1.ravel()
+    fig_2, axs_2 = plt.subplots(5, 3, tight_layout=True, figsize=(20, 15))  # Qdot
+    axs_2 = axs_2.ravel()
+    fig_3, axs_3 = plt.subplots(5, 3, tight_layout=True, figsize=(20, 15))  # Qddot
+    axs_3 = axs_3.ravel()
+    fig_4, axs_4 = plt.subplots(5, 3, tight_layout=True, figsize=(20, 15))  # Tau
+    axs_4 = axs_4.ravel()
+
+    Dof_names = ["Root Translation X",
+                 "Root Translation Y",
+                 "Root Translation Z",
+                 "Root Rotation X",
+                 "Root Rotation X",
+                 "Root Rotation X",
+                 "Thorax Rotation X",
+                 "Thorax Rotation Y",
+                 "Thorax Rotation Z",
+                 "Right Arm Rotation Z",
+                 "Right Arm Rotation Y",
+                 "Left Arm Rotation Z",
+                 "Left Arm Rotation Y",
+                 "Hips Rotation X",
+                 "Hips Rotation Y"]
+    axs = [axs_1, axs_2, axs_3, axs_4]
+    for ax in axs:
+        for i in range(15):
+            ax[i].set_title(Dof_names[i])
+
 
 #explicit, #root_explicit, #implicit, #root_implicit
 angular_momentum_rmsd_all = np.zeros((4, 100))
@@ -153,12 +334,25 @@ for file in os.listdir(out_path_raw):
                 i = 3
             else:
                 i = 2
-        idx_irand = file.name.find("irand") + 5
-        idx_pckl = file.name.find(".pckl")
-        j = int(file.name[idx_irand : idx_pckl])
-        angular_momentum_rmsd_all[i, j], linear_momentum_rmsd[i, j], residual_tau_sum[i, j], computation_time[i, j], cost[i, j], iterationsAnalyses(out_path_raw, file, out_path_secondary_variables)
+        idx_irand = file.find("irand") + 5
+        idx_pckl = file.find(".pckl")
+        i_rand = int(file[idx_irand : idx_pckl])
+        angular_momentum_rmsd_all[i, i_rand], linear_momentum_rmsd_all[i, i_rand], residual_tau_sum_all[i, i_rand], computation_time_all[i, i_rand], cost_all[i, i_rand], iterations_all[i, i_rand], time_min, q_min, qdot_min, qddot_min, tau_min, min_cost = Analyses(out_path_raw, file, out_path_secondary_variables, i_rand, i, axs, figure_type_4, time_min, q_min, qdot_min, qddot_min, tau_min, min_cost)
 
+if figure_type_4:
+    colors = ['#224168FF', '#058979FF', '#B3BD00FF', '#851D91FF', '#509716FF']
+    for i_dynamics_type in [0, 2]:
+        for i in range(15):
+            axs[0][i].plot(time_min[i_dynamics_type], q_min[i_dynamics_type][i, :], '-', color=colors[i_dynamics_type], linewidth=4)
+            axs[1][i].plot(time_min[i_dynamics_type], qdot_min[i_dynamics_type][i, :], '-', color=colors[i_dynamics_type], linewidth=4)
+            axs[2][i].plot(time_min[i_dynamics_type], qddot_min[i_dynamics_type][i, :], '-', color=colors[i_dynamics_type], linewidth=4)
+            axs[3][i].step(time_min[i_dynamics_type], tau_min[i_dynamics_type][i, :], '-', color=colors[i_dynamics_type], linewidth=4)
 
+    plt.show()
+    fig_1.savefig(f'Comparaison_Q.png') #, dpi=900)
+    fig_2.savefig(f'Comparaison_Qdot.png') #, dpi=900)
+    fig_3.savefig(f'Comparaison_Qddot.png') #, dpi=900)
+    fig_4.savefig(f'Comparaison_Tau.png') #, dpi=900)
 
 graphs_analyses(angular_momentum_rmsd_all, linear_momentum_rmsd_all, residual_tau_sum_all, computation_time_all, cost_all, iterations_all)
 
