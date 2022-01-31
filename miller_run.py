@@ -30,6 +30,8 @@ def main(args=None):
         out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
         biorbd_model_path = "Model_JeCh_15DoFs.bioMod"
 
+    # to handle the random multi-start of the ocp
+    np.random.seed(i_rand)
     # --- Solve the program --- #
     miller = MillerOcp(
         biorbd_model_path="Model_JeCh_15DoFs.bioMod",
@@ -43,11 +45,8 @@ def main(args=None):
         twists=6 * np.pi,
     )
 
-    # np.random.seed(i_rand)
-    # np.random.seed(0)
-
     solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
-    solver.set_maximum_iterations(1000)
+    solver.set_maximum_iterations(1500)
     solver.set_print_level(5)
     solver.set_linear_solver("ma57")
 
