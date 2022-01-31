@@ -1,5 +1,4 @@
 import os, shutil
-
 # from Comparison import ComparisonAnalysis, ComparisonParameters
 import pickle
 import numpy as np
@@ -8,7 +7,6 @@ from datetime import date
 import smtplib, ssl
 import miller_run
 from bioptim import OdeSolver
-
 
 out_path_raw = "../OnDynamicsForSommersaults_results/raw"
 out_path_secondary_variables = "../OnDynamicsForSommersaults_resultsresults/secondary_variables"
@@ -25,7 +23,7 @@ ode_solver = [OdeSolver.RK4, OdeSolver.RK4, OdeSolver.RK2, OdeSolver.RK2]
 duration = 1.545
 dynamics_types = ["explicit", "root_explicit", "implicit", "root_implicit"]
 nstep = 5
-n_threads = 1  # Should be 8
+n_threads = 8  # Should be 8
 
 calls = []
 for i, dynamics_type in enumerate(dynamics_types):
@@ -33,5 +31,5 @@ for i, dynamics_type in enumerate(dynamics_types):
         calls.append([Date, i_rand, n_shooting, duration, dynamics_type, ode_solver[i], nstep, n_threads,
                       out_path_raw, "Model_JeCh_15DoFs.bioMod"])
 
-with Pool(4) as p:  # should be 8
+with Pool(8) as p:  # should be 8
     p.map(miller_run.main, calls)
