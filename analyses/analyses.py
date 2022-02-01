@@ -16,8 +16,8 @@ def graphs_analyses(
     iterations_all,
 ):
 
-    figure_type_1 = True  # True  # Tous sur le meme,
-    figure_type_2 = True  # True  # Tous sur le meme avec lignes qui relient les points
+    figure_type_1 = False  # True  # Tous sur le meme,
+    figure_type_2 = False  # True  # Tous sur le meme avec lignes qui relient les points
     figure_type_3 = True  # True  # Séparés
 
     colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF"]
@@ -52,10 +52,10 @@ def graphs_analyses(
     variables_mean_list_weighted = np.zeros((6, 4))
     variables_std_list_weighted = np.zeros((6, 4))
     for j in range(6):
-        variables_mean_list[j, :] = np.mean(variables_list[j, :, :], axis=1)
-        variables_std_list[j, :] = np.std(variables_list[j, :, :], axis=1)
-        variables_mean_list_weighted[j, :] = np.mean(variables_list_weighted[j, :, :], axis=1)
-        variables_std_list_weighted[j, :] = np.std(variables_list_weighted[j, :, :], axis=1)
+        variables_mean_list[j, :] = np.nanmean(variables_list[j, :, :], axis=1)
+        variables_std_list[j, :] = np.nanstd(variables_list[j, :, :], axis=1)
+        variables_mean_list_weighted[j, :] = np.nanmean(variables_list_weighted[j, :, :], axis=1)
+        variables_std_list_weighted[j, :] = np.nanstd(variables_list_weighted[j, :, :], axis=1)
 
     if figure_type_1:
         fig, ax = plt.subplots(1, 1, tight_layout=True)
@@ -77,7 +77,7 @@ def graphs_analyses(
                 if j == 0:
                     ax.bar(
                         j + shift[i],
-                        variables_mean_list_weighted[j, i] + 2 * variables_std_list_weighted[j, i],
+                        2 * variables_std_list_weighted[j, i],
                         width=0.1,
                         color=colors[i],
                         bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
@@ -94,7 +94,7 @@ def graphs_analyses(
                 else:
                     ax.bar(
                         j + shift[i],
-                        variables_mean_list_weighted[j, i] + 2 * variables_std_list_weighted[j, i],
+                        2 * variables_std_list_weighted[j, i],
                         width=0.1,
                         color=colors[i],
                         bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
@@ -146,7 +146,7 @@ def graphs_analyses(
                 if j == 0:
                     ax.bar(
                         j + shift[i],
-                        variables_mean_list_weighted[j, i] + 2 * variables_std_list_weighted[j, i],
+                        2 * variables_std_list_weighted[j, i],
                         width=0.1,
                         color=colors[i],
                         bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
@@ -156,7 +156,7 @@ def graphs_analyses(
                 else:
                     ax.bar(
                         j + shift[i],
-                        variables_mean_list_weighted[j, i] + 2 * variables_std_list_weighted[j, i],
+                        2 * variables_std_list_weighted[j, i],
                         width=0.1,
                         color=colors[i],
                         bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
@@ -193,7 +193,7 @@ def graphs_analyses(
                 if j == 0:
                     plt.bar(
                         shift[i],
-                        variables_mean_list[j, i] + 2 * variables_std_list[j, i],
+                        2 * variables_std_list[j, i],
                         width=0.1,
                         color="k",
                         bottom=variables_mean_list[j, i] - variables_std_list[j, i],
@@ -206,7 +206,7 @@ def graphs_analyses(
                 else:
                     plt.bar(
                         shift[i],
-                        variables_mean_list[j, i] + 2 * variables_std_list[j, i],
+                        2 * variables_std_list[j, i],
                         width=0.1,
                         color="k",
                         bottom=variables_mean_list[j, i] - variables_std_list[j, i],
@@ -383,8 +383,12 @@ def Analyses(
     )
 
 # starting of the function
-out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw"
-out_path_secondary_variables = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/secondary_variables"
+# out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw"
+out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
+# out_path_secondary_variables = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/secondary_variables"
+out_path_secondary_variables = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/secondary_variables"
+animation_min_cost = False
+
 
 min_cost = np.ones((4,)) * 1e30
 # prefill the minimum optimal data
@@ -394,7 +398,8 @@ qddot_min = [[], [], [], []]
 tau_min = [[], [], [], []]
 time_min = [[], [], [], []]
 
-figure_type_4 = True  # Techniques
+figure_type_4 = False # True  # Techniques
+axs = []
 if figure_type_4:
     fig_1, axs_1 = plt.subplots(5, 3, tight_layout=True, figsize=(20, 15))  # Q
     axs_1 = axs_1.ravel()
@@ -435,6 +440,20 @@ residual_tau_sum_all = np.zeros((4, 100))
 computation_time_all = np.zeros((4, 100))
 cost_all = np.zeros((4, 100))
 iterations_all = np.zeros((4, 100))
+angular_momentum_rmsd_all[:] = np.nan
+linear_momentum_rmsd_all[:] = np.nan
+residual_tau_sum_all[:] = np.nan
+computation_time_all[:] = np.nan
+cost_all[:] = np.nan
+iterations_all[:] = np.nan
+
+# To be removed
+angular_momentum_rmsd_all[:, 0] = 0
+linear_momentum_rmsd_all[:, 0] = 0
+residual_tau_sum_all[:, 0] = 0
+computation_time_all[:, 0] = 0
+cost_all[:, 0] = 0
+iterations_all[:, 0] = 0
 
 for file in os.listdir(out_path_raw):
     if file[-5:] == ".pckl":
@@ -511,9 +530,10 @@ if figure_type_4:
 
 
 
-    b = bioviz.Viz("/home/user/Documents/Programmation/Eve/OnDynamicsForSommersaults/Model_JeCh_15DoFs.bioMod")
-    b.load_movement(q_min[0])
-    b.exec()
+    if animation_min_cost:
+        b = bioviz.Viz("/home/user/Documents/Programmation/Eve/OnDynamicsForSommersaults/Model_JeCh_15DoFs.bioMod")
+        b.load_movement(q_min[0])
+        b.exec()
 
     plt.show()
     fig_1.savefig(f"Comparaison_Q.png")  # , dpi=900)
