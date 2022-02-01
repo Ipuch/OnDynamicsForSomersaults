@@ -13,7 +13,7 @@ if nb_DoFs == 10:
     q = sol.states["q"]
 
 elif nb_DoFs == 15:
-    file_name = ".... .pckl"
+    file_name = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/miller_explicit_irand/miller_explicit_irand1.pckl"
     model_name = "Model_JeCh_15DoFs.bioMod"
     file = open(f"{file_name}", "rb")
     data = pickle.load(file)

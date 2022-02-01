@@ -5,12 +5,13 @@ from scipy.stats import linregress
 import biorbd
 import os
 import pickle
+import bioviz
 
 def graphs_analyses(angular_momentum_rmsd_all, linear_momentum_rmsd_all, residual_tau_sum_all, computation_time_all, cost_all, iterations_all):
 
-    figure_type_1 = False # True  # Tous sur le meme,
-    figure_type_2 = False # True  # Tous sur le meme avec lignes qui relient les points
-    figure_type_3 = False # True  # Séparés
+    figure_type_1 = True  # Tous sur le meme,
+    figure_type_2 = True  # Tous sur le meme avec lignes qui relient les points
+    figure_type_3 = True  # Séparés
 
 
     colors = ['#2E5A90FF', '#00BA87FF', '#DDEA00FF', '#BE2AD0FF', '#76DF1FFF', '#13BBF2FF', '#500375FF']
@@ -347,6 +348,12 @@ if figure_type_4:
             axs[1][i].plot(time_min[i_dynamics_type], qdot_min[i_dynamics_type][i, :], '-', color=colors[i_dynamics_type], linewidth=4)
             axs[2][i].plot(time_min[i_dynamics_type], qddot_min[i_dynamics_type][i, :], '-', color=colors[i_dynamics_type], linewidth=4)
             axs[3][i].step(time_min[i_dynamics_type], tau_min[i_dynamics_type][i, :], '-', color=colors[i_dynamics_type], linewidth=4)
+
+
+
+    b = bioviz.Viz("/home/user/Documents/Programmation/Eve/OnDynamicsForSommersaults/Model_JeCh_15DoFs.bioMod")
+    b.load_movement(q_min[0])
+    b.exec()
 
     plt.show()
     fig_1.savefig(f'Comparaison_Q.png') #, dpi=900)
