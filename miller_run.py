@@ -63,31 +63,33 @@ def main(args=None):
     print(f"Time to solve dynamics_type={dynamics_type}, random={i_rand}: {toc}sec\n")
     print(f"##########################################################")
 
-    sol_integrated = sol.integrate(shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False)
+    sol_integrated = sol.integrate(
+        shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False
+    )
 
     q_integrated = sol_integrated.states["q"]
     qdot_integrated = sol_integrated.states["qdot"]
 
     f = open(f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.pckl", "wb")
-    data = {"model_path" : biorbd_model_path,
-            "computation_time" : toc,
-            "cost" : sol.cost,
-            # "inf_du" : sol.inf_du,
-            "iterations" : sol.iterations,
-            # "inf_pr" : sol.inf_pr,
-            "status" : sol.status,
-            "states" : sol.states,
-            "controls" : sol.controls,
-            "parameters" : sol.parameters,
-            "dynamics_type" : dynamics_type,
-            "q_integrated" : q_integrated,
-            "qdot_integrated" : qdot_integrated,
-            }
+    data = {
+        "model_path": biorbd_model_path,
+        "computation_time": toc,
+        "cost": sol.cost,
+        # "inf_du" : sol.inf_du,
+        "iterations": sol.iterations,
+        # "inf_pr" : sol.inf_pr,
+        "status": sol.status,
+        "states": sol.states,
+        "controls": sol.controls,
+        "parameters": sol.parameters,
+        "dynamics_type": dynamics_type,
+        "q_integrated": q_integrated,
+        "qdot_integrated": qdot_integrated,
+    }
     pickle.dump(data, f)
     f.close()
 
     # miller.ocp.save(sol, f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
-
 
 
 if __name__ == "__main__":

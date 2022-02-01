@@ -212,7 +212,7 @@ class MillerOcp:
         data_point = np.linspace(0, self.duration, self.n_shooting + 1)
 
         # parabolic trajectory on Y
-        self.x[2, :] = self.vertical_velocity_0 * data_point + -9.81 / 2 * data_point ** 2
+        self.x[2, :] = self.vertical_velocity_0 * data_point + -9.81 / 2 * data_point**2
         # Somersaults
         self.x[3, :] = np.linspace(0, self.somersaults, self.n_shooting + 1)
         # Twists

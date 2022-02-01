@@ -40,10 +40,10 @@ def main():
 
     # --- Show results --- #
     if sol.status == 0:
-        q = np.hstack((sol.states[0]['q'], sol.states[1]['q']))
-        qdot = np.hstack((sol.states[0]['qdot'], sol.states[1]['qdot']))
-        u = np.hstack((sol.controls[0]['tau'], sol.controls[1]['tau']))
-        t = sol.parameters['time']
+        q = np.hstack((sol.states[0]["q"], sol.states[1]["q"]))
+        qdot = np.hstack((sol.states[0]["qdot"], sol.states[1]["qdot"]))
+        u = np.hstack((sol.controls[0]["tau"], sol.controls[1]["tau"]))
+        t = sol.parameters["time"]
         np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_q", q)
         np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_qdot", qdot)
         np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_u", u)
