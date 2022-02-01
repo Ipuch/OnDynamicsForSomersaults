@@ -48,9 +48,11 @@ def main():
     qdot = sol.states["qdot"]
     qddot = sol.controls["qddot"]
     import biorbd as biorbd
+
     m = biorbd.Model(model_path)
     for qi, qdoti, qddoti in zip(q.T, qdot.T, qddot.T):
         print(m.InverseDynamics(qi, qdoti, qddoti).to_array()[:6])
+
 
 if __name__ == "__main__":
     main()

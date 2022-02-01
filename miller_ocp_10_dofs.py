@@ -53,8 +53,7 @@ def custom_minimize_angular_momentum(all_pn: PenaltyNodeList):
     qdot = nlp.states["qdot"].mx
     var = [nlp.states["q"], nlp.states["qdot"]]
 
-    angular_momentum = BiorbdInterface.mx_to_cx("angular_momentum",
-                                                nlp.model.angularMomentum(q, qdot).to_mx(), *var)
+    angular_momentum = BiorbdInterface.mx_to_cx("angular_momentum", nlp.model.angularMomentum(q, qdot).to_mx(), *var)
 
     return angular_momentum
 
@@ -173,11 +172,14 @@ class MillerOcp:
         # self.objective_functions.add(
         #     ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", index=[7, 9], weight=100)
         self.objective_functions.add(
-            ObjectiveFcn.Mayer.TRACK_STATE, key="q", index=3, target=self.somersaults, weight=100, node=Node.END)
+            ObjectiveFcn.Mayer.TRACK_STATE, key="q", index=3, target=self.somersaults, weight=100, node=Node.END
+        )
         self.objective_functions.add(
-            ObjectiveFcn.Mayer.TRACK_STATE, key="q", index=4, target=0, weight=100, node=Node.END)
+            ObjectiveFcn.Mayer.TRACK_STATE, key="q", index=4, target=0, weight=100, node=Node.END
+        )
         self.objective_functions.add(
-            ObjectiveFcn.Mayer.TRACK_STATE, key="q", index=5, target=self.twists, weight=100, node=Node.END)
+            ObjectiveFcn.Mayer.TRACK_STATE, key="q", index=5, target=self.twists, weight=100, node=Node.END
+        )
         self.objective_functions.add(
             custom_minimize_angular_momentum,
             custom_type=ObjectiveFcn.Lagrange,
@@ -210,7 +212,7 @@ class MillerOcp:
         data_point = np.linspace(0, self.duration, self.n_shooting + 1)
 
         # parabolic trajectory on Y
-        self.x[2, :] = self.vertical_velocity_0 * data_point + -9.81 / 2 * data_point ** 2
+        self.x[2, :] = self.vertical_velocity_0 * data_point + -9.81 / 2 * data_point**2
         # Somersaults
         self.x[3, :] = np.linspace(0, self.somersaults, self.n_shooting + 1)
         # Twists
@@ -265,7 +267,7 @@ class MillerOcp:
     def _set_boundary_conditions(self):
         self.x_bounds = BoundsList()
 
-        velocity_max = 200 # 100
+        velocity_max = 200  # 100
         tilt_bound = np.pi / 4
         tilt_final_bound = np.pi / 12  # 15 degrees
 
