@@ -29,7 +29,7 @@ from bioptim import (
     BiorbdInterface,
 )
 
-from custom_dynamics.root_explicit import root_explicit_dynamic, custom_configure_root_explicit
+from custom_dynamics.root_explicit_qddot_joint import root_explicit_dynamic, custom_configure_root_explicit
 from custom_dynamics.root_implicit import root_implicit_dynamic, custom_configure_root_implicit
 
 
@@ -621,11 +621,12 @@ class MillerOcp:
                 "tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14]
             )
         elif self.dynamics_type == "root_explicit":
-            self.mapping.add(
-                "qddot",
-                [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8],
-                [6, 7, 8, 9, 10, 11, 12, 13, 14],
-            )
+            print("no bimapping")
+            # self.mapping.add(
+            #     "qddot",
+            #     [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8],
+            #     [6, 7, 8, 9, 10, 11, 12, 13, 14],
+            # )
         elif self.dynamics_type == "implicit":
             self.mapping.add(
                 "tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14]
