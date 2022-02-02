@@ -29,7 +29,7 @@ from bioptim import (
     BiorbdInterface,
 )
 
-from custom_dynamics.root_explicit import root_explicit_dynamic, custom_configure_root_explicit
+from custom_dynamics.root_explicit_V2 import root_explicit_dynamic, custom_configure_root_explicit
 from custom_dynamics.root_implicit import root_implicit_dynamic, custom_configure_root_implicit
 
 
@@ -237,6 +237,10 @@ class MillerOcp:
         self.x[self.n_q + 3, :] = self.somersault_rate_0
         # Twists rate
         self.x[self.n_q + 5, :] = self.twists / self.duration
+
+        if self.dynamics_type == "root_explicit":
+            self.x = np.vstack((self.x,
+                                -np.zeros((self.n_q - self.nb_root, np.sum(self.n_shooting) + len(self.n_shooting)))))
 
         self._set_initial_states(self.x)
         self._set_initial_controls()
@@ -575,13 +579,25 @@ class MillerOcp:
         ]
 
         for phase in range(len(self.n_shooting)):
-            self.x_bounds.add(
-                bounds=Bounds(
-                    x_min[phase, :, :],
-                    x_max[phase, :, :],
-                    interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT,
+            if self.dynamics_type == "root_explicit":
+                x_min2 = np.vstack((x_min[phase,:,:], -np.ones((self.n_q - self.nb_root, 3)) * 1000))
+                x_max2 = np.vstack((x_max[phase, :, :], np.ones((self.n_q - self.nb_root, 3)) * 1000))
+
+                self.x_bounds.add(
+                    bounds=Bounds(
+                        x_min2,
+                        x_max2,
+                        interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT,
+                    )
                 )
-            )
+            else:
+                self.x_bounds.add(
+                    bounds=Bounds(
+                        x_min[phase, :, :],
+                        x_max[phase, :, :],
+                        interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT,
+                    )
+                )
 
             if self.dynamics_type == "explicit":
                 self.u_bounds.add([self.tau_min] * self.n_tau, [self.tau_max] * self.n_tau)
@@ -623,6 +639,11 @@ class MillerOcp:
         elif self.dynamics_type == "root_explicit":
             self.mapping.add(
                 "qddot",
+                [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8],
+                [6, 7, 8, 9, 10, 11, 12, 13, 14],
+            )
+            self.mapping.add(
+                "qdddot",
                 [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8],
                 [6, 7, 8, 9, 10, 11, 12, 13, 14],
             )
