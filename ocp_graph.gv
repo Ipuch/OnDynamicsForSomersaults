@@ -1,0 +1,42 @@
+digraph ocp_graph {
+	node [shape=plaintext]
+	OCP [shape=Mdiamond]
+	subgraph cluster_0 {
+		node [color=white style=filled]
+		color=lightgrey style=filled
+		label=<<u><b>Phase #0</b></u>>
+		nlp_node_0 [label=<<b>Model</b>: Model_JeCh_15DoFs.bioMod<br/><b>Phase duration</b>: 1.35 s<br/><b>Shooting nodes</b>: 125<br/><b>Dynamics</b>: CUSTOM<br/><b>ODE</b>: RK4<br/><b>Control type</b>: CONSTANT>]
+		param_00 [label=<<u><b>Time</b></u><br/><b>Size</b>: 2<br/><b>Scaling</b>: [1.000 1.000 ]<br/><b>Initial guess</b>: [1.352 0.193 ]<br/><b>Min bound</b>: [1.202 0.043 ] <br/><b>Max bound</b>: [1.202 0.043 ] <br/><br/>>]
+		lagrange_0 [label=<<u><b>Lagrange</b></u><br/>(MINIMIZE_STATE)<sup>2</sup><br/><b>Weight</b>: 1<br/><b>key</b>: qdot<br/><b>Index in list</b>: 0<br/><br/>(MINIMIZE_MARKERS)<sup>2</sup><br/><b>Weight</b>: 10<br/><b>reference_jcs</b>: 1<br/><b>marker_index</b>: 6<br/><b>Index in list</b>: 1<br/><br/>(MINIMIZE_MARKERS)<sup>2</sup><br/><b>Weight</b>: 10<br/><b>reference_jcs</b>: 1<br/><b>marker_index</b>: 11<br/><b>Index in list</b>: 2<br/><br/>(MINIMIZE_MARKERS)<sup>2</sup><br/><b>Weight</b>: 100000<br/><b>reference_jcs</b>: 0<br/><b>marker_index</b>: 16<br/><b>Index in list</b>: 3<br/><br/>(MINIMIZE_STATE)<sup>2</sup><br/><b>Weight</b>: 10<br/><b>key</b>: q<br/><b>Index in list</b>: 4<br/><br/>>]
+		mayer_node_0 [label=<<u><b>Mayer</b></u><br/>custom_angular_momentum<br/><b>Weight</b>: 100000<br/><b>Index in list</b>: 5<br/><b>Shooting nodes index</b>: Node.START<br/><br/>MINIMIZE_TIME<br/><b>Weight</b>: 1e-06<br/><b>min_bound</b>: 1.201875<br/><b>max_bound</b>: 1.5018749999999998<br/><b>Index in list</b>: 6<br/><b>Shooting nodes index</b>: Node.END<br/><br/>>]
+		constraints_node_0 [label=<<u><b>Constraints</b></u><br/>No constraint set>]
+	}
+	OCP -> nlp_node_0
+	nlp_node_0 -> param_00 [color=lightgrey]
+	param_00 -> lagrange_0 [color=lightgrey]
+	lagrange_0 -> mayer_node_0 [color=lightgrey]
+	mayer_node_0 -> constraints_node_0 [color=lightgrey]
+	subgraph cluster_1 {
+		node [color=white style=filled]
+		color=lightgrey style=filled
+		label=<<u><b>Phase #1</b></u>>
+		nlp_node_1 [label=<<b>Model</b>: Model_JeCh_15DoFs.bioMod<br/><b>Phase duration</b>: 0.19 s<br/><b>Shooting nodes</b>: 25<br/><b>Dynamics</b>: CUSTOM<br/><b>ODE</b>: RK4<br/><b>Control type</b>: CONSTANT>]
+		param_10 [label=<<u><b>Time</b></u><br/><b>Size</b>: 2<br/><b>Scaling</b>: [1.000 1.000 ]<br/><b>Initial guess</b>: [1.352 0.193 ]<br/><b>Min bound</b>: [1.202 0.043 ] <br/><b>Max bound</b>: [1.202 0.043 ] <br/><br/>>]
+		lagrange_1 [label=<<u><b>Lagrange</b></u><br/>(MINIMIZE_STATE)<sup>2</sup><br/><b>Weight</b>: 1<br/><b>key</b>: qdot<br/><b>Index in list</b>: 0<br/><br/>(MINIMIZE_MARKERS)<sup>2</sup><br/><b>Weight</b>: 10<br/><b>reference_jcs</b>: 1<br/><b>marker_index</b>: 6<br/><b>Index in list</b>: 1<br/><br/>(MINIMIZE_MARKERS)<sup>2</sup><br/><b>Weight</b>: 10<br/><b>reference_jcs</b>: 1<br/><b>marker_index</b>: 11<br/><b>Index in list</b>: 2<br/><br/>(MINIMIZE_MARKERS)<sup>2</sup><br/><b>Weight</b>: 100000<br/><b>reference_jcs</b>: 0<br/><b>marker_index</b>: 16<br/><b>Index in list</b>: 3<br/><br/>(MINIMIZE_STATE)<sup>2</sup><br/><b>Weight</b>: 10<br/><b>key</b>: q<br/><b>Index in list</b>: 4<br/><br/>>]
+		mayer_node_1 [label=<<u><b>Mayer</b></u><br/>MINIMIZE_TIME<br/><b>Weight</b>: 1e-06<br/><b>min_bound</b>: 0.043125<br/><b>max_bound</b>: 0.343125<br/><b>Index in list</b>: 5<br/><b>Shooting nodes index</b>: Node.END<br/><br/>>]
+		constraints_node_1 [label=<<u><b>Constraints</b></u><br/>No constraint set>]
+	}
+	OCP -> nlp_node_1
+	nlp_node_1 -> param_10 [color=lightgrey]
+	param_10 -> lagrange_1 [color=lightgrey]
+	lagrange_1 -> mayer_node_1 [color=lightgrey]
+	mayer_node_1 -> constraints_node_1 [color=lightgrey]
+	subgraph cluster_phase_transitions {
+		node [color=grey style=filled]
+		color=invis style=""
+		"Phase #0"
+		"Phase #1"
+		"Phase #0" -> "Phase #1" [label=CONTINUOUS]
+		label=<<u><b>Phase transitions</b></u>>
+	}
+}

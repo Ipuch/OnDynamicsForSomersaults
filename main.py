@@ -10,7 +10,7 @@ def main():
     duration = 1.545
     n_threads = 8
     model_path = "Model_JeCh_15DoFs.bioMod"
-    dynamics_type = "root_implicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
+    dynamics_type = "root_explicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
     # mettre une contrainte
     # --- Solve the program --- #
     miller = MillerOcp(
@@ -35,19 +35,20 @@ def main():
     solver.set_maximum_iterations(1000)
     solver.set_print_level(5)
     solver.set_linear_solver("ma57")
+    # solver.set_limited_memory_max_history(500)
 
     sol = miller.ocp.solve(solver)
 
     # --- Show results --- #
-    if sol.status == 0:
-        q = np.hstack((sol.states[0]["q"], sol.states[1]["q"]))
-        qdot = np.hstack((sol.states[0]["qdot"], sol.states[1]["qdot"]))
-        u = np.hstack((sol.controls[0]["tau"], sol.controls[1]["tau"]))
-        t = sol.parameters["time"]
-        np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_q", q)
-        np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_qdot", qdot)
-        np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_u", u)
-        np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_t", t)
+    # if sol.status == 0:
+    #     q = np.hstack((sol.states[0]["q"], sol.states[1]["q"]))
+    #     qdot = np.hstack((sol.states[0]["qdot"], sol.states[1]["qdot"]))
+    #     u = np.hstack((sol.controls[0]["tau"], sol.controls[1]["tau"]))
+    #     t = sol.parameters["time"]
+    #     np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_q", q)
+    #     np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_qdot", qdot)
+    #     np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_u", u)
+    #     np.save(f"/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw/27jan_4_t", t)
 
     sol.print()
     # sol.graphs()
