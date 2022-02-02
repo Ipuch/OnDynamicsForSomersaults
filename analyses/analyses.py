@@ -16,8 +16,8 @@ def graphs_analyses(
     iterations_all,
 ):
 
-    figure_type_1 = False  # True  # Tous sur le meme,
-    figure_type_2 = False  # True  # Tous sur le meme avec lignes qui relient les points
+    figure_type_1 = True  # True  # Tous sur le meme,
+    figure_type_2 = True  # True  # Tous sur le meme avec lignes qui relient les points
     figure_type_3 = True  # True  # Séparés
 
     colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF"]
@@ -223,9 +223,12 @@ def graphs_analyses(
                 # fontsize=12,
                 bbox_to_anchor=(0.5, 1.5),
             )
+            if labels[j] != "Optimal\nCost":
+                plt.yscale("log")
             plt.title(labels[j])
             plt.show()
             plt.savefig(f"Comparaison_separes_{labels[j]}.png", dpi=900)
+
 
     return
 
@@ -271,16 +274,16 @@ def Analyses(
         tau = np.hstack((data["controls"][0]["tau"], data["controls"][1]["tau"]))
         tau_integrated = np.hstack(
             (
-                np.repeat(data["controls"][0]["tau"], 5, axis=1)[:, :-4],
-                np.repeat(data["controls"][1]["tau"], 5, axis=1)[:, :-4],
+                np.repeat(data["controls"][0]["tau"], 6, axis=1)[:, :-5],
+                np.repeat(data["controls"][1]["tau"], 6, axis=1)[:, :-5],
             )
         )
     elif dynamics_type == "root_explicit" or dynamics_type == "root_implicit":
         qddot = np.hstack((data["controls"][0]["qddot"], data["controls"][1]["qddot"]))
         qddot_integrated = np.hstack(
             (
-                np.repeat(data["controls"][0]["qddot"], 5, axis=1)[:, :-4],
-                np.repeat(data["controls"][1]["qddot"], 5, axis=1)[:, :-4],
+                np.repeat(data["controls"][0]["qddot"], 6, axis=1)[:, :-5],
+                np.repeat(data["controls"][1]["qddot"], 6, axis=1)[:, :-5],
             )
         )
 
@@ -289,7 +292,7 @@ def Analyses(
     if dynamics_type == "root_explicit" or dynamics_type == "root_implicit":
         residual_tau_integrated = np.zeros((m.nbRoot(), N_integrated))
         for node_integrated in range(N_integrated):
-            residual_tau_integrated[:, node_integrated] = m.inverseDynamics(
+            residual_tau_integrated[:, node_integrated] = m.InverseDynamics(
                 q_integrated[:, node_integrated],
                 qdot_integrated[:, node_integrated],
                 qddot_integrated[:, node_integrated],
@@ -297,7 +300,7 @@ def Analyses(
 
         tau = np.zeros((m.nbQ(), N))
         for node in range(N):
-            tau[:, node] = m.inverseDynamics(q[:, node], qdot[:, node], qddot[:, node]).to_array()
+            tau[:, node] = m.InverseDynamics(q[:, node], qdot[:, node], qddot[:, node]).to_array()
 
     else:
         residual_tau_integrated = 0
@@ -308,7 +311,7 @@ def Analyses(
             ).to_array()
         tau = np.vstack((np.zeros((6, N)), tau))
 
-    residual_tau_sum = np.sum(np.abs(residual_tau_integrated))
+    residual_tau_sum = np.nansum(np.abs(residual_tau_integrated))
 
     angular_momentum = np.zeros((3, N))
     angular_momentum_norm = np.zeros((N,))
@@ -356,7 +359,12 @@ def Analyses(
         for i in range(15):
             axs[0][i].plot(time, q[i, :], "-", color=colors[i_dynamics_type])
             axs[1][i].plot(time, qdot[i, :], "-", color=colors[i_dynamics_type])
-            axs[2][i].plot(time, qddot[i, :], "-", color=colors[i_dynamics_type])
+
+            if i_dynamics_type == 1 and i < 9:
+                axs[2][i + 6].plot(time, qddot[i, :], "-", color=colors[i_dynamics_type])
+            elif i_dynamics_type != 1:
+                axs[2][i].plot(time, qddot[i, :], "-", color=colors[i_dynamics_type])
+
             axs[3][i].step(time, tau[i, :], "-", color=colors[i_dynamics_type])
 
     if cost < min_cost[i_dynamics_type]:
@@ -383,10 +391,10 @@ def Analyses(
     )
 
 # starting of the function
-# out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw"
-out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
-# out_path_secondary_variables = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/secondary_variables"
-out_path_secondary_variables = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/secondary_variables"
+out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw"
+# out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
+out_path_secondary_variables = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/secondary_variables"
+# out_path_secondary_variables = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/secondary_variables"
 animation_min_cost = False
 
 
@@ -398,7 +406,7 @@ qddot_min = [[], [], [], []]
 tau_min = [[], [], [], []]
 time_min = [[], [], [], []]
 
-figure_type_4 = False # True  # Techniques
+figure_type_4 = True # True  # Techniques
 axs = []
 if figure_type_4:
     fig_1, axs_1 = plt.subplots(5, 3, tight_layout=True, figsize=(20, 15))  # Q
