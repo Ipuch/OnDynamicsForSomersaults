@@ -1,6 +1,7 @@
 import bioviz
 import numpy as np
 from bioptim import OptimalControlProgram
+import pickle
 
 nb_DoFs = 15
 
@@ -18,8 +19,9 @@ elif nb_DoFs == 15:
     data = pickle.load(file)
     q = np.hstack((data["states"][0]['q'], data["states"][1]['q']))
 
-# Animate the mode
+# Animate the model
 manually_animate = False
+biorbd_viz = bioviz.Viz(model_name)
 if manually_animate:
     i = 0
     while biorbd_viz.vtk_window.is_active:
@@ -28,3 +30,4 @@ if manually_animate:
 else:
     biorbd_viz.load_movement(q)
     biorbd_viz.exec()
+
