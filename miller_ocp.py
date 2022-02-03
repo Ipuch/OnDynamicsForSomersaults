@@ -29,7 +29,7 @@ from bioptim import (
     BiorbdInterface,
 )
 
-from custom_dynamics.root_explicit import root_explicit_dynamic, custom_configure_root_explicit
+from custom_dynamics.root_explicit_qddot_joint import root_explicit_dynamic, custom_configure_root_explicit
 from custom_dynamics.root_implicit import root_implicit_dynamic, custom_configure_root_implicit
 
 
@@ -130,8 +130,9 @@ class MillerOcp:
 
     def _set_objective_functions(self):
         def custom_angular_momentum(all_pn: PenaltyNodeList) -> cas.MX:
-            angular_momentum = BiorbdInterface.mx_to_cx("angularMomentum", all_pn.nlp.model.angularMomentum,
-                                                        all_pn.nlp.states["q"], all_pn.nlp.states["qdot"])
+            angular_momentum = BiorbdInterface.mx_to_cx(
+                "angularMomentum", all_pn.nlp.model.angularMomentum, all_pn.nlp.states["q"], all_pn.nlp.states["qdot"]
+            )
             return angular_momentum
 
         # --- Objective function --- #
@@ -145,16 +146,32 @@ class MillerOcp:
                 phase=i,
             )  # Regularization
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=1, marker_index=6,
-                weight=10, phase=i)  # Right hand trajetory
+                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS,
+                derivative=True,
+                reference_jcs=1,
+                marker_index=6,
+                weight=10,
+                phase=i,
+            )  # Right hand trajetory
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=1, marker_index=11,
-                weight=10, phase=i)  # Left hand trajectory
+                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS,
+                derivative=True,
+                reference_jcs=1,
+                marker_index=11,
+                weight=10,
+                phase=i,
+            )  # Left hand trajectory
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, reference_jcs=0, marker_index=16,
-                weight=100000, phase=i)  # feet trajectory
+                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS,
+                derivative=True,
+                reference_jcs=0,
+                marker_index=16,
+                weight=100000,
+                phase=i,
+            )  # feet trajectory
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(6, 7, 8, 13, 14), key="q", weight=10, phase=i)  # core DoFs
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(6, 7, 8, 13, 14), key="q", weight=10, phase=i
+            )  # core DoFs
 
         self.objective_functions.add(
             custom_angular_momentum, custom_type=ObjectiveFcn.Mayer, node=Node.START, weight=100000
@@ -198,7 +215,7 @@ class MillerOcp:
         data_point = np.linspace(0, self.duration, np.sum(self.n_shooting) + len(self.n_shooting))
 
         # parabolic trajectory on Y
-        self.x[2, :] = self.vertical_velocity_0 * data_point + -9.81 / 2 * data_point ** 2
+        self.x[2, :] = self.vertical_velocity_0 * data_point + -9.81 / 2 * data_point**2
         # Somersaults
         self.x[3, :] = np.linspace(0, self.somersaults, np.sum(self.n_shooting) + len(self.n_shooting))
         # Twists
@@ -238,11 +255,11 @@ class MillerOcp:
                         X0[:, shooting : shooting + self.n_shooting[i] + 1], interpolation=InterpolationType.EACH_FRAME
                     )
                     shooting += self.n_shooting[i]
-            # else:
-            #     n = self.ode_solver.polynomial_degree
-            #     X0 = np.repeat(X0, n + 1, axis=1)
-            #     X0 = X0[:, :-n]
-            #     self.x_init.add(X0, interpolation=InterpolationType.EACH_FRAME)
+            else:
+                n = self.ode_solver.polynomial_degree
+                X0 = np.repeat(X0, n + 1, axis=1)
+                X0 = X0[:, :-n]
+                self.x_init.add(X0, interpolation=InterpolationType.EACH_FRAME)
 
     def _set_initial_controls(self, U0: np.array = None):
         if U0 is None:
@@ -604,11 +621,12 @@ class MillerOcp:
                 "tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14]
             )
         elif self.dynamics_type == "root_explicit":
-            self.mapping.add(
-                "qddot",
-                [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8],
-                [6, 7, 8, 9, 10, 11, 12, 13, 14],
-            )
+            print("no bimapping")
+            # self.mapping.add(
+            #     "qddot",
+            #     [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8],
+            #     [6, 7, 8, 9, 10, 11, 12, 13, 14],
+            # )
         elif self.dynamics_type == "implicit":
             self.mapping.add(
                 "tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14]

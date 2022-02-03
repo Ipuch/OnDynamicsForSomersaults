@@ -7,23 +7,8 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from bioptim import OdeSolver, SolutionIntegrator, Solver
-
-from viz import add_custom_plots
+from bioptim import OdeSolver, SolutionIntegrator, Solver, MultiBodyDynamics
 from Comparison import integrate_sol, compute_error_single_shooting
-
-
-def integrator_name(ode_solver: OdeSolver):
-    if ode_solver.is_direct_collocation or ode_solver.rk_integrator.__name__ == "IRK":
-        ode_solver_string = f"{ode_solver.rk_integrator.__name__}\n{ode_solver.method}\n{ode_solver.polynomial_degree}"
-    elif ode_solver.rk_integrator.__name__ == "CVODES":
-        ode_solver_string = f"{ode_solver.rk_integrator.__name__}"
-    else:
-        ode_solver_string = f"{ode_solver.rk_integrator.__name__}\n{ode_solver.steps} step"
-        if ode_solver.steps > 1:
-            ode_solver_string += "s"
-
-    return ode_solver_string
 
 
 def filename(params: dict):
@@ -44,14 +29,14 @@ class ComparisonParameters:
         ode_solver: Union[OdeSolver, list] = None,
         tolerance: Union[float, list] = None,
         n_shooting: Union[int, list] = None,
-        implicit_dynamics: Union[bool, list] = False,
+        multibody_dynamics: Union[MultiBodyDynamics, list] = MultiBodyDynamics.IMPLICIT,
     ):
 
         self.biorbd_model_path = self._is_a_list(biorbd_model_path)
         self.ode_solver = self._is_a_list(ode_solver)
         self.tolerance = self._is_a_list(tolerance)
         self.n_shooting = self._is_a_list(n_shooting)
-        self.implicit_dynamics = self._is_a_list(implicit_dynamics)
+        self.multibody_dynamics = self._is_a_list(multibody_dynamics)
 
         self.parameters_compared = dict()
         self.parameters_not_compared = dict()
@@ -81,10 +66,10 @@ class ComparisonParameters:
             self.parameters_compared["n_shooting"] = self.n_shooting
         else:
             self.parameters_not_compared["n_shooting"] = self.n_shooting
-        if isinstance(self.implicit_dynamics, list):
-            self.parameters_compared["implicit_dynamics"] = self.implicit_dynamics
+        if isinstance(self.multibody_dynamics, list):
+            self.parameters_compared["multibody_dynamics"] = self.multibody_dynamics
         else:
-            self.parameters_not_compared["implicit_dynamics"] = self.implicit_dynamics
+            self.parameters_not_compared["multibody_dynamics"] = self.multibody_dynamics
 
     def product_generator(self):
         keys = self.parameters_compared.keys()
@@ -144,10 +129,10 @@ class ComparisonAnalysis:
             n_shooting = (
                 param["n_shooting"] if "n_shooting" in param else self.Parameters.parameters_not_compared["n_shooting"]
             )
-            implicit_dynamics = (
-                param["implicit_dynamics"]
-                if "implicit_dynamics" in param
-                else self.Parameters.parameters_not_compared["implicit_dynamics"]
+            multibody_dynamics = (
+                param["multibody_dynamics"]
+                if "multibody_dynamics" in param
+                else self.Parameters.parameters_not_compared["multibody_dynamics"]
             )
             tol = param["tolerance"] if "tolerance" in param else self.Parameters.parameters_not_compared["tolerance"]
 
@@ -158,18 +143,16 @@ class ComparisonAnalysis:
                 biorbd_model_path=biorbd_model_path,
                 ode_solver=ode_solver,
                 n_shooting=n_shooting,
-                implicit_dynamics=implicit_dynamics,
+                dynamics_type="implicit",
+                # multibody_dynamics=multibody_dynamics,
             )
             cur_ocp = CurOCP.ocp
-            add_custom_plots(cur_ocp)
 
-            self.solver_options.set_convergence_tolerance(tol)
-            self.solver_options.set_constraint_tolerance(tol)
             sol = cur_ocp.solve(self.solver_options)
             # filling dataframe
-            consistency = compute_error_single_shooting(
-                sol, cur_ocp.nlp[0].tf, integrator=SolutionIntegrator.SCIPY_DOP853
-            )
+            # consistency = compute_error_single_shooting(
+            #     sol, cur_ocp.nlp[0].tf, integrator=SolutionIntegrator.SCIPY_DOP853
+            # )
             # continuity_consistency = compute_error_single_shooting(
             #     sol, cur_ocp.nlp[0].tf, integrator=None
             # )
@@ -178,26 +161,20 @@ class ComparisonAnalysis:
                 "ode_solver": ode_solver,
                 "n_shooting": n_shooting,
                 "tolerance": tol,
-                "implicit_dynamics": implicit_dynamics,
+                "multibody_dynamics": multibody_dynamics,
                 "iter": sol.iterations,
                 "time": sol.real_time_to_optimize,
                 "convergence": sol.status,
                 "cost": np.squeeze(sol.cost.toarray()),
                 "constraints": np.mean(abs(sol.constraints.toarray())),
                 "constraints_RMSE": np.sqrt(np.mean(sol.constraints.toarray() ** 2)),
-                "translation consistency": consistency[0],
-                "angular consistency": consistency[1],
-                "states_ss": integrate_sol(cur_ocp, sol),
-                "controls": sol.controls["all"],
+                # "translation consistency": consistency[0],
+                # "angular consistency": consistency[1],
+                # "states_ss": integrate_sol(cur_ocp, sol),
+                "controls": sol.controls,
+                "states": sol.states,
                 "filename": bo_file,
             }
-
-            # filling states
-            if cur_ocp.nlp[0].ode_solver.is_direct_collocation:
-                n = cur_ocp.nlp[0].ode_solver.polynomial_degree + 1
-                values_to_add["states"] = sol.states["all"][:, ::n]
-            else:
-                values_to_add["states"] = sol.states["all"]
 
             self.df = self.df.append(values_to_add, ignore_index=True)
 
@@ -360,31 +337,22 @@ class ComparisonAnalysis:
         if show:
             plt.show()
 
-    def graphs_states(
+    def graphs_time_series(
         self,
-        first_parameter: str = "ode_solver",
-        second_parameter: str = "n_shooting",
-        third_parameter: str = "tolerance",
-        res_path: str = None,
-        show: bool = True,
+        first_parameter: str = "q",
+        # second_parameter: str = "n_shooting",
+        # third_parameter: str = "tolerance",
+        # res_path: str = None,
+        # show: bool = True,
         figsize: tuple = (12, 12),
-        tick_width: float = 0.2,
-        dot_width: float = 0.03,
-        size: int = 10,
-        marker: str = "o",
-        alpha: float = 1,
-        markeredgewidth=0.1,
-        markeredgecolor="black",
+        # tick_width: float = 0.2,
+        # dot_width: float = 0.03,
+        # size: int = 10,
+        # marker: str = "o",
+        # alpha: float = 1,
+        # markeredgewidth=0.1,
+        # markeredgecolor="black",
     ):
-        def abscissa_computations(nb_first: int, nb_second: int, width: float = tick_width):
-            x = np.arange(nb_first)
-            ticks = np.zeros((nb_first, nb_second))
-            for i in range(nb_second):
-                ticks[:, i] = x + (-nb_second / 2 + 1 / 2 + i) * width
-            return ticks
-
-        def abscissa_offsets(ticks: np.array, nb_elements: int, offset_num: int, width: float = dot_width):
-            return ticks + (-nb_elements / 2 + 1 / 2 + offset_num) * width
 
         n1 = len(self.Parameters.parameters_compared[first_parameter])
         n2 = len(self.Parameters.parameters_compared[second_parameter])

@@ -10,27 +10,14 @@ Q_aleat = np.array([ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. , 
         0. ,  2.8,  0. ,  0. ])
 # Q_aleat = np.zeros(15)
 print(Q_aleat)
-print("\n")
-tic = time.time()
-for ii in range(1):
-    M = m.massMatrix(Q_aleat).to_array()
-    M_inv = np.linalg.inv(M)
-toc = time.time() - tic
-print(toc)
-# print(M_inv)
-# print("\n")
-tic = time.time()
-for ii in range(1):
-    M_inv2 = m.massMatrixInverse(Q_aleat).to_array()
-toc = time.time() - tic
-print(toc)
-# print(M_inv2)
-# print("\n")
-# print(np.round(np.triu(M_inv) - M_inv2, 9) == 0)
-print(M)
+M = m.massMatrix(Q_aleat).to_array()
+M_inv = np.linalg.inv(M)
+M_inv2 = m.massMatrixInverse(Q_aleat).to_array()
 print(np.round(M_inv - M_inv2, 8) == 0)
-print(M_inv)
-print(M_inv2)
 
-print("base")
-print(M_inv[:6,:6])
+print(np.round(M_inv[:6, :6] - M_inv2[:6, :6], 8) == 0)
+
+M_66_inv = np.linalg.inv(M[:6, :6])
+print(np.round(M_66_inv - M_inv2[:6, :6], 8) == 0)
+
+m.InverseDynamics(Q_aleat, np.zeros(15), np.zeros(15)).to_array()

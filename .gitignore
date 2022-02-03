@@ -12,3 +12,7 @@ __pycache__/miller_ocp.cpython-39.pyc
 custom_dynamics/__pycache__/
 
 *.pyc
+
+*.png
+
+Historique_28-01-22.txt
