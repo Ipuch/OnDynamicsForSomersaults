@@ -44,6 +44,7 @@ xdot = f(x, qddot_j, param)
 print(xdot[15:])
 print(qddot_b)
 # print(qddot_j)
+# Explicit    vs   Implicit
 print(xdot[15:(15+6)] - qddot_b)
 
 q = x[:15]
@@ -64,4 +65,7 @@ m.InverseDynamics(q, qdot, np.hstack((np.zeros((6)), qddot_j))).to_array()[:6]
 m.massMatrix(q).to_array()[:6, 6:] @ qddot_j + m.NonLinearEffect(q, qdot).to_array()[:6]
 
 
-- m.massMatrixInverse(q).to_array()[:6,:6] @ m.InverseDynamics(q, qdot, np.hstack((np.zeros((6)),qddot_j))).to_array()[:6]
+xdot[15:(15+6)] + m.massMatrixInverse(q).to_array()[:6,:6] @ m.InverseDynamics(q, qdot, np.hstack((np.zeros((6)),qddot_j))).to_array()[:6]
+
+
+m.InverseDynamics(q, qdot, np.hstack((np.array(xdot[15:(15+6)]).squeeze(), qddot_j))).to_array()[:6]
