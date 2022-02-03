@@ -8,9 +8,9 @@ def main():
     n_shooting = 150
     ode_solver = OdeSolver.RK4(n_integration_steps=5)
     duration = 1.46  # 1.545
-    n_threads = 8
+    n_threads = 25
     model_path = "Model_JeCh_10DoFs.bioMod"
-    dynamics_type = "implicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
+    dynamics_type = "root_explicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
 
     # --- Solve the program --- #
     miller = MillerOcp(
@@ -29,11 +29,15 @@ def main():
 
     np.random.seed(0)
 
+
     solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
+    solver.set_linear_solver("ma57")  # ("ma57")
+
     solver.set_maximum_iterations(1000)
     solver.set_print_level(5)
 
     sol = miller.ocp.solve(solver)
+    sol.animate()
 
     # --- Show results --- #
     print(sol.status)

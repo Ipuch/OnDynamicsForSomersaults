@@ -19,15 +19,15 @@ def main(args=None):
         out_path_raw = args[8]
         biorbd_model_path = args[9]
     else:
-        Date = "24jan2022"
-        i_rand = 0
+        Date = "2fev2022"
+        i_rand = 2
         n_shooting = (125, 25)
         duration = 1.545
-        dynamics_type = "explicit"
+        dynamics_type = "root_explicit" #root_explicit
         ode_solver = OdeSolver.RK4
         nstep = 5
-        n_threads = 3
-        out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
+        n_threads = 25
+        out_path_raw = "../OnDynamicsForSommersaults_results/test"
         biorbd_model_path = "Model_JeCh_15DoFs.bioMod"
 
     # to handle the random multi-start of the ocp
@@ -45,10 +45,12 @@ def main(args=None):
         twists=6 * np.pi,
     )
 
-    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
-    solver.set_maximum_iterations(1500)
+    #miller.ocp.add_plot_penalty(CostType.ALL)
+    solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
+    #solver.set_hessian_approximation("limited-memory")
+    solver.set_maximum_iterations(150)
     solver.set_print_level(5)
-    solver.set_linear_solver("ma57")
+    solver.set_linear_solver("ma57")#("ma57")
 
     print(f"##########################################################")
     print(f"Solving dynamics_type={dynamics_type}, random={i_rand}\n")
@@ -63,7 +65,8 @@ def main(args=None):
     print(f"Time to solve dynamics_type={dynamics_type}, random={i_rand}: {toc}sec\n")
     print(f"##########################################################")
 
-    sol_integrated = sol.integrate(shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False)
+    #sol_integrated = sol.integrate(shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False)
+    sol_integrated = sol.integrate(shooting_type=Shooting.SINGLE, keep_intermediate_points=True, merge_phases=True, continuous=False)
 
     q_integrated = sol_integrated.states["q"]
     qdot_integrated = sol_integrated.states["qdot"]
@@ -86,6 +89,7 @@ def main(args=None):
     pickle.dump(data, f)
     f.close()
 
+    sol.animate()
     # miller.ocp.save(sol, f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
 
 

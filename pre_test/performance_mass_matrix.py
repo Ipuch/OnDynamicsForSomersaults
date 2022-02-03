@@ -1,5 +1,5 @@
 import biorbd_casadi as biorbd
-from casadi import MX, SX, DM, Function, inv, solve, ldl_solve, mtimes, lt
+from casadi import MX, SX, DM, Function, inv, solve, ldl_solve, mtimes, lt, vertcat, chol, ldl
 
 # MX : matrix symbolic
 # SX : scalar symbolic
@@ -10,9 +10,29 @@ model_path = "../Model_JeCh_10DoFs.bioMod"
 m = biorbd.Model(model_path)
 
 q = MX.sym("q", m.nbQ(), 1)
+qdot = MX.sym("qdot", m.nbQ(), 1)
+qddot = MX.sym("qddot", m.nbQ(), 1)#vertcat(MX.zeros(6), MX.sym("qddot", m.nbQ()-m.nbRoot()))
 
 M = m.massMatrix(q).to_mx()
 M_func = Function("M_func", [q], [M], ["q"], ["M"]).expand()
+
+b = m.InverseDynamics(q, qdot, qddot).to_mx()
+b_func = Function("b_func", [q,qdot,qddot], [b], ["q", "qdot", "qddot"], ["M"]).expand()
+
+
+q_ = SX.sym("q", m.nbQ(), 1)
+qdot_ = SX.sym("qdot", m.nbQ(), 1)
+qddot_ = vertcat(SX.zeros(6), SX.sym("qddot", m.nbQ()-m.nbRoot()))
+
+A=M_func(q_)
+B=b_func(q_,qdot_,qddot_)
+
+x = ldl_solve(A, B)
+
+
+
+
+
 
 Minv = m.massMatrixInverse(q).to_mx()
 Minv_func = Function("Minv_func", [q], [Minv], ["q"], ["Minv"]).expand()

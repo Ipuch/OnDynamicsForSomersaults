@@ -10,7 +10,7 @@ def main():
     duration = 1.545
     n_threads = 8
     model_path = "Model_JeCh_15DoFs.bioMod"
-    dynamics_type = "root_implicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
+    dynamics_type = "root_explicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
     # mettre une contrainte
     # --- Solve the program --- #
     miller = MillerOcp(

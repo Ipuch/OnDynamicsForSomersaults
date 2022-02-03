@@ -74,7 +74,7 @@ class MillerOcp:
 
             self.n_tau = self.biorbd_model[0].nbGeneralizedTorque() - self.biorbd_model[0].nbRoot()
 
-            self.tau_min, self.tau_init, self.tau_max = -100, 0, 100
+            self.tau_min, self.tau_init, self.tau_max = -300, 0, 300
             self.qddot_min, self.qddot_init, self.qddot_max = -1000, 0, 1000
 
             self.dynamics = DynamicsList()
