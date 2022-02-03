@@ -278,12 +278,24 @@ def Analyses(
                 np.repeat(data["controls"][1]["tau"], 6, axis=1)[:, :-5],
             )
         )
-    elif dynamics_type == "root_explicit" or dynamics_type == "root_implicit":
+    elif dynamics_type == "root_implicit":
+        print(i_rand)
+        print(i_dynamics_type)
         qddot = np.hstack((data["controls"][0]["qddot"], data["controls"][1]["qddot"]))
         qddot_integrated = np.hstack(
             (
                 np.repeat(data["controls"][0]["qddot"], 6, axis=1)[:, :-5],
                 np.repeat(data["controls"][1]["qddot"], 6, axis=1)[:, :-5],
+            )
+        )
+    elif dynamics_type == "root_explicit":
+        print(i_rand)
+        print(i_dynamics_type)
+        qddot = np.hstack((data["controls"][0]["qddot_joint"], data["controls"][1]["qddot_joint"]))
+        qddot_integrated = np.hstack(
+            (
+                np.repeat(data["controls"][0]["qddot_joint"], 6, axis=1)[:, :-5],
+                np.repeat(data["controls"][1]["qddot_joint"], 6, axis=1)[:, :-5],
             )
         )
 
