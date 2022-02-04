@@ -6,6 +6,52 @@ import os
 import pickle
 import bioviz
 
+def jitter_data(data, x_step=0.0005, y_step=0.0000005, columns=[0,1], x_centre=0):
+
+    # a terminer
+
+    # sort the dataset in descending order
+    data_sorted = np.sort(data)
+    data_sort_index = np.argsort(data)
+    data_decreasing = np.array([data_sorted[-i] for i in range(len(data_sorted))])
+    data_sort_index = np.array([data_sort_index[-i] for i in range(len(data_sort_index))])
+    data_sort_index = len(data_sort_index) - data_sort_index
+
+    # determine the minimum and maximum number of y_steps that encapsulates the data
+    ymin = int(np.nanmin(data) / y_step)
+    ymax = int(np.nanmax(data) / y_step) + 2
+
+    # now step through the bands of data
+    for iy in range(ymin, ymax):
+        # create an array of Booleans identifying which points lie in the current range
+        points_in_range = ((data > (iy*y_step)) & (data <= (iy+1)*y_step))
+        # count the number of points in the current range
+        num_points = np.sum(points_in_range)
+
+        if num_points > 1:
+            if (num_points % 2) == 0:
+                # if there are an even number create the positive side (which here is [1,2])
+                a = np.arange(1, (num_points/2) + 1, 1)
+
+            else:
+                # otherwise if there are an odd number create the positive side (which here is [0,1,2])
+                a = np.arange(0, int(num_points/2.) + 1, 1)
+
+            # then the negative side which is [-1,-2]
+            b = np.arange(-1, int(num_points/-2.)-1, -1)
+
+            # now create a new array that can hold both,
+            c = np.empty((a.size + b.size,), dtype=a.dtype)
+
+            # ..and interweave them
+            c[0::2] = a
+            c[1::2] = b
+
+            x_array = (c * x_step) + x_centre
+        else:
+            x_array = x_centre
+
+        return x_array, y_array, c_array
 
 def graphs_analyses(
     angular_momentum_rmsd_all,
@@ -16,8 +62,8 @@ def graphs_analyses(
     iterations_all,
 ):
 
-    figure_type_1 = False # True  # True  # Tous sur le meme,
-    figure_type_2 = False # True  # True  # Tous sur le meme avec lignes qui relient les points
+    figure_type_1 = True # False # True  # True  # Tous sur le meme,
+    figure_type_2 = True # False # True  # True  # Tous sur le meme avec lignes qui relient les points
     figure_type_3 = True  # True  # Séparés
 
     colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF"]
@@ -85,7 +131,7 @@ def graphs_analyses(
                         alpha=0.3,
                     )
                     ax.plot(
-                        np.ones((100,)) * (j + shift[i]),
+                        np.ones((100,)) * (j + np.random.random(100)*0.05-0.05 + shift[i]),
                         variables_list_weighted[j, i, :],
                         ".",
                         color=colors[i],
@@ -100,8 +146,8 @@ def graphs_analyses(
                         bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
                         alpha=0.3,
                     )
-                    ax.plot(np.ones((100,)) * (j + shift[i]), variables_list_weighted[j, i, :], ".", color=colors[i])
-
+                    ax.plot(np.ones((100,)) * (j + np.random.random(100)*0.05-0.05 + shift[i]), variables_list_weighted[j, i, :], ".", color=colors[i])
+                    jitter_data(variables_list_weighted[j, i, :])
         plt.legend(
             loc="upper center",
             frameon=False,
@@ -213,7 +259,7 @@ def graphs_analyses(
                         alpha=0.1,
                     )
                     plt.scatter(
-                        np.ones((100,)) * shift[i], variables_list[j, i, :], c=np.linspace(0, 1, 100), cmap="viridis"
+                        np.ones((100,)) * shift[i] + np.random.random(100)*0.05-0.05, variables_list[j, i, :], c=np.linspace(0, 1, 100), cmap="viridis"
                     )
 
             plt.legend(
@@ -350,13 +396,13 @@ def Analyses(
             residual_tau_integrated = 0
         else:
             residual_tau_integrated = np.zeros((m.nbRoot(), N_integrated))
-        print(dynamics_type)
-        for node_integrated in range(N_integrated):
-            residual_tau_integrated[:, node_integrated] = m.InverseDynamics(
-                q_integrated[:, node_integrated],
-                qdot_integrated[:, node_integrated],
-                qddot_integrated[:, node_integrated],
-            ).to_array()[:6]
+            print(dynamics_type)
+            for node_integrated in range(N_integrated):
+                residual_tau_integrated[:, node_integrated] = m.InverseDynamics(
+                    q_integrated[:, node_integrated],
+                    qdot_integrated[:, node_integrated],
+                    qddot_integrated[:, node_integrated],
+                ).to_array()[:6]
 
         tau = np.zeros((m.nbQ(), N))
         for node in range(N):
@@ -514,8 +560,9 @@ if figure_type_4:
     axs = [axs_1, axs_2, axs_3, axs_4]
     dynamics_types = ["Explicit", "Root_explicit", "Implicit", "Root_implicit"]
     for j, ax in enumerate(axs):
-        ax[0].plot(0, 0, color=colors[j], label=dynamics_types[i])
-        ax[0].legend()
+        for k in range(4):
+            ax[0].plot(0, 0, color=colors[j], label=dynamics_types[k])
+            ax[0].legend()
         for i in range(15):
             ax[i].set_title(Dof_names[i])
 
