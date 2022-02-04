@@ -1,15 +1,17 @@
 import os
 import pickle
-from utils import (stack_states,
-                   stack_controls,
-                   define_time,
-                   angular_momentum_deviation,
-                   angular_momentum_time_series,
-                   linear_momentum_time_series,
-                   linear_momentum_deviation,
-                   comdot_time_series,
-                   comddot_time_series,
-                   residual_torque_time_series)
+from utils import (
+    stack_states,
+    stack_controls,
+    define_time,
+    angular_momentum_deviation,
+    angular_momentum_time_series,
+    linear_momentum_time_series,
+    linear_momentum_deviation,
+    comdot_time_series,
+    comddot_time_series,
+    residual_torque_time_series,
+)
 import biorbd
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
@@ -36,7 +38,7 @@ for i, file in enumerate(files):
 
         m = biorbd.Model(model)
 
-        residual_torque_norm = np.linalg.norm(residual_torque_time_series(m, q, qdot, qddot),axis=0)
+        residual_torque_norm = np.linalg.norm(residual_torque_time_series(m, q, qdot, qddot), axis=0)
         for ii in range(1):
             if ii == 0:
                 plt.plot(t, residual_torque_norm, label=data["n_shooting"], color=colors[i])
@@ -46,7 +48,7 @@ for i, file in enumerate(files):
 plt.ylabel("Residual torques norm xyz Rx Ry Rz (N or Nm)")
 plt.xlabel("time")
 plt.legend()
-plt.yscale('log')
+plt.yscale("log")
 plt.show()
 
 for i, file in enumerate(files):

@@ -17,7 +17,7 @@ elif nb_DoFs == 15:
     model_name = "Model_JeCh_15DoFs.bioMod"
     file = open(f"{file_name}", "rb")
     data = pickle.load(file)
-    q = np.hstack((data["states"][0]['q'], data["states"][1]['q']))
+    q = np.hstack((data["states"][0]["q"], data["states"][1]["q"]))
 
 # Animate the model
 manually_animate = False
@@ -30,4 +30,3 @@ if manually_animate:
 else:
     biorbd_viz.load_movement(q)
     biorbd_viz.exec()
-

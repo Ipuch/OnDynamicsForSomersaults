@@ -31,6 +31,7 @@ def angular_momentum_time_series(m, q, qdot):
 
     return angular_momentum
 
+
 def residual_torque_time_series(m, q, qdot, qddot):
     n = q.shape[1]
     residual_torque = np.zeros((6, n))
@@ -65,7 +66,7 @@ def linear_momentum_deviation(mass, com_velocity, time, com_acceleration):
     com_velocity0 = np.zeros((3, n))
     c0 = com_velocity[0:2, 0]
     com_velocity0[0:2, :] = np.repeat(c0[:, np.newaxis], n, axis=1)
-    com_velocity0[2, :] = (com_acceleration[2, 0] * time + com_velocity[2, 0])
+    com_velocity0[2, :] = com_acceleration[2, 0] * time + com_velocity[2, 0]
 
     for i in range(n):
         linear_momentum_rmsd[i] = mass * rmse(com_velocity[:, i], com_velocity0[:, i])
@@ -84,7 +85,7 @@ def stack_controls(controls, key: str = "q"):
 def define_time(time, n_shooting):
     time_vector = np.hstack(
         (
-            np.linspace(0, float(time[0]) - 1/n_shooting[0] * float(time[0]), n_shooting[0]),
+            np.linspace(0, float(time[0]) - 1 / n_shooting[0] * float(time[0]), n_shooting[0]),
             np.linspace(float(time[0]), float(time[0]) + float(time[1]), n_shooting[1] + 1),
         )
     )
