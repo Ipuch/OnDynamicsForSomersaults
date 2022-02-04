@@ -7,7 +7,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-from bioptim import OdeSolver, SolutionIntegrator, Solver, MultiBodyDynamics
+from bioptim import OdeSolver, SolutionIntegrator, Solver
 from Comparison import integrate_sol, compute_error_single_shooting
 
 
