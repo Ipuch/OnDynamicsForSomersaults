@@ -31,6 +31,14 @@ def angular_momentum_time_series(m, q, qdot):
 
     return angular_momentum
 
+def residual_torque_time_series(m, q, qdot, qddot):
+    n = q.shape[1]
+    residual_torque = np.zeros((6, n))
+    for ii in range(n):
+        residual_torque[:, ii] = m.InverseDynamics(q[:, ii], qdot[:, ii], qddot[:, ii]).to_array()[:6]
+
+    return residual_torque
+
 
 def linear_momentum_time_series(m, q, qdot):
     n = q.shape[1]
