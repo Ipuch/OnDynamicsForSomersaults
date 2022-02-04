@@ -1,5 +1,4 @@
 import os, shutil
-from Comparison import ComparisonAnalysis, ComparisonParameters
 import pickle
 from bioptim import Solver, OdeSolver, CostType, Shooting
 from miller_ocp import MillerOcp
@@ -7,15 +6,18 @@ import numpy as np
 from time import time
 
 # n_shooting = [(125, 25), (250, 50), (500, 100)]
-n_shooting_list = [(50, 10), (55, 11), (60, 12)]
-ode_solver = [OdeSolver.RK2()]
+# n_shooting_list = [(50, 10), (55, 11), (60, 12), (65, 13), (70, 14), (75, 15),
+#                    (80, 16), (85, 17), (90, 18), (95, 19), (100, 20), (105, 21),
+#                    (110, 22), (115, 23), (120, 24), (125, 25), (175, 35), (200, 40), (250, 50)]
+# n_shooting_list = [(300, 60), (400, 80), (500, 100), (700, 140)]
+n_shooting_list = [(900, 180), (2500, 500)]
 
 
 def main():
     model_path = "Model_JeCh_15DoFs.bioMod"
-    out_path = "../OnDynamicsForSommersaults_results/raw_converge_analysis"
+    out_path = "../OnDynamicsForSommersaults_results/raw_converge_analysis_2"
 
-    ode_solver = OdeSolver.RK4(n_integration_steps=5)
+    ode_solver = OdeSolver.RK2(n_integration_steps=5)
     duration = 1.545
     n_threads = 8
     model_path = "Model_JeCh_15DoFs.bioMod"
@@ -38,10 +40,10 @@ def main():
             use_sx=False,
         )
 
-        miller.ocp.print(to_console=True)
+        # miller.ocp.print(to_console=True)
         miller.ocp.add_plot_penalty(CostType.ALL)
 
-        solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
+        solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
         solver.set_maximum_iterations(1000)
         solver.set_print_level(5)
         solver.set_linear_solver("ma57")
@@ -82,6 +84,7 @@ def main():
             "dynamics_type": dynamics_type,
             "q_integrated": q_integrated,
             "qdot_integrated": qdot_integrated,
+            "n_shooting": n_shooting,
         }
         pickle.dump(data, f)
         f.close()
