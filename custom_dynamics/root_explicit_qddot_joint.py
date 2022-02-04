@@ -87,7 +87,7 @@ def custom_configure_root_explicit(ocp: OptimalControlProgram, nlp: NonLinearPro
     ConfigureProblem.configure_q(nlp, as_states=True, as_controls=False)
     ConfigureProblem.configure_qdot(nlp, as_states=True, as_controls=False)
     configure_qddot_joint(nlp, as_states=False, as_controls=True)
-    ConfigureProblem.configure_dynamics_function(ocp, nlp, root_explicit_dynamic)
+    ConfigureProblem.configure_dynamics_function(ocp, nlp, root_explicit_dynamic, expand=False)
 
 
 def configure_qddot_joint(nlp, as_states: bool, as_controls: bool):
