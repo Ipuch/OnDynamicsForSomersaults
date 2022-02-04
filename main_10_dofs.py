@@ -1,16 +1,15 @@
 import numpy as np
-from bioptim import OdeSolver, CostType
-from bioptim import Solver
+from bioptim import OdeSolver, CostType, Solver
 from miller_ocp_10_dofs import MillerOcp
 
 
 def main():
     n_shooting = 150
-    ode_solver = OdeSolver.RK4(n_integration_steps=5)
+    ode_solver = OdeSolver.RK4(n_integration_steps=1)
     duration = 1.46  # 1.545
     n_threads = 8
     model_path = "Model_JeCh_10DoFs.bioMod"
-    dynamics_type = "implicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
+    dynamics_type = "root_explicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
 
     # --- Solve the program --- #
     miller = MillerOcp(
