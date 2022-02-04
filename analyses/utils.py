@@ -84,7 +84,7 @@ def stack_controls(controls, key: str = "q"):
 def define_time(time, n_shooting):
     time_vector = np.hstack(
         (
-            np.linspace(0, float(time[0]), n_shooting[0]),
+            np.linspace(0, float(time[0]) - 1/n_shooting[0] * float(time[0]), n_shooting[0]),
             np.linspace(float(time[0]), float(time[0]) + float(time[1]), n_shooting[1] + 1),
         )
     )
