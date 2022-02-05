@@ -44,4 +44,3 @@ for i, dynamics_type in enumerate(dynamics_types):
 
 with Pool(1) as p:  # should be 4
     p.map(miller_run.main, calls)
-

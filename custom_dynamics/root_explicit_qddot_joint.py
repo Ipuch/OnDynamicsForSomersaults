@@ -60,14 +60,14 @@ def root_explicit_dynamic(
     # qdot_sym = MX.sym("q_sym", nlp.model.nbQdot(), 1)
     # qddot_sym = MX.sym("q_sym", nlp.model.nbQddot(), 1)
 
-    mass_matrix_nl_effects_func = Function("mass_matrix_nl_effects_func", [q, qdot, qddot_joints],
-                                           [mass_matrix_nl_effects[:nb_root]]
-                                           ).expand()
+    mass_matrix_nl_effects_func = Function(
+        "mass_matrix_nl_effects_func", [q, qdot, qddot_joints], [mass_matrix_nl_effects[:nb_root]]
+    ).expand()
 
-    M_66 = mass_matrix[: nb_root, : nb_root]
+    M_66 = mass_matrix[:nb_root, :nb_root]
     M_66_func = Function("M66_func", [q], [M_66]).expand()
 
-    qddot_root = solve(- M_66_func(q), mass_matrix_nl_effects_func(q, qdot, qddot_joints), "ldl")
+    qddot_root = solve(-M_66_func(q), mass_matrix_nl_effects_func(q, qdot, qddot_joints), "ldl")
 
     # qddot_root = solve(mass_matrix[: nb_root, : nb_root], MX.eye(nb_root), "ldl") @ mass_matrix_nl_effects_func(q, qdot, qddot)
 
@@ -90,7 +90,7 @@ def custom_configure_root_explicit(ocp: OptimalControlProgram, nlp: NonLinearPro
     ConfigureProblem.configure_q(nlp, as_states=True, as_controls=False)
     ConfigureProblem.configure_qdot(nlp, as_states=True, as_controls=False)
     configure_qddot_joint(nlp, as_states=False, as_controls=True)
-    ConfigureProblem.configure_dynamics_function(ocp, nlp, root_explicit_dynamic)
+    ConfigureProblem.configure_dynamics_function(ocp, nlp, root_explicit_dynamic, expand=False)
 
 
 def configure_qddot_joint(nlp, as_states: bool, as_controls: bool):

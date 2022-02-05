@@ -229,7 +229,6 @@ def graphs_analyses(
             plt.show()
             plt.savefig(f"Comparaison_separes_{labels[j]}.png", dpi=900)
 
-
     return
 
 
@@ -347,9 +346,9 @@ def Analyses(
         if i == 0 or i == 1:
             linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, :] - CoM_velocity[i, 0]) ** 2).mean())
         else:
-            linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, :]
-                                                           - (CoM_acceleration[i, 0] * time + CoM_velocity[i, 0]))
-                                                          ** 2).mean())
+            linear_momentum_rmsd[i] = m.mass() * np.sqrt(
+                ((CoM_velocity[i, :] - (CoM_acceleration[i, 0] * time + CoM_velocity[i, 0])) ** 2).mean()
+            )
 
     f = open(f"{out_path_secondary_variables}/miller_{dynamics_type}_irand{i_rand}_analyses.pckl", "wb")
     data_secondary = {
@@ -402,6 +401,7 @@ def Analyses(
         min_cost,
     )
 
+
 # starting of the function
 out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw"
 # out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
@@ -418,7 +418,7 @@ qddot_min = [[], [], [], []]
 tau_min = [[], [], [], []]
 time_min = [[], [], [], []]
 
-figure_type_4 = True # True  # Techniques
+figure_type_4 = True  # True  # Techniques
 axs = []
 if figure_type_4:
     fig_1, axs_1 = plt.subplots(5, 3, tight_layout=True, figsize=(20, 15))  # Q
@@ -547,8 +547,6 @@ if figure_type_4:
                 color=colors[i_dynamics_type],
                 linewidth=4,
             )
-
-
 
     if animation_min_cost:
         b = bioviz.Viz("/home/user/Documents/Programmation/Eve/OnDynamicsForSommersaults/Model_JeCh_15DoFs.bioMod")

@@ -51,7 +51,7 @@ def main(args=None):
     solver.set_linear_solver("ma57")
 
     print(f"##########################################################")
-    print(f"Solving dynamics_type={dynamics_type}, n_threads={n_threads}\n")
+    print(f"Solving dynamics_type={dynamics_type}, i_rand={i_rand}\n")
     print(f"##########################################################")
 
     tic = time()
@@ -60,7 +60,7 @@ def main(args=None):
 
     # if sol.status == 0:
     print(f"##########################################################")
-    print(f"Time to solve dynamics_type={dynamics_type}, n_threads={n_threads}: {toc}sec\n")
+    print(f"Time to solve dynamics_type={dynamics_type}, i_rand={i_rand}: {toc}sec\n")
     print(f"##########################################################")
 
     sol_integrated = sol.integrate(
@@ -70,7 +70,7 @@ def main(args=None):
     q_integrated = sol_integrated.states["q"]
     qdot_integrated = sol_integrated.states["qdot"]
 
-    f = open(f"{out_path_raw}/miller_{dynamics_type}_thread{n_threads}.pckl", "wb")
+    f = open(f"{out_path_raw}/miller_{dynamics_type}_i_rand{i_rand}.pckl", "wb")
     data = {
         "model_path": biorbd_model_path,
         "computation_time": toc,

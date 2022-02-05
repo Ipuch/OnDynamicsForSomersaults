@@ -49,15 +49,15 @@ def root_explicit_dynamic(
     # qddot_root = -mass_matrix_inverse[:nb_root, :nb_root] @ mass_matrix_nl_effects[:nb_root]
     # qddot_root = ldl_solve(mass_matrix_inverse[:nb_root, :nb_root], mass_matrix_nl_effects[:nb_root])
 
-    qddot_root = solve(mass_matrix[: nb_root, : nb_root], MX.eye(nb_root), "ldl") @ mass_matrix_nl_effects[: nb_root]
+    qddot_root = solve(mass_matrix[:nb_root, :nb_root], MX.eye(nb_root), "ldl") @ mass_matrix_nl_effects[:nb_root]
     # qddot_root = solve(mass_matrix[: nb_root, : nb_root], mass_matrix_nl_effects[: nb_root], "ldl")
     # q_sym = MX.sym("q_sym", nlp.model.nbQ(), 1)
     # qdot_sym = MX.sym("q_sym", nlp.model.nbQdot(), 1)
     # qddot_sym = MX.sym("q_sym", nlp.model.nbQddot(), 1)
 
-    mass_matrix_nl_effects_func = Function("mass_matrix_nl_effects_func", [q, qdot, qddot],
-                                           [mass_matrix_nl_effects[:nb_root]]
-                                           ).expand()
+    mass_matrix_nl_effects_func = Function(
+        "mass_matrix_nl_effects_func", [q, qdot, qddot], [mass_matrix_nl_effects[:nb_root]]
+    ).expand()
 
     # qddot_root = solve(mass_matrix[: nb_root, : nb_root], MX.eye(nb_root), "ldl") @ mass_matrix_nl_effects_func(q, qdot, qddot)
 

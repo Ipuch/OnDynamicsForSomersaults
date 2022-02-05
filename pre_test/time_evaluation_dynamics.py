@@ -64,7 +64,7 @@ print("floating base forward dynamics with solve ldl inv, NLE et M66 casadi_func
 # qddot_J = MX.sym("qddot_J", m.nbQ() - m.nbRoot(), 1)
 NLE = ID_func(q, qdot, vertcat(MX.zeros((6, 1)), qddot_J))[:6]
 NLE_func = Function("NLE", [q, qdot, qddot_J], [NLE]).expand()
-FD_fb_v2 = solve(M66_func(q), -NLE_func(q, qdot, qddot_J), 'ldl')
+FD_fb_v2 = solve(M66_func(q), -NLE_func(q, qdot, qddot_J), "ldl")
 FD_fb_v2_func = Function("FD_fb_v2", [q, qdot, qddot_J], [FD_fb_v2])
 
 tic = time.time()
@@ -79,7 +79,7 @@ ID_func = Function("ID", [q, qdot, qddot], [ID])
 NLE = ID_func(q, qdot, vertcat(MX.zeros((6, 1)), qddot_J))[:6]
 NLE_func = Function("NLE", [q, qdot, qddot_J], [NLE])
 M66_func = Function("M_func", [q], [M[:6, :6]], ["q"], ["M66"])
-FD_fb_v3 = solve(M66_func(q), -NLE_func(q, qdot, qddot_J), 'ldl')
+FD_fb_v3 = solve(M66_func(q), -NLE_func(q, qdot, qddot_J), "ldl")
 FD_fb_v3_func = Function("FD_fb_v3", [q, qdot, qddot_J], [FD_fb_v3])
 
 tic = time.time()
