@@ -17,11 +17,11 @@ Date = Date.strftime("%d-%m-%y")
 
 # duration = np.mean(np.array([1.44, 1.5, 1.545, 1.5, 1.545]))
 n_shooting = (125, 25)
-ode_solver = [OdeSolver.RK2, OdeSolver.RK2]
+ode_solver = [OdeSolver.RK4]
 duration = 1.545
-dynamics_types = ["implicit", "root_implicit"]
+dynamics_types = ["root_explicit"]
 nstep = 5
-n_threads = [32, 16, 8, 4]  # Should be 8
+n_threads = [1]  # Should be 8
 
 calls = []
 for i, dynamics_type in enumerate(dynamics_types):
