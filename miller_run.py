@@ -89,7 +89,7 @@ def main(args=None):
     pickle.dump(data, f)
     f.close()
 
-    # miller.ocp.save(sol, f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
+    miller.ocp.save(sol, f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
 
 
 if __name__ == "__main__":
