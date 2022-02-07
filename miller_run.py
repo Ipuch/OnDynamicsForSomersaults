@@ -58,6 +58,8 @@ def main(args=None):
     sol = miller.ocp.solve(solver)
     toc = time() - tic
 
+    sol.print(to_console=False)
+
     # if sol.status == 0:
     print(f"##########################################################")
     print(f"Time to solve dynamics_type={dynamics_type}, random={i_rand}: {toc}sec\n")
