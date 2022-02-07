@@ -174,9 +174,9 @@ class MillerOcp:
             )  # core DoFs
 
         # self.objective_functions.add(
-        #     custom_angular_momentum, custom_type=ObjectiveFcn.Mayer, node=Node.START, weight=100000
+        #     custom_angular_momentum, custom_type=ObjectiveFcn.Mayer, node=Node.START, weight=100000, quadratic=True
         # )
-        self.objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, node=Node.START, weight=100000)
+        self.objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, node=Node.START, weight=100000, quadratic=True)
 
         slack_duration = 0.3
         self.objective_functions.add(
