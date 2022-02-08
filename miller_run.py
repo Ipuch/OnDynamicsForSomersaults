@@ -58,6 +58,8 @@ def main(args=None):
     sol = miller.ocp.solve(solver)
     toc = time() - tic
 
+    sol.print(to_console=False)
+
     # if sol.status == 0:
     print(f"##########################################################")
     print(f"Time to solve dynamics_type={dynamics_type}, i_rand={i_rand}: {toc}sec\n")
@@ -91,7 +93,7 @@ def main(args=None):
     pickle.dump(data, f)
     f.close()
 
-    # miller.ocp.save(sol, f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
+    miller.ocp.save(sol, f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
 
 
 if __name__ == "__main__":
