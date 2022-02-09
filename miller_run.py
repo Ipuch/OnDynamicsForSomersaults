@@ -58,7 +58,7 @@ def main(args=None):
     sol = miller.ocp.solve(solver)
     toc = time() - tic
 
-    sol.print(to_console=False)
+    sol.print(cost_type=CostType.OBJECTIVES, to_console=False)
 
     # if sol.status == 0:
     print(f"##########################################################")
@@ -77,6 +77,7 @@ def main(args=None):
         "model_path": biorbd_model_path,
         "computation_time": toc,
         "cost": sol.cost,
+        "detailed_cost": sol.detailed_cost,
         # "inf_du" : sol.inf_du,
         "iterations": sol.iterations,
         # "inf_pr" : sol.inf_pr,
