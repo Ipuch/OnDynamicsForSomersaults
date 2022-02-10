@@ -205,19 +205,19 @@ class MillerOcp:
 
         # Track momentum and Minimize delta momentum
         for i in range(2):
+            # self.objective_functions.add(
+            #     ObjectiveFcn.Lagrange.MINIMIZE_ANGULAR_MOMENTUM, phase=i,
+            #     target=np.repeat(self.sigma0[:, np.newaxis], self.n_shooting[i], axis=1), weight=10
+            # )
+            # self.objective_functions.add(
+            #     ObjectiveFcn.Lagrange.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i,
+            #     target=np.repeat(self.p0[:2, np.newaxis], self.n_shooting[i], axis=1), weight=10
+            # )
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_ANGULAR_MOMENTUM, phase=i,
-                target=np.repeat(self.sigma0[:, np.newaxis], self.n_shooting[i], axis=1), weight=100
+                ObjectiveFcn.Lagrange.MINIMIZE_ANGULAR_MOMENTUM, phase=i, derivative=True, weight=100000
             )
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i,
-                target=np.repeat(self.p0[:2, np.newaxis], self.n_shooting[i], axis=1), weight=100
-            )
-            self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_ANGULAR_MOMENTUM, phase=i, derivative=True, weight=100
-            )
-            self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, derivative=True, weight=100
+                ObjectiveFcn.Lagrange.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, derivative=True, weight=100000
             )
 
         # Help to stay upright at the landing.
@@ -280,9 +280,10 @@ class MillerOcp:
         qdot_init = self.x_bounds[0].min[self.n_q:, 0]
 
         m = brd.Model(self.biorbd_model_path)
-        self.sigma0 = m.angularMomentum(q_init, qdot_init).to_array()
-        self.p0 = m.mass() * m.CoMdot(q_init, qdot_init).to_array()
-
+        self.sigma0 = m.angularMomentum(q_init, qdot_init, True).to_array()
+        print(self.sigma0)
+        self.p0 = m.mass() * m.CoMdot(q_init, qdot_init, True).to_array()
+        print(self.p0)
 
 
     def _set_initial_guesses(self):

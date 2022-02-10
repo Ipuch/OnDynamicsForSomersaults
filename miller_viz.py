@@ -81,5 +81,5 @@ def add_custom_plots(ocp, dynamics_type):
                     "TorqueResiduals Ry",
                     "TorqueResiduals Rz",
                 ],
-                plot_type=PlotType.INTEGRATED,
+                plot_type=PlotType.PLOT,
             )
