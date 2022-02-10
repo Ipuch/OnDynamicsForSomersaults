@@ -4,9 +4,9 @@ import biorbd_casadi as biorbd
 
 
 def custom_phase_transition(
-        transition: PhaseTransition,
-        nlp_pre: NonLinearProgram,
-        nlp_post: NonLinearProgram,
+    transition: PhaseTransition,
+    nlp_pre: NonLinearProgram,
+    nlp_post: NonLinearProgram,
 ) -> MX:
     """
     The constraint of the transition which maintain the difference between angular momentum to zero.

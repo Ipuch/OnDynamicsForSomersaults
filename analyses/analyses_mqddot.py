@@ -28,7 +28,7 @@ tau = stack_controls(data["controls"], "tau")
 
 qddot = np.zeros((15, 151))
 for i in range(q.shape[1]):
-    qddot[:, i] = m.ForwardDynamics(q[:,i], qdot[:,i], tau[:,i]).to_array()
+    qddot[:, i] = m.ForwardDynamics(q[:, i], qdot[:, i], tau[:, i]).to_array()
 
 # test = np.zeros((6, 151))
 # for i in range(q.shape[1]):
@@ -39,8 +39,10 @@ for i in range(q.shape[1]):
 
 test = np.zeros((6, 151))
 for i in range(q.shape[1]):
-    test[:, i] = m.massMatrix(q[:, i], True).to_array()[:6, :] @ qddot[:, i] \
-                 + m.NonLinearEffect(q[:, i], qdot[:, i]).to_array()[:6]
+    test[:, i] = (
+        m.massMatrix(q[:, i], True).to_array()[:6, :] @ qddot[:, i]
+        + m.NonLinearEffect(q[:, i], qdot[:, i]).to_array()[:6]
+    )
 
 plt.plot(test[0, :])
 plt.show()
@@ -64,5 +66,3 @@ plt.show()
 # v = np.hstack((np.random.random(6),np.ones(9)))
 # w = np.hstack((np.random.random(6),np.ones(9)))
 # (m.massMatrix(v).to_array() - m.massMatrix(w).to_array())[:6,:6] == 0
-
-

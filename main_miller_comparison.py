@@ -82,4 +82,3 @@ calls = generate_calls(
 pool_number = int(cpu_number / n_threads)
 with Pool(pool_number) as p:  # should be 4
     p.map(miller_run.main, calls)
-

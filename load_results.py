@@ -21,5 +21,3 @@ elif nb_DoFs == 15:
     ocp, sol = OptimalControlProgram.load(file_name)
     sol.graphs()
     sol.animate()
-
-
