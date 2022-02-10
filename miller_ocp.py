@@ -190,7 +190,8 @@ class MillerOcp:
         # self.objective_functions.add(
         #     custom_angular_momentum, custom_type=ObjectiveFcn.Mayer, node=Node.START, weight=100000, quadratic=True
         # )
-        self.objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, node=Node.START, weight=100000, quadratic=True)
+        self.objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, node=Node.START, weight=1000,
+                                     quadratic=True)
 
         # Help to stay upright at the landing.
         self.objective_functions.add(
