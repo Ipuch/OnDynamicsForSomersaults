@@ -15,6 +15,7 @@ import bioviz
 # ax.set_ylim(.78, 1.)  # outliers only
 # ax2.set_ylim(0, .22)  # most of the data
 
+
 def graphs_analyses(
     angular_momentum_rmsd_all,
     linear_momentum_rmsd_all,
@@ -24,9 +25,9 @@ def graphs_analyses(
     iterations_all,
 ):
 
-    figure_type_1 = False # Tous sur le meme,
-    figure_type_2 = False # Tous sur le meme avec lignes qui relient les points
-    figure_type_3 = True # Séparés
+    figure_type_1 = False  # Tous sur le meme,
+    figure_type_2 = False  # Tous sur le meme avec lignes qui relient les points
+    figure_type_3 = True  # Séparés
 
     colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF"]
     shift = [-0.3, -0.1, 0.1, 0.3]
@@ -93,7 +94,7 @@ def graphs_analyses(
                         alpha=0.3,
                     )
                     ax.plot(
-                        np.ones((100,)) * (j + np.random.random(100)*0.1-0.05 + shift[i]),
+                        np.ones((100,)) * (j + np.random.random(100) * 0.1 - 0.05 + shift[i]),
                         variables_list_weighted[j, i, :],
                         ".",
                         color=colors[i],
@@ -110,7 +111,12 @@ def graphs_analyses(
                     )
                     # sns.stripplot(np.ones((100,)) * (j + shift[i]),  variables_list_weighted[j, i, :], ax=ax, jitter=0.2, alpha=0.5)
                     # sns.swarmplot(x=np.ones((100,)) * (j + shift[i]), y=variables_list_weighted[j, i, :], ax=ax)
-                    ax.plot(np.ones((100,)) * (j + np.random.random(100)*0.1-0.05 + shift[i]), variables_list_weighted[j, i, :], ".", color=colors[i])
+                    ax.plot(
+                        np.ones((100,)) * (j + np.random.random(100) * 0.1 - 0.05 + shift[i]),
+                        variables_list_weighted[j, i, :],
+                        ".",
+                        color=colors[i],
+                    )
         plt.legend(
             loc="upper center",
             frameon=False,
@@ -213,8 +219,12 @@ def graphs_analyses(
                     #     np.ones((100,)) * shift[i], variables_list[j, i, :], c=np.linspace(0, 1, 100), cmap="viridis"
                     # )
                     # sns.swarmplot(x=np.ones((100,)) * shift[i], y=variables_list[j, i, :])
-                    plt.plot(np.ones((100,)) * shift[i] + np.random.random(100) * 0.1 - 0.05, variables_list[j, i, :],
-                             '.', color=colors[i])
+                    plt.plot(
+                        np.ones((100,)) * shift[i] + np.random.random(100) * 0.1 - 0.05,
+                        variables_list[j, i, :],
+                        ".",
+                        color=colors[i],
+                    )
                 else:
                     plt.bar(
                         shift[i],
@@ -228,8 +238,12 @@ def graphs_analyses(
                     #     np.ones((100,)) * shift[i] + np.random.random(100)*0.1-0.05, variables_list[j, i, :], c=np.linspace(0, 1, 100), cmap="viridis"
                     # )
                     # sns.swarmplot(x=np.ones((100,)) * shift[i], y=variables_list[j, i, :])
-                    plt.plot(np.ones((100,)) * shift[i] + np.random.random(100) * 0.1 - 0.05, variables_list[j, i, :],
-                             '.', color=colors[i])
+                    plt.plot(
+                        np.ones((100,)) * shift[i] + np.random.random(100) * 0.1 - 0.05,
+                        variables_list[j, i, :],
+                        ".",
+                        color=colors[i],
+                    )
             # plt.legend(
             #     loc="upper center",
             #     frameon=False,
@@ -278,13 +292,12 @@ def Analyses(
     N = np.shape(q)[1]
     q_integrated = data["q_integrated"]
     qdot_integrated = data["qdot_integrated"]
-    N_integrated = (N-2)*6+2
+    N_integrated = (N - 2) * 6 + 2
 
     time_integrated = np.array([])
-    for i in range(N-1):
+    for i in range(N - 1):
         if i != 125:
-            time_integrated = np.hstack((time_integrated,
-                                         np.linspace(time[i], time[i+1], 6)))
+            time_integrated = np.hstack((time_integrated, np.linspace(time[i], time[i + 1], 6)))
         else:
             time_integrated = np.hstack((time_integrated, time[i]))
 
@@ -335,7 +348,9 @@ def Analyses(
         qddot_integrated[6:, :] = qddot_joints_integrated
 
         def root_explicit_dynamics(m, q, qdot, qddot_joints):
-            mass_matrix_nl_effects = m.InverseDynamics(q, qdot, np.hstack((np.zeros((6, )), qddot_joints))).to_array()[:6]
+            mass_matrix_nl_effects = m.InverseDynamics(q, qdot, np.hstack((np.zeros((6,)), qddot_joints))).to_array()[
+                :6
+            ]
             mass_matrix = m.massMatrix(q).to_array()
             qddot_base = -np.linalg.solve(mass_matrix[:6, :6], np.eye(6)) @ mass_matrix_nl_effects
             return qddot_base
@@ -343,7 +358,9 @@ def Analyses(
         for i in range(N):
             qddot[:6, i] = root_explicit_dynamics(m, q[:, i], qdot[:, i], qddot_joints[:, i])
         for i in range(N_integrated):
-            qddot_integrated[:6, i] = root_explicit_dynamics(m, q_integrated[:, i], qdot_integrated[:, i], qddot_joints_integrated[:, i])
+            qddot_integrated[:6, i] = root_explicit_dynamics(
+                m, q_integrated[:, i], qdot_integrated[:, i], qddot_joints_integrated[:, i]
+            )
 
     if dynamics_type == "explicit":
         residual_tau_integrated = 0
@@ -355,7 +372,8 @@ def Analyses(
         qddot_integrated = np.zeros((m.nbQ(), N_integrated))
         for node in range(N_integrated):
             qddot_integrated[:, node] = m.ForwardDynamics(
-                q_integrated[:, node], qdot_integrated[:, node], tau_integrated[:, node]).to_array()
+                q_integrated[:, node], qdot_integrated[:, node], tau_integrated[:, node]
+            ).to_array()
 
     else:
         if dynamics_type == "root_explicit":
@@ -374,7 +392,7 @@ def Analyses(
         for node in range(N):
             tau[:, node] = m.InverseDynamics(q[:, node], qdot[:, node], qddot[:, node]).to_array()
 
-    residual_tau_rms = np.sqrt(np.nanmean(residual_tau_integrated ** 2))
+    residual_tau_rms = np.sqrt(np.nanmean(residual_tau_integrated**2))
 
     index_continuous = [x for i, x in enumerate(np.arange(len(time_integrated))) if i != 125 * 6 + 1]
     angular_momentum = np.zeros((3, N_integrated))
@@ -384,12 +402,23 @@ def Analyses(
     CoM_velocity = np.zeros((3, N_integrated))
     CoM_acceleration = np.zeros((3, N_integrated))
     for node_integrated in range(N_integrated):
-        angular_momentum[:, node_integrated] = m.angularMomentum(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array()
+        angular_momentum[:, node_integrated] = m.angularMomentum(
+            q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True
+        ).to_array()
         angular_momentum_norm[node_integrated] = np.linalg.norm(angular_momentum[:, node_integrated])
-        linear_momentum[:, node_integrated] = m.CoMdot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array() * m.mass()
+        linear_momentum[:, node_integrated] = (
+            m.CoMdot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array() * m.mass()
+        )
         CoM_position[:, node_integrated] = m.CoM(q_integrated[:, node_integrated], True).to_array()
-        CoM_velocity[:, node_integrated] = m.CoMdot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array()
-        CoM_acceleration[:, node_integrated] = m.CoMddot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], qddot_integrated[:, node_integrated], True).to_array()
+        CoM_velocity[:, node_integrated] = m.CoMdot(
+            q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True
+        ).to_array()
+        CoM_acceleration[:, node_integrated] = m.CoMddot(
+            q_integrated[:, node_integrated],
+            qdot_integrated[:, node_integrated],
+            qddot_integrated[:, node_integrated],
+            True,
+        ).to_array()
 
     # plt.figure()
     # plt.plot(time_integrated, angular_momentum[0, :], '-', label='x')
@@ -405,13 +434,17 @@ def Analyses(
     angular_momentum_rmsd = np.zeros((3,))
     linear_momentum_rmsd = np.zeros((3,))
     for i in range(3):
-        angular_momentum_rmsd[i] = np.sqrt(((angular_momentum[i, index_continuous] - angular_momentum[i, 0]) ** 2).mean())
+        angular_momentum_rmsd[i] = np.sqrt(
+            ((angular_momentum[i, index_continuous] - angular_momentum[i, 0]) ** 2).mean()
+        )
         if i == 0 or i == 1:
-            linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous] - CoM_velocity[i, 0]) ** 2).mean())
+            linear_momentum_rmsd[i] = m.mass() * np.sqrt(
+                ((CoM_velocity[i, index_continuous] - CoM_velocity[i, 0]) ** 2).mean()
+            )
         else:
-            linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, :]
-                                                           - (CoM_acceleration[i, 0] * time + CoM_velocity[i, 0]))
-                                                          ** 2).mean())
+            linear_momentum_rmsd[i] = m.mass() * np.sqrt(
+                ((CoM_velocity[i, :] - (CoM_acceleration[i, 0] * time + CoM_velocity[i, 0])) ** 2).mean()
+            )
 
     # plt.figure()
     # plt.plot(time_integrated[index_continuous], angular_momentum[0, index_continuous] - angular_momentum[0, 0], '-', label='x')
@@ -423,7 +456,6 @@ def Analyses(
     # plt.plot(time_integrated[index_continuous], CoM_velocity[2, index_continuous] - (CoM_acceleration[2, 0] * time_integrated[index_continuous] + CoM_velocity[2, 0]), '--', label='z')
     # plt.legend()
     # plt.show()
-
 
     f = open(f"{out_path_secondary_variables}/miller_{dynamics_type}_irand{i_rand}_analyses.pckl", "wb")
     data_secondary = {
@@ -481,7 +513,9 @@ def Analyses(
 # out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw"
 out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
 # out_path_secondary_variables = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/secondary_variables"
-out_path_secondary_variables = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/secondary_variables"
+out_path_secondary_variables = (
+    "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/secondary_variables"
+)
 animation_min_cost = False
 
 
@@ -493,7 +527,7 @@ qddot_min = [[], [], [], []]
 tau_min = [[], [], [], []]
 time_min = [[], [], [], []]
 
-figure_type_4 = True # True  # Techniques
+figure_type_4 = True  # True  # Techniques
 axs = []
 if figure_type_4:
     fig_1, axs_1 = plt.subplots(5, 3, tight_layout=True, figsize=(20, 15))  # Q
