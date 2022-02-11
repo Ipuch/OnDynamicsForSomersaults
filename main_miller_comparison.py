@@ -13,7 +13,11 @@ Date = date.today()
 Date = Date.strftime("%d-%m-%y")
 
 out_path_raw = "../OnDynamicsForSommersaults_results/raw_" + Date
-os.mkdir(out_path_raw)
+try:
+    os.mkdir(out_path_raw)
+except:
+    print("../OnDynamicsForSommersaults_results/raw_" + Date + ' is already created ')
+
 out_path_secondary_variables = "../OnDynamicsForSommersaults_results/secondary_variables"
 
 cpu_number = cpu_count()
@@ -23,7 +27,6 @@ cpu_number = cpu_count()
 
 model_str = "Model_JeCh_15DoFs.bioMod"
 n_shooting = (125, 25)
-duration = 1.545
 nstep = 5
 
 n_threads = 4  # Should be 8
@@ -35,13 +38,13 @@ def generate_calls(
     n,
     Date,
     n_shooting: tuple,
-    duration: float,
     dynamics_types: list,
     ode_solver: list,
     nstep: int,
     n_threads: int,
     out_path_raw: str,
     model_str: str,
+    extra_obj: bool,
 ):
     calls = []
     for i, dynamics_type in enumerate(dynamics_types):
@@ -51,20 +54,20 @@ def generate_calls(
                     Date,
                     i_rand,
                     n_shooting,
-                    duration,
                     dynamics_type,
                     ode_solver[i],
                     nstep,
                     n_threads,
                     out_path_raw,
                     model_str,
+                    extra_obj,
                 ]
             )
     return calls
 
 
 calls = generate_calls(
-    100, Date, n_shooting, duration, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str
+    100, Date, n_shooting, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, False,
 )
 
 pool_number = int(cpu_number / n_threads)
@@ -77,8 +80,16 @@ ode_solver = [OdeSolver.RK2, OdeSolver.RK2]
 dynamics_types = ["implicit", "root_implicit"]
 
 calls = generate_calls(
-    100, Date, n_shooting, duration, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str
+    100, Date, n_shooting, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, False,
 )
 pool_number = int(cpu_number / n_threads)
 with Pool(pool_number) as p:  # should be 4
     p.map(miller_run.main, calls)
+
+calls = generate_calls(
+    100, Date, n_shooting, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
+)
+pool_number = int(cpu_number / n_threads)
+with Pool(pool_number) as p:  # should be 4
+    p.map(miller_run.main, calls)
+

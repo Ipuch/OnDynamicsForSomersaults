@@ -11,39 +11,40 @@ def main(args=None):
         Date = args[0]
         i_rand = args[1]
         n_shooting = args[2]
-        duration = args[3]
-        dynamics_type = args[4]
-        ode_solver = args[5]
-        nstep = args[6]
-        n_threads = args[7]
-        out_path_raw = args[8]
-        biorbd_model_path = args[9]
+        dynamics_type = args[3]
+        ode_solver = args[4]
+        nstep = args[5]
+        n_threads = args[6]
+        out_path_raw = args[7]
+        biorbd_model_path = args[8]
+        extra_obj = args[9]
     else:
-        Date = "3fev2022"
+        Date = "11fev2022"
         i_rand = 0
         n_shooting = (125, 25)
-        duration = 1.545
         dynamics_type = "root_explicit"
         ode_solver = OdeSolver.RK4
         nstep = 5
         n_threads = 30
         out_path_raw = "../OnDynamicsForSommersaults_results/test"
         biorbd_model_path = "Model_JeCh_15DoFs.bioMod"
+        extra_obj = True
 
     # to handle the random multi-start of the ocp
     np.random.seed(i_rand)
     # --- Solve the program --- #
     miller = MillerOcp(
         biorbd_model_path="Model_JeCh_15DoFs.bioMod",
-        duration=duration,
         n_shooting=n_shooting,
         ode_solver=ode_solver(n_integration_steps=nstep),
         dynamics_type=dynamics_type,
         n_threads=n_threads,
-        vertical_velocity_0=9.2,
         somersaults=4 * np.pi,
         twists=6 * np.pi,
+        extra_obj=extra_obj,
     )
+    filename = f"miller_{dynamics_type}_irand{i_rand}_extraobj{extra_obj}"
+    outpath = f"{out_path_raw}" + filename
 
     solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
     solver.set_maximum_iterations(1500)
@@ -72,7 +73,7 @@ def main(args=None):
     q_integrated = sol_integrated.states["q"]
     qdot_integrated = sol_integrated.states["qdot"]
 
-    f = open(f"{out_path_raw}/miller_{dynamics_type}_i_rand{i_rand}.pckl", "wb")
+    f = open(f"{outpath}.pckl", "wb")
     data = {
         "model_path": biorbd_model_path,
         "computation_time": toc,
@@ -94,7 +95,7 @@ def main(args=None):
     pickle.dump(data, f)
     f.close()
 
-    miller.ocp.save(sol, f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
+    miller.ocp.save(sol, f"{outpath}.bo")
 
 
 if __name__ == "__main__":
