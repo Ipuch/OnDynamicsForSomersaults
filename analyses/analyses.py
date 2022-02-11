@@ -433,17 +433,17 @@ def Analyses(
         # plt.legend()
         # plt.show()
 
-        angular_momentum_mean = np.mean(angular_momentum, axis=1)
-        angular_momentum_rmsd = np.zeros((3,))
-        linear_momentum_rmsd = np.zeros((3,))
-        for i in range(3):
-            angular_momentum_rmsd[i] = np.sqrt(((angular_momentum[i, index_continuous] - angular_momentum[i, 0]) ** 2).mean())
-            if i == 0 or i == 1:
-                linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous] - CoM_velocity[i, 0]) ** 2).mean())
-            else:
-                linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous]
-                                                               - (CoM_acceleration[i, 0] * time_integrated[index_continuous] + CoM_velocity[i, 0]))
-                                                              ** 2).mean())
+    angular_momentum_mean = np.mean(angular_momentum, axis=1)
+    angular_momentum_rmsd = np.zeros((3,))
+    linear_momentum_rmsd = np.zeros((3,))
+    for i in range(3):
+        angular_momentum_rmsd[i] = np.sqrt(((angular_momentum[i, index_continuous] - angular_momentum[i, 0]) ** 2).mean())
+        if i == 0 or i == 1:
+            linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous] - CoM_velocity[i, 0]) ** 2).mean())
+        else:
+            linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous]
+                                                           - (CoM_acceleration[i, 0] * time_integrated[index_continuous] + CoM_velocity[i, 0]))
+                                                          ** 2).mean())
 
         # plt.figure()
         # plt.plot(time_integrated[index_continuous], angular_momentum[0, index_continuous] - angular_momentum[0, 0], '-', label='x')
@@ -457,23 +457,17 @@ def Analyses(
         # plt.show()
 
 
-    angular_momentum_mean = np.mean(angular_momentum, axis=1)
-    angular_momentum_rmsd = np.zeros((3,))
-    linear_momentum_rmsd = np.zeros((3,))
-    for i in range(3):
-        angular_momentum_rmsd[i] = np.sqrt(((angular_momentum[i, index_continuous] - angular_momentum[i, 0]) ** 2).mean())
-        if i == 0 or i == 1:
-            linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous] - CoM_velocity[i, 0]) ** 2).mean())
-        else:
-<<<<<<<<< Temporary merge branch 1
-            linear_momentum_rmsd[i] = m.mass() * np.sqrt(
-                ((CoM_velocity[i, :] - (CoM_acceleration[i, 0] * time + CoM_velocity[i, 0])) ** 2).mean()
-            )
-=========
-            linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous]
-                                                           - (CoM_acceleration[i, 0] * time_integrated[index_continuous] + CoM_velocity[i, 0]))
-                                                          ** 2).mean())
->>>>>>>>> Temporary merge branch 2
+    f = open(f"{out_path_secondary_variables}/miller_{dynamics_type}_irand{i_rand}_analyses.pckl", "wb")
+    data_secondary = {
+        "angular_momentum": angular_momentum,
+        "angular_momentum_norm": angular_momentum_norm,
+        "linear_momentum": linear_momentum,
+        "CoM_position": CoM_position,
+        "residual_tau_integrated ": residual_tau_integrated,
+        "angular_momentum_rmsd": angular_momentum_rmsd,
+        "linear_momentum_rmsd": linear_momentum_rmsd,
+        "residual_tau_rms": residual_tau_rms,
+    }
 
         pickle.dump(data_secondary, f)
         f.close()
