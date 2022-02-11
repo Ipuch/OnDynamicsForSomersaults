@@ -5,6 +5,7 @@ import biorbd
 import os
 import pickle
 import bioviz
+import bioptim
 
 # # pour broker axis eventuellement
 # f, (ax, ax2) = plt.subplots(2, 1, sharex=True)
@@ -26,19 +27,19 @@ def graphs_analyses(
 
     figure_type_1 = False # Tous sur le meme,
     figure_type_2 = False # Tous sur le meme avec lignes qui relient les points
-    figure_type_3 = True # Séparés
+    figure_type_3 = False # True # Séparés
 
     colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF"]
     shift = [-0.3, -0.1, 0.1, 0.3]
     labels = [
         "Angular Momentum RMSD",
         "Linear Momentum RMSD",
-        "Resirual Tau",
+        "Residual Tau",
         "Computation Time",
         "Optimal Cost",
         "Number of iterations",
     ]
-    dynamics_type = ["Explicit", "Root explicit", "Implicit", "Root Implicit"]
+    dynamics_types = ["Explicit", "Root explicit", "Implicit", "Root Implicit"]
 
     weights = np.array([1e-1, 1, 1, 1, 1e-9, 1])
 
@@ -89,7 +90,7 @@ def graphs_analyses(
                         width=0.1,
                         color=colors[i],
                         bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
-                        label=dynamics_type[i] + " mean $\pm$ std",
+                        label=dynamics_types[i] + " mean $\pm$ std",
                         alpha=0.3,
                     )
                     ax.plot(
@@ -97,7 +98,7 @@ def graphs_analyses(
                         variables_list_weighted[j, i, :],
                         ".",
                         color=colors[i],
-                        label=dynamics_type[i],
+                        label=dynamics_types[i],
                     )
                 else:
                     ax.bar(
@@ -138,7 +139,7 @@ def graphs_analyses(
                         marker=".",
                         color=colors[i],
                         linewidth=0.5,
-                        label=dynamics_type[i],
+                        label=dynamics_types[i],
                     )
                 else:
                     ax.plot(
@@ -159,7 +160,7 @@ def graphs_analyses(
                         width=0.1,
                         color=colors[i],
                         bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
-                        label=dynamics_type[i] + " mean $\pm$ std",
+                        label=dynamics_types[i] + " mean $\pm$ std",
                         alpha=0.3,
                     )
                 else:
@@ -188,7 +189,7 @@ def graphs_analyses(
 
         for j in range(6):
             plt.figure()
-            plt.xticks(shift, labels=dynamics_type)
+            plt.xticks(shift, labels=dynamics_types)
 
             for i in range(4):
                 plt.plot(
@@ -242,6 +243,7 @@ def graphs_analyses(
             plt.title(labels[j])
             plt.show()
             plt.savefig(f"Comparaison_separes_{labels[j]}.png", dpi=900)
+
     return
 
 
@@ -252,7 +254,9 @@ def Analyses(
     i_rand,
     i_dynamics_type,
     axs,
+    axs_5,
     figure_type_4,
+    figure_type_5,
     time_min,
     q_min,
     qdot_min,
@@ -317,6 +321,17 @@ def Analyses(
         cost = data["cost"]
         iterations = data["iterations"]
 
+        detailed_cost_dict = data["detailed_cost"]
+        # print(f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
+        # ocp_load, sol_load = bioptim.OptimalControlProgram.load(f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
+        # sol_load.detailed_cost = []
+        # sol_load.print(cost_type=bioptim.CostType.OBJECTIVES, to_console=False)
+        # detailed_cost_dict = sol_load.detailed_cost
+        detailed_cost = np.zeros((len(detailed_cost_dict), ))
+        for i in range(len(detailed_cost_dict)):
+            detailed_cost[i] = detailed_cost_dict[i]['cost_value_weighted']
+
+
         if dynamics_type == "explicit" or dynamics_type == "implicit":
             tau = np.hstack((data["controls"][0]["tau"], data["controls"][1]["tau"]))
             tau_integrated = np.hstack(
@@ -327,8 +342,8 @@ def Analyses(
             )
 
         if dynamics_type == "root_implicit" or dynamics_type == "implicit":
-            print(i_rand)
-            print(i_dynamics_type)
+            # print(i_rand)
+            # print(i_dynamics_type)
             qddot = np.hstack((data["controls"][0]["qddot"], data["controls"][1]["qddot"]))
             qddot_integrated = np.hstack(
                 (
@@ -338,8 +353,8 @@ def Analyses(
             )
 
         if dynamics_type == "root_explicit":
-            print(i_rand)
-            print(i_dynamics_type)
+            # print(i_rand)
+            # print(i_dynamics_type)
             qddot_joints = np.hstack((data["controls"][0]["qddot_joint"], data["controls"][1]["qddot_joint"]))
             qddot = np.zeros((m.nbQ(), N))
             qddot[6:, :] = qddot_joints
@@ -380,7 +395,6 @@ def Analyses(
                 residual_tau_integrated = 0
             else:
                 residual_tau_integrated = np.zeros((m.nbRoot(), N_integrated))
-                print(dynamics_type)
                 for node_integrated in range(N_integrated):
                     residual_tau_integrated[:, node_integrated] = m.InverseDynamics(
                         q_integrated[:, node_integrated],
@@ -458,7 +472,10 @@ def Analyses(
         pickle.dump(data_secondary, f)
         f.close()
 
-        colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF"]
+        colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF", 'r', 'g', 'b', 'k', 'm', 'c', 'y', "tab:purple", "tab:orange", "tab:brown"]
+        shift = [-0.3, -0.1, 0.1, 0.3]
+        dynamics_types = ["Explicit", "Root explicit", "Implicit", "Root Implicit"]
+
         if figure_type_4:
             for i in range(15):
                 axs[0][i].plot(time, q[i, :], "-", color=colors[i_dynamics_type])
@@ -470,6 +487,23 @@ def Analyses(
                     axs[2][i].plot(time, qddot[i, :], "-", color=colors[i_dynamics_type])
 
                 axs[3][i].step(time, tau[i, :], "-", color=colors[i_dynamics_type])
+
+        if figure_type_5:
+            micro_shift = np.linspace(-0.5, -.0, 100)
+            sorted_costs = np.sort(detailed_cost)
+            sorted_costs_idx = np.argsort(detailed_cost)
+            axs_5.set_xticks(shift, labels=dynamics_types)
+            bottom_cost = 0
+            for j in range(len(detailed_cost)):
+                axs_5.bar(
+                    shift[i_dynamics_type] + micro_shift[i_rand],
+                    sorted_costs[j], # bottom_cost +
+                    width=0.01,
+                    color=colors[sorted_costs_idx[j]],
+                    bottom=bottom_cost,
+                )
+                bottom_cost += sorted_costs[j]
+
 
         if cost < min_cost[i_dynamics_type]:
             time_min[i_dynamics_type] = time
@@ -510,9 +544,10 @@ qddot_min = [[], [], [], []]
 tau_min = [[], [], [], []]
 time_min = [[], [], [], []]
 
-colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF"]
-figure_type_4 = False # Techniques
+figure_type_4 = False  # True # False # Techniques
+figure_type_5 = True # False # True # Cost details
 axs = []
+axs_5 = 0
 if figure_type_4:
     fig_1, axs_1 = plt.subplots(5, 3, tight_layout=True, figsize=(20, 15))  # Q
     axs_1 = axs_1.ravel()
@@ -549,6 +584,29 @@ if figure_type_4:
         for i in range(15):
             ax[i].set_title(Dof_names[i])
 
+if figure_type_5:
+    label_objectives = [
+        "Minimize qdot derivative (except root) phase=0",
+        "Minimize right hand trajectory phase=0",
+        "Minimize left hand trajectory phase=0",
+        "Minimize feet trajectory phase=0",
+        "Minimize core DoFs (hips + thorax) phase=0",
+        "Minimize angular momentum",
+        "Minimize time phase=0",
+        "Minimize qdot derivative (except root) phase=1",
+        "Minimize right hand trajectory phase=1",
+        "Minimize left hand trajectory phase=1",
+        "Minimize feet trajectory phase=1",
+        "Minimize core DoFs (hips + thorax) phase=1",
+        "Minimize time phase=1",
+    ]
+    colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF", 'r', 'g', 'b',
+              'k', 'm', 'c']  #############
+    fig_5, axs_5 = plt.subplots(1, 1, tight_layout=True, figsize=(20, 15))
+    axs_5.set_yscale("log")
+    for k in range(13):
+        axs_5.plot(0, 0, color=colors[k], label=label_objectives[k])
+    axs_5.legend()
 
 # explicit, #root_explicit, #implicit, #root_implicit
 angular_momentum_rmsd_all = np.zeros((4, 100))
@@ -585,6 +643,7 @@ for file in os.listdir(out_path_raw):
             else:
                 i = 2
         idx_irand = file.find("i_rand") + 6
+        # idx_irand = file.find("irand") + 5
         if idx_irand == 5:
             continue
         idx_pckl = file.find(".pckl")
@@ -609,7 +668,9 @@ for file in os.listdir(out_path_raw):
             i_rand,
             i,
             axs,
+            axs_5,
             figure_type_4,
+            figure_type_5,
             time_min,
             q_min,
             qdot_min,
@@ -659,6 +720,7 @@ if figure_type_4:
     fig_2.savefig(f"Comparaison_Qdot.png")  # , dpi=900)
     fig_3.savefig(f"Comparaison_Qddot.png")  # , dpi=900)
     fig_4.savefig(f"Comparaison_Tau.png")  # , dpi=900)
+    fig_5.savefig(f"Cost_detailed.png")  # , dpi=900)
 
 graphs_analyses(
     angular_momentum_rmsd_all,
