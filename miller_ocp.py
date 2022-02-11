@@ -50,8 +50,10 @@ class MillerOcp:
             somersaults: float = 4 * np.pi,
             twists: float = 6 * np.pi,
             use_sx: bool = False,
+            extra_obj: bool = True,
     ):
         self.biorbd_model_path = biorbd_model_path
+        self.extra_obj = True
         self.n_shooting = n_shooting
         self.n_phases = len(n_shooting)
 
@@ -168,7 +170,7 @@ class MillerOcp:
                 derivative=True,
                 key="qdot",
                 index=(6, 7, 8, 9, 10, 11, 12, 13, 14),
-                weight=20,
+                weight=50,
                 phase=i,
             )  # Regularization
             self.objective_functions.add(
@@ -176,7 +178,7 @@ class MillerOcp:
                 derivative=True,
                 reference_jcs=1,
                 marker_index=6,
-                weight=50,
+                weight=100,
                 phase=i,
             )  # Right hand trajectory
             self.objective_functions.add(
@@ -184,7 +186,7 @@ class MillerOcp:
                 derivative=True,
                 reference_jcs=1,
                 marker_index=11,
-                weight=50,
+                weight=100,
                 phase=i,
             )  # Left hand trajectory
             self.objective_functions.add(
@@ -192,33 +194,38 @@ class MillerOcp:
                 derivative=True,
                 reference_jcs=0,
                 marker_index=16,
-                weight=50,
+                weight=100,
                 phase=i,
             )  # feet trajectory
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(6, 7, 8, 13, 14), key="q", weight=10, phase=i
             )  # core DoFs
-        # Minimize initial angular momentum
-        # self.objective_functions.add(
-        #     ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, phase=0, node=Node.START, weight=10000
-        # )
 
         # Track momentum and Minimize delta momentum
-        for i in range(2):
-            # self.objective_functions.add(
-            #     ObjectiveFcn.Lagrange.MINIMIZE_ANGULAR_MOMENTUM, phase=i,
-            #     target=np.repeat(self.sigma0[:, np.newaxis], self.n_shooting[i], axis=1), weight=10
-            # )
-            # self.objective_functions.add(
-            #     ObjectiveFcn.Lagrange.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i,
-            #     target=np.repeat(self.p0[:2, np.newaxis], self.n_shooting[i], axis=1), weight=10
-            # )
-            self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_ANGULAR_MOMENTUM, phase=i, derivative=True, weight=100000
-            )
-            self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, derivative=True, weight=100000
-            )
+        if self.extra_obj:
+            for i in range(2):
+                self.objective_functions.add(
+                    ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, phase=i, node=Node.END,
+                    target=np.repeat(self.sigma0[:, np.newaxis], 1, axis=1), weight=100
+                )
+                self.objective_functions.add(
+                    ObjectiveFcn.Mayer.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, node=Node.END,
+                    target=np.repeat(self.p0[:2, np.newaxis], 1, axis=1), weight=100
+                )
+                self.objective_functions.add(
+                    ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, phase=i, node=Node.INTERMEDIATES,
+                    target=np.repeat(self.sigma0[:, np.newaxis], 1, axis=1), weight=100
+                )
+                self.objective_functions.add(
+                    ObjectiveFcn.Mayer.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, node=Node.INTERMEDIATES,
+                    target=np.repeat(self.p0[:2, np.newaxis], 1, axis=1), weight=100
+                )
+                self.objective_functions.add(
+                    ObjectiveFcn.Lagrange.MINIMIZE_ANGULAR_MOMENTUM, phase=i, derivative=True, weight=50000
+                )
+                self.objective_functions.add(
+                    ObjectiveFcn.Lagrange.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, derivative=True, weight=50000
+                )
 
         # Help to stay upright at the landing.
         self.objective_functions.add(
@@ -226,7 +233,7 @@ class MillerOcp:
             index=(0, 1, 2),
             target=[0, 0, 0],
             key="q",
-            weight=0.1,
+            weight=1,
             phase=1,
             node=Node.END,
         )
@@ -235,7 +242,7 @@ class MillerOcp:
             index=3,
             target=self.somersaults - self.thorax_hips_xyz - self.slack_final_somersault / 2,
             key="q",
-            weight=0.1,
+            weight=1,
             phase=1,
             node=Node.END,
         )
@@ -243,7 +250,7 @@ class MillerOcp:
             ObjectiveFcn.Mayer.TRACK_STATE, index=4, target=0, key="q", weight=0.1, phase=1, node=Node.END
         )
         self.objective_functions.add(
-            ObjectiveFcn.Mayer.TRACK_STATE, index=5, target=self.twists, key="q", weight=0.1, phase=1, node=Node.END
+            ObjectiveFcn.Mayer.TRACK_STATE, index=5, target=self.twists, key="q", weight=1, phase=1, node=Node.END
         )
 
         slack_duration = 0.15
@@ -262,8 +269,7 @@ class MillerOcp:
             weight=1e-6,
         )
 
-
-    def _set_constraints(self):
+    # def _set_constraints(self):
         # --- Constraints --- #
         # Set time as a variable
         slack_duration = 0.3
@@ -275,6 +281,7 @@ class MillerOcp:
         #                      node=Node.END,
         #                      min_bound=1/8 * self.duration - 1/2*slack_duration,
         #                      max_bound=1/8 * self.duration + 1/2*slack_duration, phase=1)
+
     def _set_initial_momentum(self):
         q_init = self.x_bounds[0].min[:self.n_q, 0]
         qdot_init = self.x_bounds[0].min[self.n_q:, 0]
@@ -284,7 +291,6 @@ class MillerOcp:
         print(self.sigma0)
         self.p0 = m.mass() * m.CoMdot(q_init, qdot_init, True).to_array()
         print(self.p0)
-
 
     def _set_initial_guesses(self):
         # --- Initial guess --- #
