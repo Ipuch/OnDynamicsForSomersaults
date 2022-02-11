@@ -278,79 +278,96 @@ def Analyses(
     file = open(f"{out_path_raw}/{file_name}", "rb")
     data = pickle.load(file)
 
-    m = biorbd.Model("../" + data["model_path"])
-
-    q = np.hstack((data["states"][0]["q"], data["states"][1]["q"]))
-    qdot = np.hstack((data["states"][0]["qdot"], data["states"][1]["qdot"]))
-    t = data["parameters"]["time"]
-    time = np.hstack(
-        (
-            np.linspace(0, float(t[0]), np.shape(data["states"][0]["q"])[1]),
-            np.linspace(float(t[0]), float(t[0]) + float(t[1]), np.shape(data["states"][1]["q"])[1]),
+    status = data["status"]
+    if status != 0:
+        return (
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            time_min,
+            q_min,
+            qdot_min,
+            qddot_min,
+            tau_min,
+            min_cost,
         )
-    )
-    N = np.shape(q)[1]
-    q_integrated = data["q_integrated"]
-    qdot_integrated = data["qdot_integrated"]
-    N_integrated = (N - 2) * 6 + 2
 
-    time_integrated = np.array([])
-    for i in range(N - 1):
-        if i != 125:
-            time_integrated = np.hstack((time_integrated, np.linspace(time[i], time[i + 1], 6)))
-        else:
-            time_integrated = np.hstack((time_integrated, time[i]))
+    else:
+        m = biorbd.Model("../" + data["model_path"])
 
-    time_integrated = np.hstack((time_integrated, time[-1]))
-
-    # plt.figure()
-    # plt.plot(time_integrated, 'o')
-    # plt.show()
-
-    dynamics_type = data["dynamics_type"]
-    computation_time = data["computation_time"]
-    cost = data["cost"]
-    iterations = data["iterations"]
-
-    if dynamics_type == "explicit" or dynamics_type == "implicit":
-        tau = np.hstack((data["controls"][0]["tau"], data["controls"][1]["tau"]))
-        tau_integrated = np.hstack(
+        q = np.hstack((data["states"][0]["q"], data["states"][1]["q"]))
+        qdot = np.hstack((data["states"][0]["qdot"], data["states"][1]["qdot"]))
+        t = data["parameters"]["time"]
+        time = np.hstack(
             (
-                np.repeat(data["controls"][0]["tau"], 6, axis=1)[:, :-5],
-                np.repeat(data["controls"][1]["tau"], 6, axis=1)[:, :-5],
+                np.linspace(0, float(t[0]), np.shape(data["states"][0]["q"])[1]),
+                np.linspace(float(t[0]), float(t[0]) + float(t[1]), np.shape(data["states"][1]["q"])[1]),
             )
         )
+        N = np.shape(q)[1]
+        q_integrated = data["q_integrated"]
+        qdot_integrated = data["qdot_integrated"]
+        N_integrated = (N-2)*6+2
 
-    if dynamics_type == "root_implicit" or dynamics_type == "implicit":
-        print(i_rand)
-        print(i_dynamics_type)
-        qddot = np.hstack((data["controls"][0]["qddot"], data["controls"][1]["qddot"]))
-        qddot_integrated = np.hstack(
-            (
-                np.repeat(data["controls"][0]["qddot"], 6, axis=1)[:, :-5],
-                np.repeat(data["controls"][1]["qddot"], 6, axis=1)[:, :-5],
-            )
-        )
+        time_integrated = np.array([])
+        for i in range(N-1):
+            if i != 125:
+                time_integrated = np.hstack((time_integrated,
+                                             np.linspace(time[i], time[i+1], 6)))
+            else:
+                time_integrated = np.hstack((time_integrated, time[i]))
 
-    if dynamics_type == "root_explicit":
-        print(i_rand)
-        print(i_dynamics_type)
-        qddot_joints = np.hstack((data["controls"][0]["qddot_joint"], data["controls"][1]["qddot_joint"]))
-        qddot = np.zeros((m.nbQ(), N))
-        qddot[6:, :] = qddot_joints
-        qddot_joints_integrated = np.hstack(
-            (
-                np.repeat(data["controls"][0]["qddot_joint"], 6, axis=1)[:, :-5],
-                np.repeat(data["controls"][1]["qddot_joint"], 6, axis=1)[:, :-5],
+        time_integrated = np.hstack((time_integrated, time[-1]))
+
+        # plt.figure()
+        # plt.plot(time_integrated, 'o')
+        # plt.show()
+
+        dynamics_type = data["dynamics_type"]
+        computation_time = data["computation_time"]
+        cost = data["cost"]
+        iterations = data["iterations"]
+
+        if dynamics_type == "explicit" or dynamics_type == "implicit":
+            tau = np.hstack((data["controls"][0]["tau"], data["controls"][1]["tau"]))
+            tau_integrated = np.hstack(
+                (
+                    np.repeat(data["controls"][0]["tau"], 6, axis=1)[:, :-5],
+                    np.repeat(data["controls"][1]["tau"], 6, axis=1)[:, :-5],
+                )
             )
-        )
-        qddot_integrated = np.zeros((m.nbQ(), N_integrated))
-        qddot_integrated[6:, :] = qddot_joints_integrated
+
+        if dynamics_type == "root_implicit" or dynamics_type == "implicit":
+            print(i_rand)
+            print(i_dynamics_type)
+            qddot = np.hstack((data["controls"][0]["qddot"], data["controls"][1]["qddot"]))
+            qddot_integrated = np.hstack(
+                (
+                    np.repeat(data["controls"][0]["qddot"], 6, axis=1)[:, :-5],
+                    np.repeat(data["controls"][1]["qddot"], 6, axis=1)[:, :-5],
+                )
+            )
+
+        if dynamics_type == "root_explicit":
+            print(i_rand)
+            print(i_dynamics_type)
+            qddot_joints = np.hstack((data["controls"][0]["qddot_joint"], data["controls"][1]["qddot_joint"]))
+            qddot = np.zeros((m.nbQ(), N))
+            qddot[6:, :] = qddot_joints
+            qddot_joints_integrated = np.hstack(
+                (
+                    np.repeat(data["controls"][0]["qddot_joint"], 6, axis=1)[:, :-5],
+                    np.repeat(data["controls"][1]["qddot_joint"], 6, axis=1)[:, :-5],
+                )
+            )
+            qddot_integrated = np.zeros((m.nbQ(), N_integrated))
+            qddot_integrated[6:, :] = qddot_joints_integrated
 
         def root_explicit_dynamics(m, q, qdot, qddot_joints):
-            mass_matrix_nl_effects = m.InverseDynamics(q, qdot, np.hstack((np.zeros((6,)), qddot_joints))).to_array()[
-                :6
-            ]
+            mass_matrix_nl_effects = m.InverseDynamics(q, qdot, np.hstack((np.zeros((6, )), qddot_joints))).to_array()[:6]
             mass_matrix = m.massMatrix(q).to_array()
             qddot_base = -np.linalg.solve(mass_matrix[:6, :6], np.eye(6)) @ mass_matrix_nl_effects
             return qddot_base
@@ -358,9 +375,7 @@ def Analyses(
         for i in range(N):
             qddot[:6, i] = root_explicit_dynamics(m, q[:, i], qdot[:, i], qddot_joints[:, i])
         for i in range(N_integrated):
-            qddot_integrated[:6, i] = root_explicit_dynamics(
-                m, q_integrated[:, i], qdot_integrated[:, i], qddot_joints_integrated[:, i]
-            )
+            qddot_integrated[:6, i] = root_explicit_dynamics(m, q_integrated[:, i], qdot_integrated[:, i], qddot_joints_integrated[:, i])
 
     if dynamics_type == "explicit":
         residual_tau_integrated = 0
@@ -372,27 +387,26 @@ def Analyses(
         qddot_integrated = np.zeros((m.nbQ(), N_integrated))
         for node in range(N_integrated):
             qddot_integrated[:, node] = m.ForwardDynamics(
-                q_integrated[:, node], qdot_integrated[:, node], tau_integrated[:, node]
-            ).to_array()
+                q_integrated[:, node], qdot_integrated[:, node], tau_integrated[:, node]).to_array()
 
-    else:
-        if dynamics_type == "root_explicit":
-            residual_tau_integrated = 0
         else:
-            residual_tau_integrated = np.zeros((m.nbRoot(), N_integrated))
-            print(dynamics_type)
-            for node_integrated in range(N_integrated):
-                residual_tau_integrated[:, node_integrated] = m.InverseDynamics(
-                    q_integrated[:, node_integrated],
-                    qdot_integrated[:, node_integrated],
-                    qddot_integrated[:, node_integrated],
-                ).to_array()[:6]
+            if dynamics_type == "root_explicit":
+                residual_tau_integrated = 0
+            else:
+                residual_tau_integrated = np.zeros((m.nbRoot(), N_integrated))
+                print(dynamics_type)
+                for node_integrated in range(N_integrated):
+                    residual_tau_integrated[:, node_integrated] = m.InverseDynamics(
+                        q_integrated[:, node_integrated],
+                        qdot_integrated[:, node_integrated],
+                        qddot_integrated[:, node_integrated],
+                    ).to_array()[:6]
 
-        tau = np.zeros((m.nbQ(), N))
-        for node in range(N):
-            tau[:, node] = m.InverseDynamics(q[:, node], qdot[:, node], qddot[:, node]).to_array()
+            tau = np.zeros((m.nbQ(), N))
+            for node in range(N):
+                tau[:, node] = m.InverseDynamics(q[:, node], qdot[:, node], qddot[:, node]).to_array()
 
-    residual_tau_rms = np.sqrt(np.nanmean(residual_tau_integrated**2))
+    residual_tau_rms = np.sqrt(np.nanmean(residual_tau_integrated ** 2))
 
     index_continuous = [x for i, x in enumerate(np.arange(len(time_integrated))) if i != 125 * 6 + 1]
     angular_momentum = np.zeros((3, N_integrated))
@@ -402,60 +416,46 @@ def Analyses(
     CoM_velocity = np.zeros((3, N_integrated))
     CoM_acceleration = np.zeros((3, N_integrated))
     for node_integrated in range(N_integrated):
-        angular_momentum[:, node_integrated] = m.angularMomentum(
-            q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True
-        ).to_array()
+        angular_momentum[:, node_integrated] = m.angularMomentum(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array()
         angular_momentum_norm[node_integrated] = np.linalg.norm(angular_momentum[:, node_integrated])
-        linear_momentum[:, node_integrated] = (
-            m.CoMdot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array() * m.mass()
-        )
+        linear_momentum[:, node_integrated] = m.CoMdot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array() * m.mass()
         CoM_position[:, node_integrated] = m.CoM(q_integrated[:, node_integrated], True).to_array()
-        CoM_velocity[:, node_integrated] = m.CoMdot(
-            q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True
-        ).to_array()
-        CoM_acceleration[:, node_integrated] = m.CoMddot(
-            q_integrated[:, node_integrated],
-            qdot_integrated[:, node_integrated],
-            qddot_integrated[:, node_integrated],
-            True,
-        ).to_array()
+        CoM_velocity[:, node_integrated] = m.CoMdot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array()
+        CoM_acceleration[:, node_integrated] = m.CoMddot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], qddot_integrated[:, node_integrated], True).to_array()
 
-    # plt.figure()
-    # plt.plot(time_integrated, angular_momentum[0, :], '-', label='x')
-    # plt.plot(time_integrated, angular_momentum[1, :], '-',label='y')
-    # plt.plot(time_integrated, angular_momentum[2, :], '-',label='z')
-    # plt.plot(time_integrated, linear_momentum[0, :], '--',label='x')
-    # plt.plot(time_integrated, linear_momentum[1, :], '--',label='y')
-    # plt.plot(time_integrated, linear_momentum[2, :], '--',label='z')
-    # plt.legend()
-    # plt.show()
+        # plt.figure()
+        # plt.plot(time_integrated, angular_momentum[0, :], '-', label='x')
+        # plt.plot(time_integrated, angular_momentum[1, :], '-',label='y')
+        # plt.plot(time_integrated, angular_momentum[2, :], '-',label='z')
+        # plt.plot(time_integrated, linear_momentum[0, :], '--',label='x')
+        # plt.plot(time_integrated, linear_momentum[1, :], '--',label='y')
+        # plt.plot(time_integrated, linear_momentum[2, :], '--',label='z')
+        # plt.legend()
+        # plt.show()
 
     angular_momentum_mean = np.mean(angular_momentum, axis=1)
     angular_momentum_rmsd = np.zeros((3,))
     linear_momentum_rmsd = np.zeros((3,))
     for i in range(3):
-        angular_momentum_rmsd[i] = np.sqrt(
-            ((angular_momentum[i, index_continuous] - angular_momentum[i, 0]) ** 2).mean()
-        )
+        angular_momentum_rmsd[i] = np.sqrt(((angular_momentum[i, index_continuous] - angular_momentum[i, 0]) ** 2).mean())
         if i == 0 or i == 1:
-            linear_momentum_rmsd[i] = m.mass() * np.sqrt(
-                ((CoM_velocity[i, index_continuous] - CoM_velocity[i, 0]) ** 2).mean()
-            )
+            linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous] - CoM_velocity[i, 0]) ** 2).mean())
         else:
-            linear_momentum_rmsd[i] = m.mass() * np.sqrt(
-                ((CoM_velocity[i, :] - (CoM_acceleration[i, 0] * time + CoM_velocity[i, 0])) ** 2).mean()
-            )
+            linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous]
+                                                           - (CoM_acceleration[i, 0] * time_integrated[index_continuous] + CoM_velocity[i, 0]))
+                                                          ** 2).mean())
 
-    # plt.figure()
-    # plt.plot(time_integrated[index_continuous], angular_momentum[0, index_continuous] - angular_momentum[0, 0], '-', label='x')
-    # plt.plot(time_integrated[index_continuous], angular_momentum[1, index_continuous] - angular_momentum[1, 0], '-', label='y')
-    # plt.plot(time_integrated[index_continuous], angular_momentum[2, index_continuous] - angular_momentum[2, 0], '-', label='z')
-    #
-    # plt.plot(time_integrated[index_continuous], CoM_velocity[0, index_continuous] - CoM_velocity[0, 0], '--', label='x')
-    # plt.plot(time_integrated[index_continuous], CoM_velocity[1, index_continuous] - CoM_velocity[1, 0], '--', label='y')
-    # plt.plot(time_integrated[index_continuous], CoM_velocity[2, index_continuous] - (CoM_acceleration[2, 0] * time_integrated[index_continuous] + CoM_velocity[2, 0]), '--', label='z')
-    # plt.legend()
-    # plt.show()
+        # plt.figure()
+        # plt.plot(time_integrated[index_continuous], angular_momentum[0, index_continuous] - angular_momentum[0, 0], '-', label='x')
+        # plt.plot(time_integrated[index_continuous], angular_momentum[1, index_continuous] - angular_momentum[1, 0], '-', label='y')
+        # plt.plot(time_integrated[index_continuous], angular_momentum[2, index_continuous] - angular_momentum[2, 0], '-', label='z')
+        #
+        # plt.plot(time_integrated[index_continuous], CoM_velocity[0, index_continuous] - CoM_velocity[0, 0], '--', label='x')
+        # plt.plot(time_integrated[index_continuous], CoM_velocity[1, index_continuous] - CoM_velocity[1, 0], '--', label='y')
+        # plt.plot(time_integrated[index_continuous], CoM_velocity[2, index_continuous] - (CoM_acceleration[2, 0] * time_integrated[index_continuous] + CoM_velocity[2, 0]), '--', label='z')
+        # plt.legend()
+        # plt.show()
+
 
     f = open(f"{out_path_secondary_variables}/miller_{dynamics_type}_irand{i_rand}_analyses.pckl", "wb")
     data_secondary = {
@@ -469,44 +469,44 @@ def Analyses(
         "residual_tau_rms": residual_tau_rms,
     }
 
-    pickle.dump(data_secondary, f)
-    f.close()
+        pickle.dump(data_secondary, f)
+        f.close()
 
-    colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF"]
-    if figure_type_4:
-        for i in range(15):
-            axs[0][i].plot(time, q[i, :], "-", color=colors[i_dynamics_type])
-            axs[1][i].plot(time, qdot[i, :], "-", color=colors[i_dynamics_type])
+        colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF"]
+        if figure_type_4:
+            for i in range(15):
+                axs[0][i].plot(time, q[i, :], "-", color=colors[i_dynamics_type])
+                axs[1][i].plot(time, qdot[i, :], "-", color=colors[i_dynamics_type])
 
-            if i_dynamics_type == 1 and i < 9:
-                axs[2][i + 6].plot(time, qddot[i, :], "-", color=colors[i_dynamics_type])
-            elif i_dynamics_type != 1:
-                axs[2][i].plot(time, qddot[i, :], "-", color=colors[i_dynamics_type])
+                if i_dynamics_type == 1 and i < 9:
+                    axs[2][i + 6].plot(time, qddot[i, :], "-", color=colors[i_dynamics_type])
+                elif i_dynamics_type != 1:
+                    axs[2][i].plot(time, qddot[i, :], "-", color=colors[i_dynamics_type])
 
-            axs[3][i].step(time, tau[i, :], "-", color=colors[i_dynamics_type])
+                axs[3][i].step(time, tau[i, :], "-", color=colors[i_dynamics_type])
 
-    if cost < min_cost[i_dynamics_type]:
-        time_min[i_dynamics_type] = time
-        q_min[i_dynamics_type] = q
-        qdot_min[i_dynamics_type] = qdot
-        qddot_min[i_dynamics_type] = qddot
-        tau_min[i_dynamics_type] = tau
-        min_cost[i_dynamics_type] = cost
+        if cost < min_cost[i_dynamics_type]:
+            time_min[i_dynamics_type] = time
+            q_min[i_dynamics_type] = q
+            qdot_min[i_dynamics_type] = qdot
+            qddot_min[i_dynamics_type] = qddot
+            tau_min[i_dynamics_type] = tau
+            min_cost[i_dynamics_type] = cost
 
-    return (
-        np.sum(np.abs(angular_momentum_rmsd)),
-        np.sum(np.abs(linear_momentum_rmsd)),
-        np.sum(residual_tau_rms),
-        computation_time,
-        cost,
-        iterations,
-        time_min,
-        q_min,
-        qdot_min,
-        qddot_min,
-        tau_min,
-        min_cost,
-    )
+        return (
+            np.sum(np.abs(angular_momentum_rmsd)),
+            np.sum(np.abs(linear_momentum_rmsd)),
+            np.sum(residual_tau_rms),
+            computation_time,
+            cost,
+            iterations,
+            time_min,
+            q_min,
+            qdot_min,
+            qddot_min,
+            tau_min,
+            min_cost,
+        )
 
 
 # starting of the function
