@@ -42,20 +42,23 @@ class MillerOcp:
             self,
             biorbd_model_path: str = None,
             n_shooting: tuple = (125, 25),
-            phase_durations: tuple = (1.501874663121631, 0.19569489882099642),  # t_tot = 1.545 c'était avant
+            phase_durations: tuple = (1.351875, 0.193125),  # t_tot = 1.545 (7/8, 1/8)
             n_threads: int = 8,
             ode_solver: OdeSolver = OdeSolver.RK4(),
             dynamics_type: str = "explicit",
-            vertical_velocity_0: float = 8.401410312445972,  # Real data 9.2 before
+            vertical_velocity_0: float = 9.2,  # Real data 9.2 before
             somersaults: float = 4 * np.pi,
             twists: float = 6 * np.pi,
             use_sx: bool = False,
             extra_obj: bool = True,
     ):
         self.biorbd_model_path = biorbd_model_path
-        self.extra_obj = True
+        self.extra_obj = extra_obj
         self.n_shooting = n_shooting
         self.n_phases = len(n_shooting)
+
+        self.somersaults = somersaults
+        self.twists = twists
 
         # test to reload a previous solution.
         self.x = None
@@ -66,17 +69,17 @@ class MillerOcp:
         self.phase_proportions = (self.phase_durations[0] / self.duration,
                                   self.phase_durations[1] / self.duration)
 
-        self.velocity_x = -0.006024447069071293
-        self.velocity_y = 0.44094157867162764
+        # self.velocity_x = -0.006024447069071293
+        # self.velocity_y = 0.44094157867162764
+        self.velocity_x = 0
+        self.velocity_y = 0
         self.vertical_velocity_0 = vertical_velocity_0
-        self.somersault_rate_0 = 5.133573161842047
+        # self.somersault_rate_0 = 5.133573161842047
+        self.somersault_rate_0 = self.somersaults / self.duration
 
         self.n_threads = n_threads
         self.ode_solver = ode_solver
         self.dynamics_type = dynamics_type
-
-        self.somersaults = somersaults
-        self.twists = twists
 
         if biorbd_model_path is not None:
             self.biorbd_model = (biorbd.Model(biorbd_model_path), biorbd.Model(biorbd_model_path))
@@ -164,13 +167,17 @@ class MillerOcp:
     def _set_objective_functions(self):
 
         # --- Objective function --- #
+        w_qdot = 1
+        w_penalty = 10
+        w_track_final = 0.1
+        w_angular_momentum = 1e5
         for i in range(len(self.n_shooting)):
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_STATE,
                 derivative=True,
                 key="qdot",
                 index=(6, 7, 8, 9, 10, 11, 12, 13, 14),
-                weight=50,
+                weight=w_qdot,
                 phase=i,
             )  # Regularization
             self.objective_functions.add(
@@ -178,7 +185,7 @@ class MillerOcp:
                 derivative=True,
                 reference_jcs=1,
                 marker_index=6,
-                weight=100,
+                weight=w_penalty,
                 phase=i,
             )  # Right hand trajectory
             self.objective_functions.add(
@@ -186,7 +193,7 @@ class MillerOcp:
                 derivative=True,
                 reference_jcs=1,
                 marker_index=11,
-                weight=100,
+                weight=w_penalty,
                 phase=i,
             )  # Left hand trajectory
             self.objective_functions.add(
@@ -194,38 +201,43 @@ class MillerOcp:
                 derivative=True,
                 reference_jcs=0,
                 marker_index=16,
-                weight=100,
+                weight=w_penalty,
                 phase=i,
             )  # feet trajectory
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(6, 7, 8, 13, 14), key="q", weight=10, phase=i
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(6, 7, 8, 13, 14), key="q", weight=w_penalty, phase=i
             )  # core DoFs
+
+            self.objective_functions.add(
+                ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, node=Node.START, phase=0, weight=w_angular_momentum
+            )
 
         # Track momentum and Minimize delta momentum
         if self.extra_obj:
             for i in range(2):
-                self.objective_functions.add(
-                    ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, phase=i, node=Node.END,
-                    target=np.repeat(self.sigma0[:, np.newaxis], 1, axis=1), weight=100
-                )
-                self.objective_functions.add(
-                    ObjectiveFcn.Mayer.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, node=Node.END,
-                    target=np.repeat(self.p0[:2, np.newaxis], 1, axis=1), weight=100
-                )
-                self.objective_functions.add(
-                    ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, phase=i, node=Node.INTERMEDIATES,
-                    target=np.repeat(self.sigma0[:, np.newaxis], 1, axis=1), weight=100
-                )
-                self.objective_functions.add(
-                    ObjectiveFcn.Mayer.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, node=Node.INTERMEDIATES,
-                    target=np.repeat(self.p0[:2, np.newaxis], 1, axis=1), weight=100
-                )
-                self.objective_functions.add(
-                    ObjectiveFcn.Lagrange.MINIMIZE_ANGULAR_MOMENTUM, phase=i, derivative=True, weight=50000
-                )
-                self.objective_functions.add(
-                    ObjectiveFcn.Lagrange.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, derivative=True, weight=50000
-                )
+                print("")
+                # self.objective_functions.add(
+                #     ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, phase=i, node=Node.END,
+                #     target=np.repeat(self.sigma0[:, np.newaxis], 1, axis=1), weight=100
+                # )
+                # self.objective_functions.add(
+                #     ObjectiveFcn.Mayer.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, node=Node.END,
+                #     target=np.repeat(self.p0[:2, np.newaxis], 1, axis=1), weight=100
+                # )
+                # self.objective_functions.add(
+                #     ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, phase=i, node=Node.INTERMEDIATES,
+                #     target=np.repeat(self.sigma0[:, np.newaxis], 1, axis=1), weight=100
+                # )
+                # self.objective_functions.add(
+                #     ObjectiveFcn.Mayer.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, node=Node.INTERMEDIATES,
+                #     target=np.repeat(self.p0[:2, np.newaxis], 1, axis=1), weight=100
+                # )
+                # self.objective_functions.add(
+                #     ObjectiveFcn.Lagrange.MINIMIZE_ANGULAR_MOMENTUM, phase=i, derivative=True, weight=50000
+                # )
+                # self.objective_functions.add(
+                #     ObjectiveFcn.Lagrange.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, derivative=True, weight=50000
+                # )
 
         # Help to stay upright at the landing.
         self.objective_functions.add(
@@ -233,7 +245,7 @@ class MillerOcp:
             index=(0, 1, 2),
             target=[0, 0, 0],
             key="q",
-            weight=1,
+            weight=w_track_final,
             phase=1,
             node=Node.END,
         )
@@ -242,15 +254,15 @@ class MillerOcp:
             index=3,
             target=self.somersaults - self.thorax_hips_xyz - self.slack_final_somersault / 2,
             key="q",
-            weight=1,
+            weight=w_track_final,
             phase=1,
             node=Node.END,
         )
         self.objective_functions.add(
-            ObjectiveFcn.Mayer.TRACK_STATE, index=4, target=0, key="q", weight=0.1, phase=1, node=Node.END
+            ObjectiveFcn.Mayer.TRACK_STATE, index=4, target=0, key="q", weight=w_track_final, phase=1, node=Node.END
         )
         self.objective_functions.add(
-            ObjectiveFcn.Mayer.TRACK_STATE, index=5, target=self.twists, key="q", weight=1, phase=1, node=Node.END
+            ObjectiveFcn.Mayer.TRACK_STATE, index=5, target=self.twists, key="q", weight=w_track_final, phase=1, node=Node.END
         )
 
         slack_duration = 0.15
@@ -422,12 +434,12 @@ class MillerOcp:
         self.thorax_hips_xyz = thorax_hips_xyz
         arm_rotation_y_final = 2.4
 
-        # slack_initial_vertical_velocity = 2
-        # slack_initial_somersault_rate = 3
-        # slack_initial_translation_velocities = 1
-        slack_initial_translation_velocities = 0
-        slack_initial_vertical_velocity = 0
-        slack_initial_somersault_rate = 0
+        slack_initial_vertical_velocity = 2
+        slack_initial_somersault_rate = 3
+        slack_initial_translation_velocities = 1
+        # slack_initial_translation_velocities = 0
+        # slack_initial_vertical_velocity = 0
+        # slack_initial_somersault_rate = 0
 
         # end phase 0
         slack_somersault = 30 * 3.14 / 180
@@ -462,8 +474,8 @@ class MillerOcp:
 
         x_max[0, : self.n_q, 0] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -initial_arm_elevation, 0, initial_arm_elevation, 0, 0]
         x_max[0, self.n_q:, 0] = [
-            self.velocity_x - slack_initial_translation_velocities,
-            self.velocity_y - slack_initial_translation_velocities,
+            self.velocity_x + slack_initial_translation_velocities,
+            self.velocity_y + slack_initial_translation_velocities,
             self.vertical_velocity_0 + slack_initial_vertical_velocity,
             self.somersault_rate_0 + slack_initial_somersault_rate,
             0,
