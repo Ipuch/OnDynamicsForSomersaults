@@ -43,8 +43,8 @@ def main(args=None):
         twists=6 * np.pi,
         extra_obj=extra_obj,
     )
-    filename = f"miller_{dynamics_type}_irand{i_rand}_extraobj{extra_obj}"
-    outpath = f"{out_path_raw}" + filename
+    filename = f"miller_{dynamics_type}_irand{i_rand}_extraobj{extra_obj}_{n_shooting[0]}_{n_shooting[1]}"
+    outpath = f"{out_path_raw}/" + filename
 
     solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
     solver.set_maximum_iterations(3000)
@@ -52,7 +52,8 @@ def main(args=None):
     solver.set_linear_solver("ma57")
 
     print(f"##########################################################")
-    print(f"Solving dynamics_type={dynamics_type}, i_rand={i_rand}\n")
+    print(f"Solving dynamics_type={dynamics_type}, i_rand={i_rand},"
+          f"n_shooting={n_shooting}, extra_obj={extra_obj}\n")
     print(f"##########################################################")
 
     tic = time()
@@ -63,7 +64,8 @@ def main(args=None):
 
     # if sol.status == 0:
     print(f"##########################################################")
-    print(f"Time to solve dynamics_type={dynamics_type}, i_rand={i_rand}: {toc}sec\n")
+    print(f"Time to solve dynamics_type={dynamics_type}, i_rand={i_rand}, extra_obj={extra_obj}"
+          f"n_shooting={n_shooting}, extra_obj={extra_obj}\n:\n {toc}sec\n")
     print(f"##########################################################")
 
     sol_integrated = sol.integrate(
@@ -76,6 +78,8 @@ def main(args=None):
     f = open(f"{outpath}.pckl", "wb")
     data = {
         "model_path": biorbd_model_path,
+        "irand": i_rand,
+        "extra_obj": extra_obj,
         "computation_time": toc,
         "cost": sol.cost,
         "detailed_cost": sol.detailed_cost,
