@@ -25,8 +25,6 @@ def graphs_analyses(
     iterations_all,
 ):
 
-    figure_type_1 = False # Tous sur le meme,
-    figure_type_2 = False # Tous sur le meme avec lignes qui relient les points
     figure_type_3 = False # True # Séparés
 
     colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF"]
@@ -65,123 +63,6 @@ def graphs_analyses(
         variables_std_list[j, :] = np.nanstd(variables_list[j, :, :], axis=1)
         variables_mean_list_weighted[j, :] = np.nanmean(variables_list_weighted[j, :, :], axis=1)
         variables_std_list_weighted[j, :] = np.nanstd(variables_list_weighted[j, :, :], axis=1)
-
-    if figure_type_1:
-        fig, ax = plt.subplots(1, 1, tight_layout=True)
-
-        ax.set_xticks(np.arange(6))
-        ax.set_xticklabels(labels)
-
-        for j in range(6):
-            for i in range(4):
-                ax.plot(
-                    np.array([j + shift[i] - 0.05, +shift[i] + 0.05]),
-                    np.ones(
-                        2,
-                    )
-                    * variables_mean_list_weighted[j, i],
-                    color=colors[i],
-                    linewidth=2,
-                )
-                if j == 0:
-                    ax.bar(
-                        j + shift[i],
-                        2 * variables_std_list_weighted[j, i],
-                        width=0.1,
-                        color=colors[i],
-                        bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
-                        label=dynamics_types[i] + " mean $\pm$ std",
-                        alpha=0.3,
-                    )
-                    ax.plot(
-                        np.ones((100,)) * (j + np.random.random(100)*0.1-0.05 + shift[i]),
-                        variables_list_weighted[j, i, :],
-                        ".",
-                        color=colors[i],
-                        label=dynamics_types[i],
-                    )
-                else:
-                    ax.bar(
-                        j + shift[i],
-                        2 * variables_std_list_weighted[j, i],
-                        width=0.1,
-                        color=colors[i],
-                        bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
-                        alpha=0.3,
-                    )
-                    # sns.stripplot(np.ones((100,)) * (j + shift[i]),  variables_list_weighted[j, i, :], ax=ax, jitter=0.2, alpha=0.5)
-                    # sns.swarmplot(x=np.ones((100,)) * (j + shift[i]), y=variables_list_weighted[j, i, :], ax=ax)
-                    ax.plot(np.ones((100,)) * (j + np.random.random(100)*0.1-0.05 + shift[i]), variables_list_weighted[j, i, :], ".", color=colors[i])
-        plt.legend(
-            loc="upper center",
-            frameon=False,
-            ncol=2,
-            # fontsize=12,
-            bbox_to_anchor=(0.5, 1.5),
-        )
-
-        plt.show()
-        plt.savefig("Comparaison.png", dpi=900)
-
-    if figure_type_2:
-        fig, ax = plt.subplots(1, 1, tight_layout=True)
-
-        ax.set_xticks(np.arange(6))
-        ax.set_xticklabels(labels)
-
-        for k in range(100):
-            for i in range(4):
-                if k == 0:
-                    ax.plot(
-                        np.arange(6) + shift[i],
-                        variables_list_weighted[:, i, k],
-                        "-",
-                        marker=".",
-                        color=colors[i],
-                        linewidth=0.5,
-                        label=dynamics_types[i],
-                    )
-                else:
-                    ax.plot(
-                        np.arange(6) + shift[i],
-                        variables_list_weighted[:, i, k],
-                        "-",
-                        marker=".",
-                        color=colors[i],
-                        linewidth=0.5,
-                    )
-
-        for j in range(6):
-            for i in range(4):
-                if j == 0:
-                    ax.bar(
-                        j + shift[i],
-                        2 * variables_std_list_weighted[j, i],
-                        width=0.1,
-                        color=colors[i],
-                        bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
-                        label=dynamics_types[i] + " mean $\pm$ std",
-                        alpha=0.3,
-                    )
-                else:
-                    ax.bar(
-                        j + shift[i],
-                        2 * variables_std_list_weighted[j, i],
-                        width=0.1,
-                        color=colors[i],
-                        bottom=variables_mean_list_weighted[j, i] - variables_std_list_weighted[j, i],
-                        alpha=0.3,
-                    )
-
-        plt.legend(
-            loc="upper center",
-            frameon=False,
-            ncol=2,
-            # fontsize=12,
-            bbox_to_anchor=(0.5, 1.5),
-        )
-        plt.show()
-        plt.savefig("Comparaison_lignes.png", dpi=900)
 
     if figure_type_3:
         # fig, axs = plt.subplots(2, 3, tight_layout=True)
@@ -321,15 +202,11 @@ def Analyses(
         cost = data["cost"]
         iterations = data["iterations"]
 
-        detailed_cost_dict = data["detailed_cost"]
-        # print(f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
-        # ocp_load, sol_load = bioptim.OptimalControlProgram.load(f"{out_path_raw}/miller_{dynamics_type}_irand{i_rand}.bo")
-        # sol_load.detailed_cost = []
-        # sol_load.print(cost_type=bioptim.CostType.OBJECTIVES, to_console=False)
-        # detailed_cost_dict = sol_load.detailed_cost
-        detailed_cost = np.zeros((len(detailed_cost_dict), ))
-        for i in range(len(detailed_cost_dict)):
-            detailed_cost[i] = detailed_cost_dict[i]['cost_value_weighted']
+        if figure_type_5:
+            detailed_cost_dict = data["detailed_cost"]
+            detailed_cost = np.zeros((len(detailed_cost_dict), ))
+            for i in range(len(detailed_cost_dict)):
+                detailed_cost[i] = detailed_cost_dict[i]['cost_value_weighted']
 
 
         if dynamics_type == "explicit" or dynamics_type == "implicit":
@@ -472,7 +349,8 @@ def Analyses(
         pickle.dump(data_secondary, f)
         f.close()
 
-        colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF", 'r', 'g', 'b', 'k', 'm', 'c', 'y', "tab:purple", "tab:orange", "tab:brown"]
+        import seaborn as sns
+        colors = sns.color_palette(palette="coolwarm", n_colors=30)
         shift = [-0.3, -0.1, 0.1, 0.3]
         dynamics_types = ["Explicit", "Root explicit", "Implicit", "Root Implicit"]
 
@@ -489,20 +367,20 @@ def Analyses(
                 axs[3][i].step(time, tau[i, :], "-", color=colors[i_dynamics_type])
 
         if figure_type_5:
-            micro_shift = np.linspace(-0.5, -.0, 100)
+            micro_shift = np.linspace(-0.08, 0.08, 100)
             sorted_costs = np.sort(detailed_cost)
             sorted_costs_idx = np.argsort(detailed_cost)
-            axs_5.set_xticks(shift, labels=dynamics_types)
             bottom_cost = 0
             for j in range(len(detailed_cost)):
-                axs_5.bar(
-                    shift[i_dynamics_type] + micro_shift[i_rand],
-                    sorted_costs[j], # bottom_cost +
-                    width=0.01,
-                    color=colors[sorted_costs_idx[j]],
-                    bottom=bottom_cost,
-                )
-                bottom_cost += sorted_costs[j]
+                if sorted_costs[j] > 1e-6:
+                    axs_5.bar(
+                        shift[i_dynamics_type] + micro_shift[i_rand],
+                        sorted_costs[j], # bottom_cost +
+                        width=0.08,
+                        color=colors[sorted_costs_idx[j]],
+                        bottom=bottom_cost,
+                    )
+                    bottom_cost += sorted_costs[j]
 
 
         if cost < min_cost[i_dynamics_type]:
@@ -545,7 +423,7 @@ tau_min = [[], [], [], []]
 time_min = [[], [], [], []]
 
 figure_type_4 = False  # True # False # Techniques
-figure_type_5 = True # False # True # Cost details
+figure_type_5 = True  # False # True # Cost details
 axs = []
 axs_5 = 0
 if figure_type_4:
@@ -585,6 +463,8 @@ if figure_type_4:
             ax[i].set_title(Dof_names[i])
 
 if figure_type_5:
+    label_objectives = []
+    # for i in range(len())
     label_objectives = [
         "Minimize qdot derivative (except root) phase=0",
         "Minimize right hand trajectory phase=0",
@@ -599,13 +479,45 @@ if figure_type_5:
         "Minimize feet trajectory phase=1",
         "Minimize core DoFs (hips + thorax) phase=1",
         "Minimize time phase=1",
+        "...",
+        '...',
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
+        "...",
     ]
-    colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF", 'r', 'g', 'b',
-              'k', 'm', 'c']  #############
-    fig_5, axs_5 = plt.subplots(1, 1, tight_layout=True, figsize=(20, 15))
+
+    import seaborn as sns
+    colors = sns.color_palette(palette="coolwarm", n_colors=30)
+    shift = [-0.3, -0.1, 0.1, 0.3]
+    dynamics_types = ["Explicit", "Root_explicit", "Implicit", "Root_implicit"]
+
+    # a changer
+    fig_6, axs_5 = plt.subplots(1, 1, tight_layout=True, figsize=(20, 15))
+    axs_5.set_xticks(shift)
+    axs_5.set_xticklabels(dynamics_types)
     axs_5.set_yscale("log")
-    for k in range(13):
-        axs_5.plot(0, 0, color=colors[k], label=label_objectives[k])
+    for k in range(28):
+        axs_5.plot(-0.4, 0, color=colors[k], label=label_objectives[k])
     axs_5.legend()
 
 # explicit, #root_explicit, #implicit, #root_implicit
@@ -642,9 +554,9 @@ for file in os.listdir(out_path_raw):
                 i = 3
             else:
                 i = 2
-        idx_irand = file.find("i_rand") + 6
-        # idx_irand = file.find("irand") + 5
-        if idx_irand == 5:
+        # idx_irand = file.find("i_rand") + 6
+        idx_irand = file.find("irand") + 5
+        if idx_irand == 4:
             continue
         idx_pckl = file.find(".pckl")
         i_rand = int(file[idx_irand:idx_pckl])
@@ -721,6 +633,10 @@ if figure_type_4:
     fig_3.savefig(f"Comparaison_Qddot.png")  # , dpi=900)
     fig_4.savefig(f"Comparaison_Tau.png")  # , dpi=900)
     fig_5.savefig(f"Cost_detailed.png")  # , dpi=900)
+
+if figure_type_5:
+    plt.show()
+    fig_6.savefig(f"Detailed_cost_type.png")  # , dpi=900)
 
 graphs_analyses(
     angular_momentum_rmsd_all,
