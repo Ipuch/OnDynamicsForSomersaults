@@ -170,7 +170,7 @@ class MillerOcp:
         w_qdot = 1
         w_penalty = 10
         w_track_final = 0.1
-        w_angular_momentum = 1e5
+        w_angular_momentum = 1e4
         for i in range(len(self.n_shooting)):
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_STATE,
@@ -284,7 +284,7 @@ class MillerOcp:
     # def _set_constraints(self):
         # --- Constraints --- #
         # Set time as a variable
-        slack_duration = 0.3
+        # slack_duration = 0.3
         # self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
         #                      node=Node.END,
         #                      min_bound=7/8 * self.duration - 1/2*slack_duration,
@@ -533,7 +533,7 @@ class MillerOcp:
             -3,
             -3,
             -0.001,
-            self.phase_proportions[0] * self.somersaults - slack_somersault,
+            self.phase_proportions[0] * self.somersaults - slack_final_somersault,
             -tilt_final_bound,
             self.twists - slack_twist,
             -slack_final_dofs,
@@ -552,7 +552,7 @@ class MillerOcp:
             3,
             3,
             10,
-            self.phase_proportions[0] * self.somersaults + slack_somersault,
+            self.phase_proportions[0] * self.somersaults + slack_final_somersault,
             tilt_final_bound,
             self.twists + slack_twist,
             slack_final_dofs,
@@ -579,7 +579,7 @@ class MillerOcp:
             -0.001,
             self.phase_proportions[0] * self.somersaults - slack_final_somersault,
             -tilt_bound,
-            self.twists - slack_final_twist,
+            self.twists - slack_twist,
             -slack_final_dofs,
             -slack_final_dofs,
             -slack_final_dofs,
