@@ -76,9 +76,9 @@ pool_number = 3
 with Pool(pool_number) as p:
     p.map(miller_run.main, calls)
 
-calls = generate_calls(
-    10, Date, n_shooting_list, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
-)
+# calls = generate_calls(
+#     10, Date, n_shooting_list, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
+# )
 
-with Pool(pool_number) as p:
-    p.map(miller_run.main, calls)
+# with Pool(pool_number) as p:
+#     p.map(miller_run.main, calls)
