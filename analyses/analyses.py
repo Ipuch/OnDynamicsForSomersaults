@@ -24,6 +24,7 @@ def root_explicit_dynamics(m, q, qdot, qddot_joints):
     qddot_base = -np.linalg.solve(mass_matrix[:6, :6], np.eye(6)) @ mass_matrix_nl_effects
     return qddot_base
 
+
 def graphs_analyses(variables_list):
 
     global colors, shift, dynamics_types, figure_type_3
@@ -39,12 +40,12 @@ def graphs_analyses(variables_list):
 
     variables_mean_list = np.zeros((6, 4))
     variables_std_list = np.zeros((6, 4))
-    for j in range(6):
-        variables_mean_list[j, :] = np.nanmean(variables_list[j, :, :], axis=1)
-        variables_std_list[j, :] = np.nanstd(variables_list[j, :, :], axis=1)
+    for j, key in enumerate(variables_list.keys()):
+        variables_mean_list[j, :] = np.nanmean(variables_list[key][:, :], axis=1)
+        variables_std_list[j, :] = np.nanstd(variables_list[key][:, :], axis=1)
 
     if figure_type_3:
-        for j in range(6):
+        for j, key in enumerate(variables_list.keys()):
             plt.figure()
             plt.xticks(shift, labels=dynamics_types)
 
@@ -67,8 +68,12 @@ def graphs_analyses(variables_list):
                         label="mean $\pm$ std",
                         alpha=0.1,
                     )
-                    plt.plot(np.ones((100,)) * shift[i] + np.random.random(100) * 0.1 - 0.05, variables_list[j, i, :],
-                             '.', color=colors[i])
+                    plt.plot(
+                        np.ones((100,)) * shift[i] + np.random.random(100) * 0.1 - 0.05,
+                        variables_list[key][i, :],
+                        ".",
+                        color=colors[i],
+                    )
                 else:
                     plt.bar(
                         shift[i],
@@ -78,8 +83,12 @@ def graphs_analyses(variables_list):
                         bottom=variables_mean_list[j, i] - variables_std_list[j, i],
                         alpha=0.1,
                     )
-                    plt.plot(np.ones((100,)) * shift[i] + np.random.random(100) * 0.1 - 0.05, variables_list[j, i, :],
-                             '.', color=colors[i])
+                    plt.plot(
+                        np.ones((100,)) * shift[i] + np.random.random(100) * 0.1 - 0.05,
+                        variables_list[key][i, :],
+                        ".",
+                        color=colors[i],
+                    )
             if labels[j] != "Optimal Cost":
                 plt.yscale("log")
             plt.title(labels[j])
@@ -109,7 +118,7 @@ def Analyses(
     data = pickle.load(file)
 
     status = data["status"]
-    if status != 0: # L'optimastion n'a pas convergé
+    if status != 0:  # L'optimastion n'a pas convergé
         return (
             np.nan,
             np.nan,
@@ -130,6 +139,9 @@ def Analyses(
         iterations = data["iterations"]
         if figure_type_5:
             detailed_cost_dict = data["detailed_cost"]
+            detailed_cost = np.zeros((len(detailed_cost_dict),))
+            for i in range(len(detailed_cost_dict)):
+                detailed_cost[i] = detailed_cost_dict[i]["cost_value_weighted"]
 
         # Reorganiser les variables parce que plus d'une phase
         ## ETATS
@@ -140,7 +152,7 @@ def Analyses(
 
         ## NOEUDS
         N = np.shape(q)[1]
-        N_integrated = (N-2)*6+2
+        N_integrated = (N - 2) * 6 + 2
 
         ## TEMPS
         t = data["parameters"]["time"]
@@ -151,10 +163,9 @@ def Analyses(
             )
         )
         time_integrated = np.array([])
-        for i in range(N-1):
+        for i in range(N - 1):
             if i != 125:
-                time_integrated = np.hstack((time_integrated,
-                                             np.linspace(time[i], time[i+1], 6)))
+                time_integrated = np.hstack((time_integrated, np.linspace(time[i], time[i + 1], 6)))
             else:
                 time_integrated = np.hstack((time_integrated, time[i]))
 
@@ -195,7 +206,9 @@ def Analyses(
             for i in range(N):
                 qddot[:6, i] = root_explicit_dynamics(m, q[:, i], qdot[:, i], qddot_joints[:, i])
             for i in range(N_integrated):
-                qddot_integrated[:6, i] = root_explicit_dynamics(m, q_integrated[:, i], qdot_integrated[:, i], qddot_joints_integrated[:, i])
+                qddot_integrated[:6, i] = root_explicit_dynamics(
+                    m, q_integrated[:, i], qdot_integrated[:, i], qddot_joints_integrated[:, i]
+                )
 
         if dynamics_type == "explicit":
             residual_tau_integrated = 0
@@ -207,7 +220,8 @@ def Analyses(
             qddot_integrated = np.zeros((m.nbQ(), N_integrated))
             for node in range(N_integrated):
                 qddot_integrated[:, node] = m.ForwardDynamics(
-                    q_integrated[:, node], qdot_integrated[:, node], tau_integrated[:, node]).to_array()
+                    q_integrated[:, node], qdot_integrated[:, node], tau_integrated[:, node]
+                ).to_array()
 
         else:
             if dynamics_type == "root_explicit":
@@ -225,7 +239,9 @@ def Analyses(
             for node in range(N):
                 tau[:, node] = m.InverseDynamics(q[:, node], qdot[:, node], qddot[:, node]).to_array()
 
-        index_continuous = [x for i, x in enumerate(np.arange(len(time_integrated))) if i != 125 * 6 + 1] # pour enlever les noeuds qui se répetent au changement de phase
+        index_continuous = [
+            x for i, x in enumerate(np.arange(len(time_integrated))) if i != 125 * 6 + 1
+        ]  # pour enlever les noeuds qui se répetent au changement de phase
         # remplissage des variables secondaires
         angular_momentum = np.zeros((3, N_integrated))
         angular_momentum_norm = np.zeros((N_integrated,))
@@ -234,25 +250,47 @@ def Analyses(
         CoM_velocity = np.zeros((3, N_integrated))
         CoM_acceleration = np.zeros((3, N_integrated))
         for node_integrated in range(N_integrated):
-            angular_momentum[:, node_integrated] = m.angularMomentum(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array()
+            angular_momentum[:, node_integrated] = m.angularMomentum(
+                q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True
+            ).to_array()
             angular_momentum_norm[node_integrated] = np.linalg.norm(angular_momentum[:, node_integrated])
-            linear_momentum[:, node_integrated] = m.CoMdot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array() * m.mass()
+            linear_momentum[:, node_integrated] = (
+                m.CoMdot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array()
+                * m.mass()
+            )
             CoM_position[:, node_integrated] = m.CoM(q_integrated[:, node_integrated], True).to_array()
-            CoM_velocity[:, node_integrated] = m.CoMdot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array()
-            CoM_acceleration[:, node_integrated] = m.CoMddot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], qddot_integrated[:, node_integrated], True).to_array()
+            CoM_velocity[:, node_integrated] = m.CoMdot(
+                q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True
+            ).to_array()
+            CoM_acceleration[:, node_integrated] = m.CoMddot(
+                q_integrated[:, node_integrated],
+                qdot_integrated[:, node_integrated],
+                qddot_integrated[:, node_integrated],
+                True,
+            ).to_array()
 
         angular_momentum_rmsd = np.zeros((3,))
         linear_momentum_rmsd = np.zeros((3,))
         for i in range(3):
-            angular_momentum_rmsd[i] = np.sqrt(((angular_momentum[i, index_continuous] - angular_momentum[i, 0]) ** 2).mean())
+            angular_momentum_rmsd[i] = np.sqrt(
+                ((angular_momentum[i, index_continuous] - angular_momentum[i, 0]) ** 2).mean()
+            )
             if i == 0 or i == 1:
-                linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous] - CoM_velocity[i, 0]) ** 2).mean())
+                linear_momentum_rmsd[i] = m.mass() * np.sqrt(
+                    ((CoM_velocity[i, index_continuous] - CoM_velocity[i, 0]) ** 2).mean()
+                )
             else:
-                linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous]
-                                                               - (CoM_acceleration[i, 0] * time_integrated[index_continuous] + CoM_velocity[i, 0]))
-                                                              ** 2).mean())
+                linear_momentum_rmsd[i] = m.mass() * np.sqrt(
+                    (
+                        (
+                            CoM_velocity[i, index_continuous]
+                            - (CoM_acceleration[i, 0] * time_integrated[index_continuous] + CoM_velocity[i, 0])
+                        )
+                        ** 2
+                    ).mean()
+                )
 
-        residual_tau_rms = np.sqrt(np.nanmean(residual_tau_integrated ** 2))
+        residual_tau_rms = np.sqrt(np.nanmean(residual_tau_integrated**2))
 
         f = open(f"{out_path_secondary_variables}/miller_{dynamics_type}_irand{i_rand}_analyses.pckl", "wb")
         data_secondary = {
@@ -297,7 +335,6 @@ def Analyses(
                     )
                     bottom_cost += sorted_costs[j]
 
-
         if cost < min_cost_varilables_values["min_cost"][i_dynamics_type]:
             # si le cost est plus petit, voici le nouveau plus petit cout
             min_cost_varilables_values["time_min"][i_dynamics_type] = time
@@ -314,14 +351,17 @@ def Analyses(
             computation_time,
             cost,
             iterations,
-            min_cost_varilables_values
+            min_cost_varilables_values,
         )
+
 
 ################ parametres a changer ##################################################################################
 # out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw"
 out_path_raw = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/raw"
 # out_path_secondary_variables = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/secondary_variables"
-out_path_secondary_variables = "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/secondary_variables"
+out_path_secondary_variables = (
+    "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/secondary_variables"
+)
 animation_min_cost = False
 figure_type_3 = False  # Variables secondaires
 figure_type_4 = False  # Techniques Q, Qdot, Qddot, Tau
@@ -349,7 +389,7 @@ Dof_names = [
     "Hips Rotation X",
     "Hips Rotation Y",
 ]
-label_objectives = [ # a changer pour l'ordre quand l'OCP sera fixé (je ne peux pas faire automatiquement pcq les noms ne sont pas self explanatory
+label_objectives = [  # a changer pour l'ordre quand l'OCP sera fixé (je ne peux pas faire automatiquement pcq les noms ne sont pas self explanatory
     "Minimize qdot derivative (except root) phase=0",
     "Minimize right hand trajectory phase=0",
     "Minimize left hand trajectory phase=0",
@@ -364,7 +404,7 @@ label_objectives = [ # a changer pour l'ordre quand l'OCP sera fixé (je ne peux
     "Minimize core DoFs (hips + thorax) phase=1",
     "Minimize time phase=1",
     "...",
-    '...',
+    "...",
     "...",
     "...",
     "...",
@@ -399,12 +439,14 @@ qddot_min = [[], [], [], []]
 tau_min = [[], [], [], []]
 time_min = [[], [], [], []]
 
-min_cost_varilables_values = {"q_min": q_min,
-                              "qdot_min": qdot_min,
-                              "qddot_min": qddot_min,
-                              "tau_min": tau_min,
-                              "time_min": time_min,
-                              "min_cost": min_cost}
+min_cost_varilables_values = {
+    "q_min": q_min,
+    "qdot_min": qdot_min,
+    "qddot_min": qddot_min,
+    "tau_min": tau_min,
+    "time_min": time_min,
+    "min_cost": min_cost,
+}
 
 axs = []
 axs_5 = 0
@@ -452,12 +494,14 @@ computation_time_all[:] = np.nan
 cost_all[:] = np.nan
 iterations_all[:] = np.nan
 
-variables_list = {"angular_momentum_rmsd_all": angular_momentum_rmsd_all,
-                 "linear_momentum_rmsd_all": linear_momentum_rmsd_all,
-                 "residual_tau_rms_all": residual_tau_rms_all,
-                 "computation_time_all": computation_time_all,
-                 "cost_all": cost_all,
-                 "iterations_all": iterations_all}
+variables_list = {
+    "angular_momentum_rmsd_all": angular_momentum_rmsd_all,
+    "linear_momentum_rmsd_all": linear_momentum_rmsd_all,
+    "residual_tau_rms_all": residual_tau_rms_all,
+    "computation_time_all": computation_time_all,
+    "cost_all": cost_all,
+    "iterations_all": iterations_all,
+}
 
 # parourir tous les fichiers de résultat du forlder
 for file in os.listdir(out_path_raw):
@@ -487,7 +531,7 @@ for file in os.listdir(out_path_raw):
             variables_list["computation_time_all"][i_dynamics_type, i_rand],
             variables_list["cost_all"][i_dynamics_type, i_rand],
             variables_list["iterations_all"][i_dynamics_type, i_rand],
-            min_cost_varilables_values
+            min_cost_varilables_values,
         ) = Analyses(
             out_path_raw,
             file,
@@ -496,7 +540,7 @@ for file in os.listdir(out_path_raw):
             i_dynamics_type,
             axs,
             axs_5,
-            min_cost_varilables_values
+            min_cost_varilables_values,
         )
 
 if figure_type_4:
@@ -504,7 +548,11 @@ if figure_type_4:
     for i_dynamics_type in range(4):
         for i in range(15):
             axs[0][i].plot(
-                min_cost_varilables_values["time_min"][i_dynamics_type], min_cost_varilables_values["q_min"][i_dynamics_type][i, :], "-", color=colors[i_dynamics_type], linewidth=4
+                min_cost_varilables_values["time_min"][i_dynamics_type],
+                min_cost_varilables_values["q_min"][i_dynamics_type][i, :],
+                "-",
+                color=colors[i_dynamics_type],
+                linewidth=4,
             )
             axs[1][i].plot(
                 min_cost_varilables_values["time_min"][i_dynamics_type],
