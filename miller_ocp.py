@@ -50,7 +50,7 @@ class MillerOcp:
             somersaults: float = 4 * np.pi,
             twists: float = 6 * np.pi,
             use_sx: bool = False,
-            extra_obj: bool = True,
+            extra_obj: bool = False,
     ):
         self.biorbd_model_path = biorbd_model_path
         self.extra_obj = extra_obj
@@ -170,7 +170,8 @@ class MillerOcp:
         w_qdot = 1
         w_penalty = 10
         w_track_final = 0.1
-        w_angular_momentum = 1e4
+        w_angular_momentum_x = 100000
+        w_angular_momentum_yz = 1000
         for i in range(len(self.n_shooting)):
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_STATE,
@@ -209,7 +210,14 @@ class MillerOcp:
             )  # core DoFs
 
             self.objective_functions.add(
-                ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, node=Node.START, phase=0, weight=w_angular_momentum
+                ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, node=Node.START, phase=0, weight=w_angular_momentum_x,
+                quadratic=False,
+                index=0
+            )
+            self.objective_functions.add(
+                ObjectiveFcn.Mayer.MINIMIZE_ANGULAR_MOMENTUM, node=Node.START, phase=0, weight=w_angular_momentum_yz,
+                quadratic=True,
+                index=[1,2]
             )
 
         # Track momentum and Minimize delta momentum

@@ -6,10 +6,12 @@ from miller_viz import add_custom_plots
 from datetime import datetime
 
 
-def main(dynamics_type):
+def main(dynamics_type,
+         thread,
+         solver):
     n_shooting = (125, 25)
-    ode_solver = OdeSolver.RK4(n_integration_steps=5)
-    n_threads = 8
+    # ode_solver = OdeSolver.RK4(n_integration_steps=5)
+    # n_threads = 8
     model_path = "Model_JeCh_15DoFs.bioMod"
     # dynamics_type = "root_explicit"  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit"
     # mettre une contrainte
@@ -17,9 +19,9 @@ def main(dynamics_type):
     miller = MillerOcp(
         biorbd_model_path=model_path,
         n_shooting=n_shooting,
-        ode_solver=ode_solver,
+        ode_solver=solver,
         dynamics_type=dynamics_type,
-        n_threads=n_threads,
+        n_threads=thread,
         somersaults=4 * np.pi,
         twists=6 * np.pi,
         use_sx=False,
@@ -32,7 +34,7 @@ def main(dynamics_type):
     np.random.seed(0)
 
     solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
-    solver.set_maximum_iterations(2000)
+    solver.set_maximum_iterations(2500)
     solver.set_print_level(5)
     solver.set_linear_solver("ma57")
     # solver.set_limited_memory_max_history(500)
@@ -78,8 +80,12 @@ def main(dynamics_type):
 
 
 if __name__ == "__main__":
-    # main("root_explicit")  # "implicit"  # ""  # "root_explicit"  # "root_implicit")
-    # main("explicit")  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
-    main("root_implicit")  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
-    main("implicit")  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
+
+    # main("explicit", 8, OdeSolver.RK4(n_integration_steps=5))  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
+    main("root_implicit", 1,
+         OdeSolver.RK2(n_integration_steps=5))  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
+    # main("implicit", 1,
+    #      OdeSolver.RK2(n_integration_steps=5))  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
+    # main("root_explicit", 8,
+    #      OdeSolver.RK4(n_integration_steps=5))  # "implicit"  # "explicit"  # "implicit"  # "root_implicit")
 
