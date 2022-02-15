@@ -69,10 +69,10 @@ def generate_calls(
 
 
 calls = generate_calls(
-    10, Date, n_shooting_list, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, False,
+    5, Date, n_shooting_list, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, False,
 )
 
-pool_number = 3
+pool_number = 5
 with Pool(pool_number) as p:
     p.map(miller_run.main, calls)
 
