@@ -4,11 +4,13 @@ from bioptim import Solver
 from miller_ocp import MillerOcp
 from miller_viz import add_custom_plots
 from datetime import datetime
+from custom_dynamics.enums import MillerDynamics
 
 
 def main(dynamics_type,
          thread,
-         solver):
+         solver,
+         extra_obj: bool = False):
     n_shooting = (125, 25)
     # ode_solver = OdeSolver.RK4(n_integration_steps=5)
     # n_threads = 8
@@ -25,15 +27,16 @@ def main(dynamics_type,
         somersaults=4 * np.pi,
         twists=6 * np.pi,
         use_sx=False,
+        extra_obj=extra_obj,
     )
 
     # miller.ocp.print(to_console=True)
 
     add_custom_plots(miller.ocp, dynamics_type)
-    # miller.ocp.add_plot_penalty(CostType.CONSTRAINTS)
-    np.random.seed(0)
+    miller.ocp.add_plot_penalty(CostType.CONSTRAINTS)
+    np.random.seed(203)
 
-    solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
+    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
     solver.set_maximum_iterations(2500)
     solver.set_print_level(5)
     solver.set_linear_solver("ma57")
@@ -66,7 +69,7 @@ def main(dynamics_type,
     print(sol.parameters["time"])
     sol.print()
     sol.graphs(show_bounds=True)
-    # sol.animate()
+    sol.animate()
     # sol.animate(nb_frames=-1, show_meshes=True)  # show_mesh=True
     # ma57
     # q = sol.states[0]["q"]
@@ -82,8 +85,13 @@ def main(dynamics_type,
 if __name__ == "__main__":
 
     # main("explicit", 8, OdeSolver.RK4(n_integration_steps=5))  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
-    main("root_implicit", 1,
-         OdeSolver.RK2(n_integration_steps=5))  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
+    # main(MillerDynamics.IMPLICIT, 1,
+    #      OdeSolver.RK4(n_integration_steps=5), False)  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
+    # main(MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, 1,
+    #      OdeSolver.RK4(n_integration_steps=5), True)
+    main(MillerDynamics.ROOT_IMPLICIT_QDDDOT, 1,
+         OdeSolver.RK4(n_integration_steps=5), True)
+    # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
     # main("implicit", 1,
     #      OdeSolver.RK2(n_integration_steps=5))  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
     # main("root_explicit", 8,

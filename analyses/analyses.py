@@ -7,6 +7,7 @@ import pickle
 import bioviz
 import bioptim
 
+
 # # pour broker axis eventuellement
 # f, (ax, ax2) = plt.subplots(2, 1, sharex=True)
 # # plot the same data on both axes
@@ -17,12 +18,12 @@ import bioptim
 # ax2.set_ylim(0, .22)  # most of the data
 
 def graphs_analyses(
-    angular_momentum_rmsd_all,
-    linear_momentum_rmsd_all,
-    residual_tau_rms_all,
-    computation_time_all,
-    cost_all,
-    iterations_all,
+        angular_momentum_rmsd_all,
+        linear_momentum_rmsd_all,
+        residual_tau_rms_all,
+        computation_time_all,
+        cost_all,
+        iterations_all,
 ):
 
     figure_type_1 = False # Tous sur le meme,
@@ -264,7 +265,6 @@ def Analyses(
     tau_min,
     min_cost,
 ):
-
     file = open(f"{out_path_raw}/{file_name}", "rb")
     data = pickle.load(file)
 
@@ -300,17 +300,9 @@ def Analyses(
         N = np.shape(q)[1]
         q_integrated = data["q_integrated"]
         qdot_integrated = data["qdot_integrated"]
-        N_integrated = (N-2)*6+2
+        N_integrated = (N - 2) * 6 + 2
 
-        time_integrated = np.array([])
-        for i in range(N-1):
-            if i != 125:
-                time_integrated = np.hstack((time_integrated,
-                                             np.linspace(time[i], time[i+1], 6)))
-            else:
-                time_integrated = np.hstack((time_integrated, time[i]))
 
-        time_integrated = np.hstack((time_integrated, time[-1]))
 
         # plt.figure()
         # plt.plot(time_integrated, 'o')
@@ -423,15 +415,20 @@ def Analyses(
             CoM_velocity[:, node_integrated] = m.CoMdot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], True).to_array()
             CoM_acceleration[:, node_integrated] = m.CoMddot(q_integrated[:, node_integrated], qdot_integrated[:, node_integrated], qddot_integrated[:, node_integrated], True).to_array()
 
-        # plt.figure()
-        # plt.plot(time_integrated, angular_momentum[0, :], '-', label='x')
-        # plt.plot(time_integrated, angular_momentum[1, :], '-',label='y')
-        # plt.plot(time_integrated, angular_momentum[2, :], '-',label='z')
-        # plt.plot(time_integrated, linear_momentum[0, :], '--',label='x')
-        # plt.plot(time_integrated, linear_momentum[1, :], '--',label='y')
-        # plt.plot(time_integrated, linear_momentum[2, :], '--',label='z')
-        # plt.legend()
-        # plt.show()
+        for node_integrated in range(N_integrated):
+            angular_momentum[:, node_integrated] = m.angularMomentum(q_integrated[:, node_integrated],
+                                                                     qdot_integrated[:, node_integrated],
+                                                                     True).to_array()
+            angular_momentum_norm[node_integrated] = np.linalg.norm(angular_momentum[:, node_integrated])
+            linear_momentum[:, node_integrated] = m.CoMdot(q_integrated[:, node_integrated],
+                                                           qdot_integrated[:, node_integrated],
+                                                           True).to_array() * m.mass()
+            CoM_position[:, node_integrated] = m.CoM(q_integrated[:, node_integrated], True).to_array()
+            CoM_velocity[:, node_integrated] = m.CoMdot(q_integrated[:, node_integrated],
+                                                        qdot_integrated[:, node_integrated], True).to_array()
+            CoM_acceleration[:, node_integrated] = m.CoMddot(q_integrated[:, node_integrated],
+                                                             qdot_integrated[:, node_integrated],
+                                                             qddot_integrated[:, node_integrated], True).to_array()
 
         angular_momentum_mean = np.mean(angular_momentum, axis=1)
         angular_momentum_rmsd = np.zeros((3,))
@@ -445,17 +442,31 @@ def Analyses(
                                                                - (CoM_acceleration[i, 0] * time_integrated[index_continuous] + CoM_velocity[i, 0]))
                                                               ** 2).mean())
 
-        # plt.figure()
-        # plt.plot(time_integrated[index_continuous], angular_momentum[0, index_continuous] - angular_momentum[0, 0], '-', label='x')
-        # plt.plot(time_integrated[index_continuous], angular_momentum[1, index_continuous] - angular_momentum[1, 0], '-', label='y')
-        # plt.plot(time_integrated[index_continuous], angular_momentum[2, index_continuous] - angular_momentum[2, 0], '-', label='z')
-        #
-        # plt.plot(time_integrated[index_continuous], CoM_velocity[0, index_continuous] - CoM_velocity[0, 0], '--', label='x')
-        # plt.plot(time_integrated[index_continuous], CoM_velocity[1, index_continuous] - CoM_velocity[1, 0], '--', label='y')
-        # plt.plot(time_integrated[index_continuous], CoM_velocity[2, index_continuous] - (CoM_acceleration[2, 0] * time_integrated[index_continuous] + CoM_velocity[2, 0]), '--', label='z')
-        # plt.legend()
-        # plt.show()
+        angular_momentum_mean = np.mean(angular_momentum, axis=1)
+        angular_momentum_rmsd = np.zeros((3,))
+        linear_momentum_rmsd = np.zeros((3,))
+        for i in range(3):
+            angular_momentum_rmsd[i] = np.sqrt(
+                ((angular_momentum[i, index_continuous] - angular_momentum[i, 0]) ** 2).mean())
+            if i == 0 or i == 1:
+                linear_momentum_rmsd[i] = m.mass() * np.sqrt(
+                    ((CoM_velocity[i, index_continuous] - CoM_velocity[i, 0]) ** 2).mean())
+            else:
+                linear_momentum_rmsd[i] = m.mass() * np.sqrt(((CoM_velocity[i, index_continuous]
+                                                               - (CoM_acceleration[i, 0] * time_integrated[
+                            index_continuous] + CoM_velocity[i, 0]))
+                                                              ** 2).mean())
 
+            # plt.figure()
+            # plt.plot(time_integrated[index_continuous], angular_momentum[0, index_continuous] - angular_momentum[0, 0], '-', label='x')
+            # plt.plot(time_integrated[index_continuous], angular_momentum[1, index_continuous] - angular_momentum[1, 0], '-', label='y')
+            # plt.plot(time_integrated[index_continuous], angular_momentum[2, index_continuous] - angular_momentum[2, 0], '-', label='z')
+            #
+            # plt.plot(time_integrated[index_continuous], CoM_velocity[0, index_continuous] - CoM_velocity[0, 0], '--', label='x')
+            # plt.plot(time_integrated[index_continuous], CoM_velocity[1, index_continuous] - CoM_velocity[1, 0], '--', label='y')
+            # plt.plot(time_integrated[index_continuous], CoM_velocity[2, index_continuous] - (CoM_acceleration[2, 0] * time_integrated[index_continuous] + CoM_velocity[2, 0]), '--', label='z')
+            # plt.legend()
+            # plt.show()
 
         # f = open(f"{out_path_secondary_variables}/miller_{dynamics_type}_irand{i_rand}_analyses.pckl", "wb")
         # data_secondary = {
@@ -513,28 +524,29 @@ def Analyses(
             tau_min[i_dynamics_type] = tau
             min_cost[i_dynamics_type] = cost
 
-        return (
-            np.sum(np.abs(angular_momentum_rmsd)),
-            np.sum(np.abs(linear_momentum_rmsd)),
-            np.sum(residual_tau_rms),
-            computation_time,
-            cost,
-            iterations,
-            time_min,
-            q_min,
-            qdot_min,
-            qddot_min,
-            tau_min,
-            min_cost,
-        )
+    return (
+        np.sum(np.abs(angular_momentum_rmsd)),
+        np.sum(np.abs(linear_momentum_rmsd)),
+        np.sum(residual_tau_rms),
+        computation_time,
+        cost,
+        iterations,
+        time_min,
+        q_min,
+        qdot_min,
+        qddot_min,
+        tau_min,
+        min_cost,
+    )
 
 # starting of the function
 # out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw"
-out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_08-02-22"
+out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_we_11-02-11"
 # out_path_secondary_variables = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/secondary_variables"
 out_path_secondary_variables = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/secondary_variables"
 animation_min_cost = False
 
+colors = ["#2E5A90FF", "#00BA87FF", "#DDEA00FF", "#BE2AD0FF", "#76DF1FFF", "#13BBF2FF", "#500375FF"]
 
 min_cost = np.ones((4,)) * 1e30
 # prefill the minimum optimal data
@@ -644,8 +656,8 @@ for file in os.listdir(out_path_raw):
                 i = 3
             else:
                 i = 2
-        idx_irand = file.find("i_rand") + 6
-        # idx_irand = file.find("irand") + 5
+        # idx_irand = file.find("i_rand") + 6
+        idx_irand = file.find("irand") + 5
         if idx_irand == 5:
             continue
         idx_pckl = file.find(".pckl")
