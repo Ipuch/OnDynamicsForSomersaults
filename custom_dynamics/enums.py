@@ -8,8 +8,8 @@ class MillerDynamics(Enum):
 
     IMPLICIT = "implicit"
     ROOT_IMPLICIT = "root_implicit"
-    EXPLICIT = "root_explicit"
-    ROOT_EXPLICIT = "explicit"
+    EXPLICIT = "explicit"
+    ROOT_EXPLICIT = "root_explicit"
     IMPLICIT_TAUDOT_DRIVEN = "implicit_taudot"  # not viable
     IMPLICIT_TAU_DRIVEN_QDDDOT = "implicit_qdddot"  # ok
     ROOT_IMPLICIT_QDDDOT = "root_implicit_qdddot"  # ok
