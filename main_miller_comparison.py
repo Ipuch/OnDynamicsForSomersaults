@@ -8,6 +8,7 @@ from datetime import date
 import smtplib, ssl
 import miller_run
 from bioptim import OdeSolver
+from custom_dynamics.enums import MillerDynamics
 
 Date = date.today()
 Date = Date.strftime("%d-%m-%y")
@@ -29,9 +30,9 @@ model_str = "Model_JeCh_15DoFs.bioMod"
 n_shooting = (125, 25)
 nstep = 5
 
-n_threads = 4  # Should be 8
+n_threads = 1  # Should be 8
 ode_solver = [OdeSolver.RK4, OdeSolver.RK4]
-dynamics_types = ["explicit", "root_explicit"]
+dynamics_types = [MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, MillerDynamics.ROOT_IMPLICIT_QDDDOT]
 
 
 def generate_calls(

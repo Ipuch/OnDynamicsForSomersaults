@@ -1,11 +1,12 @@
 import numpy as np
 import biorbd_casadi as biorbd
 from bioptim import PlotType, BiorbdInterface
+from custom_dynamics.enums import MillerDynamics
 
 
 def plot_linear_momentum(x, nlp):
     linear_momentum = (
-        nlp.model.mass().to_mx() * nlp.model.CoMdot(nlp.states["q"].mx, nlp.states["qdot"].mx, True).to_mx()
+            nlp.model.mass().to_mx() * nlp.model.CoMdot(nlp.states["q"].mx, nlp.states["qdot"].mx, True).to_mx()
     )
 
     linear_momentum_func = biorbd.to_casadi_func(
@@ -30,18 +31,20 @@ def plot_angular_momentum(x, nlp):
 
 
 def plot_residual_torque(x, u, nlp):
+    qddot_mx = nlp.controls["qddot"].mx if "qddot" in nlp.controls.keys() else nlp.states["qddot"].mx
     ID_func = biorbd.to_casadi_func(
         "ResidualTorque",
         nlp.model.InverseDynamics,
         nlp.states["q"].mx,
         nlp.states["qdot"].mx,
-        nlp.controls["qddot"].mx,
+        qddot_mx,
         expand=True,
     )
 
     q = nlp.states["q"].mapping.to_second.map(x[nlp.states["q"].index, :])
     qdot = nlp.states["qdot"].mapping.to_second.map(x[nlp.states["qdot"].index, :])
-    qddot = u[nlp.controls["qddot"].index, :]
+    qddot = u[nlp.controls["qddot"].index, :] if "qddot" in nlp.controls.keys() else nlp.states[
+        "qddot"].mapping.to_second.map(x[nlp.states["qddot"].index, :])
 
     return np.array(ID_func(q, qdot, qddot)[:6, :])
 
@@ -68,7 +71,7 @@ def add_custom_plots(ocp, dynamics_type):
             legend=["Angular Momentum x", "Angular Momentum y", "Angular Momentum z"],
             plot_type=PlotType.PLOT,
         )
-        if "implicit" in dynamics_type:
+        if "implicit" in dynamics_type.value:
             ocp.add_plot(
                 "TorqueResiduals",
                 lambda t, x, u, p: plot_residual_torque(x, u, nlp),

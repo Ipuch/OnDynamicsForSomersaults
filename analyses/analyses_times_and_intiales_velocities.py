@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
 import numpy as np
 
-path_file = "../../OnDynamicsForSommersaults_results/raw"
+path_file = "../../OnDynamicsForSommersaults_results/raw_04-02-22"
 model = "../Model_JeCh_15DoFs.bioMod"
 # ouvrir les fichiers
 files = os.listdir(path_file)
@@ -30,8 +30,8 @@ for i, file in enumerate(files):
     data = pickle.load(file_path)
     print(file + "\n")
     print(data["status"])
-    if data["status"] == 0 and "explicit" in data["dynamics_type"]:
-        qdot_init = np.hstack((qdot_init, data["states"][0]["qdot"][0:1, :6].T))
+    if data["status"] == 0 and "explicit" == data["dynamics_type"]:
+        qdot_init = np.hstack((qdot_init, data["states"][0]["qdot"][:6, 0:1]))
 
 plt.plot(qdot_init[0, 1:], label="x_velocity", marker=".")
 plt.plot(qdot_init[1, 1:], label="y_velocity", marker=".")
@@ -39,7 +39,15 @@ plt.plot(qdot_init[2, 1:], label="z_velocity", marker=".")
 plt.plot(qdot_init[3, 1:], label="salto", marker="o")
 plt.plot(qdot_init[4, 1:], label="tilt", marker="o")
 plt.plot(qdot_init[5, 1:], label="twist", marker="o")
+plt.plot(-0.006024447069071293, label="x_velocity", marker="x")
+plt.plot(0.44094157867162764, label="y_velocity", marker=".")
+plt.plot(8.401410312445972, label="z_velocity", marker=".")
+plt.plot(5.133573161842047, label="salto", marker="o")
+plt.plot(0, label="tilt", marker="o")
+plt.plot(0, label="twist", marker="o")
 plt.legend()
 
 plt.show()
 print("hey")
+
+
