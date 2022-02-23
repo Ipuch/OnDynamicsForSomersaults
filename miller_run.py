@@ -46,8 +46,20 @@ def main(args=None):
     filename = f"miller_{dynamics_type}_irand{i_rand}_extraobj{extra_obj}_{n_shooting[0]}_{n_shooting[1]}"
     outpath = f"{out_path_raw}/" + filename
 
+    # test if the file converged or not, if yes stop the script
+    # previous = open(outpath + ".pckl", "rb")
+    # previous_data = pickle.load(previous)
+    # if previous_data["status"] == 0:
+    #     print(f"##########################################################")
+    #     print(f"Solving dynamics_type={dynamics_type}, i_rand={i_rand},"
+    #           f"n_shooting={n_shooting}, extra_obj={extra_obj}\n")
+    #     print(f"##########################################################")
+    #     print("has already converged !! pass ...")
+    #     print(f"##########################################################")
+    #     return
+
     solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
-    solver.set_maximum_iterations(3000)
+    solver.set_maximum_iterations(10000)
     solver.set_print_level(5)
     solver.set_linear_solver("ma57")
 
