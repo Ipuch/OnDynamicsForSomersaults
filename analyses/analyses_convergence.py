@@ -5,6 +5,7 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 import numpy as np
 
+out_path_file = "../../OnDynamicsForSommersaults_results/figures/V1"
 path_file = "../../OnDynamicsForSommersaults_results/raw_convergence_merged"
 model = "../Model_JeCh_15DoFs.bioMod"
 
@@ -337,4 +338,6 @@ fig.update_layout(
 )
 
 fig.show()
-fig.write_html("analyse_convergence.html")
+fig.write_image(out_path_file + "/analyse_convergence.png")
+fig.write_image(out_path_file + "/analyse_convergence.pdf")
+fig.write_html(out_path_file + "/analyse_convergence.html")

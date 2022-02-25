@@ -6,6 +6,9 @@ import plotly.express as px
 import numpy as np
 from utils import my_traces
 
+out_path_file = "../../OnDynamicsForSommersaults_results/figures/V1"
+
+
 df_results = pd.read_pickle("Dataframe_results_metrics.pkl")
 
 df_results["dynamics_type_label"] = None
@@ -62,4 +65,9 @@ fig.update_layout(
     # violingap=0.1,
     boxgap=0.2,
 )
+
 fig.show()
+
+fig.write_image(out_path_file + "/parameters.png")
+fig.write_image(out_path_file + "/parameters.pdf")
+fig.write_html(out_path_file + "/parameters.html")

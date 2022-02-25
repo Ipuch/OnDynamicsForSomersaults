@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
+out_path_file = "../../OnDynamicsForSommersaults_results/figures/V1"
 df_results = pd.read_pickle("Dataframe_results_metrics.pkl")
 
 df_results["dynamics_type_label"] = None
@@ -90,5 +91,7 @@ fig.update_layout(
     boxgap=0.2,
 )
 fig.show()
-
-print("hello")
+fig.show()
+fig.write_image(out_path_file + "/time.png")
+fig.write_image(out_path_file + "/time.pdf")
+fig.write_html(out_path_file + "/time.html")

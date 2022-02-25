@@ -8,6 +8,7 @@ import numpy as np
 import seaborn as sns
 import scipy.stats
 
+out_path_file = "../../OnDynamicsForSommersaults_results/figures/V1"
 path_file = "../../OnDynamicsForSommersaults_results/raw_convergence_merged"
 model = "../Model_JeCh_15DoFs.bioMod"
 
@@ -250,4 +251,6 @@ fig.update_layout(
 )
 
 fig.show()
-# fig.write_html("analyse_convergence_time.html")
+fig.write_image(out_path_file + "/analyse_convergence_cost.png")
+fig.write_image(out_path_file + "/analyse_convergence_cost.pdf")
+fig.write_html(out_path_file + "/analyse_convergence_cost.html")

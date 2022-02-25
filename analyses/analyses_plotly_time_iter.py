@@ -5,6 +5,8 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 import numpy as np
 
+out_path_file = "../../OnDynamicsForSommersaults_results/figures/V1"
+
 df_results = pd.read_pickle("Dataframe_results_metrics.pkl")
 
 df_results["dynamics_type_label"] = None
@@ -137,5 +139,7 @@ fig.update_layout(
     boxgap=0.2,
 )
 fig.show()
-fig.write_html("analyse_time_iter.html")
-print("hello")
+
+fig.write_image(out_path_file + "/analyse_time_iter.png")
+fig.write_image(out_path_file + "/analyse_time_iter.pdf")
+fig.write_html(out_path_file + "/analyse_time_iter.html")
