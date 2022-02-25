@@ -49,5 +49,3 @@ plt.legend()
 
 plt.show()
 print("hey")
-
-

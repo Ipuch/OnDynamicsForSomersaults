@@ -38,8 +38,8 @@ for i, file in enumerate(files):
         if data["status"] == 0 and "root_explicit" == data["dynamics_type"]:
             t_all_rex = np.hstack((t_all_rex, t))
 
-plt.plot(t_all_ex/3600, label="explicit", marker=".")
-plt.plot(t_all_rex/3600, label="root_explicit", marker=".")
+plt.plot(t_all_ex / 3600, label="explicit", marker=".")
+plt.plot(t_all_rex / 3600, label="root_explicit", marker=".")
 plt.legend()
 
 plt.show()

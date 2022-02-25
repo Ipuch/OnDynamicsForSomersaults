@@ -16,7 +16,7 @@ out_path_raw = "../OnDynamicsForSommersaults_results/raw_" + Date
 try:
     os.mkdir(out_path_raw)
 except:
-    print("../OnDynamicsForSommersaults_results/raw_" + Date + ' is already created ')
+    print("../OnDynamicsForSommersaults_results/raw_" + Date + " is already created ")
 
 out_path_secondary_variables = "../OnDynamicsForSommersaults_results/secondary_variables"
 
@@ -67,7 +67,16 @@ def generate_calls(
 
 
 calls = generate_calls(
-    100, Date, n_shooting, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
+    100,
+    Date,
+    n_shooting,
+    dynamics_types,
+    ode_solver,
+    nstep,
+    n_threads,
+    out_path_raw,
+    model_str,
+    True,
 )
 
 # pool_number = int(cpu_number / n_threads)
@@ -92,4 +101,3 @@ with Pool(6) as p:  # should be 4
 # pool_number = int(cpu_number / n_threads)
 # with Pool(pool_number) as p:  # should be 4
 #     p.map(miller_run.main, calls)
-

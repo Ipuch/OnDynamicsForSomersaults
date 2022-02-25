@@ -13,12 +13,14 @@ ode_solvers = [
     OdeSolver.RK4(n_integration_steps=5),
     OdeSolver.RK4(n_integration_steps=5),
 ]
-dynamics_types = [MillerDynamics.EXPLICIT,
-                  MillerDynamics.ROOT_EXPLICIT,
-                  MillerDynamics.IMPLICIT,
-                  MillerDynamics.ROOT_IMPLICIT,
-                  MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT,
-                  MillerDynamics.ROOT_IMPLICIT_QDDDOT]
+dynamics_types = [
+    MillerDynamics.EXPLICIT,
+    MillerDynamics.ROOT_EXPLICIT,
+    MillerDynamics.IMPLICIT,
+    MillerDynamics.ROOT_IMPLICIT,
+    MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT,
+    MillerDynamics.ROOT_IMPLICIT_QDDDOT,
+]
 times = np.zeros(6)
 
 n_shooting = (125, 25)

@@ -7,10 +7,7 @@ from datetime import datetime
 from custom_dynamics.enums import MillerDynamics
 
 
-def main(dynamics_type,
-         thread,
-         solver,
-         extra_obj: bool = False):
+def main(dynamics_type, thread, solver, extra_obj: bool = False):
     n_shooting = (125, 25)
     # ode_solver = OdeSolver.RK4(n_integration_steps=5)
     # n_threads = 8
@@ -97,8 +94,7 @@ if __name__ == "__main__":
     #      OdeSolver.RK4(n_integration_steps=5), False)
     # main(MillerDynamics.ROOT_IMPLICIT, 1,
     #      OdeSolver.RK4(n_integration_steps=5), False)
-    main(MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, 1,
-         OdeSolver.RK4(n_integration_steps=1), True)
+    main(MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, 1, OdeSolver.RK4(n_integration_steps=1), True)
     # main(MillerDynamics.ROOT_IMPLICIT_QDDDOT, 1,
     #      OdeSolver.RK4(n_integration_steps=5), True)
     # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
@@ -106,4 +102,3 @@ if __name__ == "__main__":
     #      OdeSolver.RK2(n_integration_steps=5))  # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")
     # main("root_explicit", 8,
     #      OdeSolver.RK4(n_integration_steps=5))  # "implicit"  # "explicit"  # "implicit"  # "root_implicit")
-

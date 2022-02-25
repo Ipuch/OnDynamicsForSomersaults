@@ -6,7 +6,7 @@ from custom_dynamics.enums import MillerDynamics
 
 def plot_linear_momentum(x, nlp):
     linear_momentum = (
-            nlp.model.mass().to_mx() * nlp.model.CoMdot(nlp.states["q"].mx, nlp.states["qdot"].mx, True).to_mx()
+        nlp.model.mass().to_mx() * nlp.model.CoMdot(nlp.states["q"].mx, nlp.states["qdot"].mx, True).to_mx()
     )
 
     linear_momentum_func = biorbd.to_casadi_func(
@@ -43,8 +43,11 @@ def plot_residual_torque(x, u, nlp):
 
     q = nlp.states["q"].mapping.to_second.map(x[nlp.states["q"].index, :])
     qdot = nlp.states["qdot"].mapping.to_second.map(x[nlp.states["qdot"].index, :])
-    qddot = u[nlp.controls["qddot"].index, :] if "qddot" in nlp.controls.keys() else nlp.states[
-        "qddot"].mapping.to_second.map(x[nlp.states["qddot"].index, :])
+    qddot = (
+        u[nlp.controls["qddot"].index, :]
+        if "qddot" in nlp.controls.keys()
+        else nlp.states["qddot"].mapping.to_second.map(x[nlp.states["qddot"].index, :])
+    )
 
     return np.array(ID_func(q, qdot, qddot)[:6, :])
 

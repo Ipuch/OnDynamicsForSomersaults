@@ -24,39 +24,37 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
-out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_all"
+out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_convergence_merged"
 model = "../Model_JeCh_15DoFs.bioMod"
-# open files
-files = os.listdir(out_path_raw)
-files.sort()
-
-dynamic_types = [
-    "explicit",
-    "root_explicit",
-    "implicit",
-    "root_implicit",
-    MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT,
-    MillerDynamics.ROOT_IMPLICIT_QDDDOT,
-]
-
-column_names = [
-    "model_path",
-    "irand",
-    "extra_obj",
-    "computation_time",
-    "cost",
-    "detailed_cost",
-    "iterations",
-    "status",
-    "states" "controls",
-    "parameters",
-    "dynamics_type",
-    "q_integrated",
-    "qdot_integrated",
-    "qddot_integrated",
-    "n_shooting",
-    "n_theads",
-]
+# # open files
+# files = os.listdir(out_path_raw)
+# files.sort()
+#
+# dynamic_types = [
+#     "implicit",
+#     "root_implicit",
+#     MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT,
+#     MillerDynamics.ROOT_IMPLICIT_QDDDOT,
+# ]
+#
+# column_names = [
+#     "model_path",
+#     "irand",
+#     "extra_obj",
+#     "computation_time",
+#     "cost",
+#     "detailed_cost",
+#     "iterations",
+#     "status",
+#     "states" "controls",
+#     "parameters",
+#     "dynamics_type",
+#     "q_integrated",
+#     "qdot_integrated",
+#     "qddot_integrated",
+#     "n_shooting",
+#     "n_theads",
+# ]
 # df_results = pd.DataFrame(columns=column_names)
 #
 # for i, file in enumerate(files):
@@ -95,11 +93,11 @@ column_names = [
 #         df_dictionary = pd.DataFrame([data])
 #         df_results = pd.concat([df_results, df_dictionary], ignore_index=True)
 #
-# df_results.to_pickle("Dataframe_results.pkl")
+# df_results.to_pickle("Dataframe_convergence_results.pkl")
 
 # Add Metrics
 
-df_results = pd.read_pickle("Dataframe_results.pkl")
+df_results = pd.read_pickle("Dataframe_convergence_results.pkl")
 # fill new columns
 n_row = len(df_results)
 df_results["t"] = None
@@ -117,6 +115,7 @@ df_results["comdot"] = None
 df_results["comddot"] = None
 df_results["angular_momentum_rmse"] = None
 df_results["linear_momentum_rmse"] = None
+df_results["n_shooting_tot"] = None
 
 m = biorbd.Model(model)
 n_step = 5
@@ -187,7 +186,6 @@ for index, row in df_results.iterrows():
 
     # non integrated values, at nodes.
     t = define_time(row.parameters["time"], row.n_shooting)
-    N = len(t)
     q = stack_states(row.states, "q")
     qdot = stack_states(row.states, "qdot")
 
@@ -263,5 +261,6 @@ for index, row in df_results.iterrows():
     df_results.at[index, "comddot"] = comddot
     df_results.at[index, "angular_momentum_rmse"] = angular_momentum_rmse
     df_results.at[index, "linear_momentum_rmse"] = linear_momentum_rmse
+    df_results.at[index, "n_shooting_tot"] = np.sum(row.n_shooting)
 
-df_results.to_pickle("Dataframe_results_metrics.pkl")
+df_results.to_pickle("Dataframe_convergence_metrics.pkl")

@@ -70,4 +70,3 @@ def custom_configure_taudot_implicit(ocp: OptimalControlProgram, nlp: NonLinearP
     )
 
     ConfigureProblem.configure_dynamics_function(ocp, nlp, taudot_implicit_dynamic)
-

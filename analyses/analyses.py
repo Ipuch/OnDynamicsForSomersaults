@@ -38,8 +38,8 @@ def graphs_analyses(variables_list):
         "Number of iterations",
     ]
 
-    variables_mean_list = np.zeros((6, 4))
-    variables_std_list = np.zeros((6, 4))
+    variables_mean_list = np.zeros((6, 6))
+    variables_std_list = np.zeros((6, 6))
     for j, key in enumerate(variables_list.keys()):
         variables_mean_list[j, :] = np.nanmean(variables_list[key][:, :], axis=1)
         variables_std_list[j, :] = np.nanstd(variables_list[key][:, :], axis=1)
@@ -168,7 +168,6 @@ def Analyses(
                 time_integrated = np.hstack((time_integrated, np.linspace(time[i], time[i + 1], 6)))
             else:
                 time_integrated = np.hstack((time_integrated, time[i]))
-
 
         ## CONTROLES (provenant de l'optimisation ou d'un calcul si pas dispo dans optimisation
         if dynamics_type == "explicit" or dynamics_type == "implicit":
@@ -356,7 +355,7 @@ def Analyses(
 
 ################ parametres a changer ##################################################################################
 # out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw"
-out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_we_11-02-11"
+out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_all"
 # out_path_secondary_variables = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/secondary_variables"
 out_path_secondary_variables = (
     "/home/user/Documents/Programmation/Eve/Tests_NoteTech_Pierre/results/secondary_variables"
@@ -480,12 +479,12 @@ if figure_type_5:
 
 # Initialisation des mesures de performance a comparer pour tous les essais et tous les types de dynamique dans l'ordre suivant:
 # explicit, #root_explicit, #implicit, #root_implicit
-angular_momentum_rmsd_all = np.zeros((4, 100))
-linear_momentum_rmsd_all = np.zeros((4, 100))
-residual_tau_rms_all = np.zeros((4, 100))
-computation_time_all = np.zeros((4, 100))
-cost_all = np.zeros((4, 100))
-iterations_all = np.zeros((4, 100))
+angular_momentum_rmsd_all = np.zeros((6, 100))
+linear_momentum_rmsd_all = np.zeros((6, 100))
+residual_tau_rms_all = np.zeros((6, 100))
+computation_time_all = np.zeros((6, 100))
+cost_all = np.zeros((6, 100))
+iterations_all = np.zeros((6, 100))
 angular_momentum_rmsd_all[:] = np.nan
 linear_momentum_rmsd_all[:] = np.nan
 residual_tau_rms_all[:] = np.nan

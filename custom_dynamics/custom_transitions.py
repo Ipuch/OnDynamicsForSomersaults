@@ -29,11 +29,11 @@ def minimize_angular_momentum(
     q_pre = nlp_pre.states["q"].mx
     # q_post = nlp_post.states["q"].mx
 
-    q_post = MX.sym('q', *nlp_post.states["q"].mx.shape)
+    q_post = MX.sym("q", *nlp_post.states["q"].mx.shape)
 
     qdot_pre = nlp_pre.states["qdot"].mx
     # qdot_post = nlp_post.states["qdot"].mx
-    qdot_post = MX.sym('qdot', *nlp_post.states["qdot"].mx.shape)
+    qdot_post = MX.sym("qdot", *nlp_post.states["qdot"].mx.shape)
 
     pre_angular_momentum = nlp_pre.model.angularMomentum(q_pre, qdot_pre).to_mx()
     post_angular_momentum = nlp_post.model.angularMomentum(q_post, qdot_post).to_mx()
@@ -77,11 +77,11 @@ def minimize_linear_momentum(
     q_pre = nlp_pre.states["q"].mx
     # q_post = nlp_post.states["q"].mx
 
-    q_post = MX.sym('q', *nlp_post.states["q"].mx.shape)
+    q_post = MX.sym("q", *nlp_post.states["q"].mx.shape)
 
     qdot_pre = nlp_pre.states["qdot"].mx
     # qdot_post = nlp_post.states["qdot"].mx
-    qdot_post = MX.sym('qdot', *nlp_post.states["qdot"].mx.shape)
+    qdot_post = MX.sym("qdot", *nlp_post.states["qdot"].mx.shape)
 
     pre_linear_momentum = nlp_pre.model.mass().to_mx() * nlp_pre.model.CoMdot(q_pre, qdot_pre).to_mx()
     post_linear_momentum = nlp_pre.model.mass().to_mx() * nlp_post.model.CoMdot(q_post, qdot_post).to_mx()

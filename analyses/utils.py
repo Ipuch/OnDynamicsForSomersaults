@@ -96,19 +96,19 @@ def define_integrated_time(time, n_shooting, nstep):
     time_integrated = np.array([])
     cum_time = get_cum_time(time)
     for i, n_shoot in enumerate(n_shooting):
-        periode = (cum_time[i + 1]-cum_time[i])/n_shoot
+        periode = (cum_time[i + 1] - cum_time[i]) / n_shoot
         for ii in range(n_shoot):
-            t_linspace = np.linspace(cum_time[i] + ii * periode, cum_time[i] + (ii+1) * periode, (nstep + 1))
+            t_linspace = np.linspace(cum_time[i] + ii * periode, cum_time[i] + (ii + 1) * periode, (nstep + 1))
             time_integrated = np.hstack((time_integrated, t_linspace))
         time_integrated = np.hstack((time_integrated, cum_time[i + 1]))
     return time_integrated
 
 
-def define_control_integrated(controls, nstep: int,  key: str = "tau"):
+def define_control_integrated(controls, nstep: int, key: str = "tau"):
     tau_integrated = np.hstack(
         (
-            np.repeat(controls[0][key], nstep+1, axis=1)[:, :-nstep],
-            np.repeat(controls[1][key], nstep+1, axis=1)[:, :-nstep],
+            np.repeat(controls[0][key], nstep + 1, axis=1)[:, :-nstep],
+            np.repeat(controls[1][key], nstep + 1, axis=1)[:, :-nstep],
         )
     )
     return tau_integrated
@@ -118,3 +118,10 @@ def get_cum_time(time):
     time = np.hstack((0, np.array(time).squeeze()))
     cum_time = np.cumsum(time)
     return cum_time
+
+
+def root_explicit_dynamics(m, q, qdot, qddot_joints):
+    mass_matrix_nl_effects = m.InverseDynamics(q, qdot, np.hstack((np.zeros((6,)), qddot_joints))).to_array()[:6]
+    mass_matrix = m.massMatrix(q).to_array()
+    qddot_base = -np.linalg.solve(mass_matrix[:6, :6], np.eye(6)) @ mass_matrix_nl_effects
+    return qddot_base
