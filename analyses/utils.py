@@ -1,4 +1,7 @@
 import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import plotly.express as px
 
 
 def rmse(predictions, targets):
@@ -125,3 +128,51 @@ def root_explicit_dynamics(m, q, qdot, qddot_joints):
     mass_matrix = m.massMatrix(q).to_array()
     qddot_base = -np.linalg.solve(mass_matrix[:6, :6], np.eye(6)) @ mass_matrix_nl_effects
     return qddot_base
+
+
+def my_traces(fig, dyn, grps, df, key, row, col, title_str):
+    if (col == 1 and row == 1) or (col is None or row is None):
+        showleg = True
+    else:
+        showleg = False
+
+    for ii, d in enumerate(dyn):
+        # manage color
+        c = px.colors.hex_to_rgb(px.colors.qualitative.D3[ii])
+        c = str(f"rgba({c[0]},{c[1]},{c[2]},0.5)")
+        fig.add_trace(go.Box(x=df["dynamics_type_label"][df["dynamics_type_label"] == d],
+                             y=df[key][df["dynamics_type_label"] == d],
+                             name=d,
+                             boxpoints="all",
+                             width=0.4,
+                             pointpos=-2,
+                             legendgroup=grps[ii],
+                             fillcolor=c,
+                             marker=dict(opacity=0.5),
+                             line=dict(color=px.colors.qualitative.D3[ii])),
+                      row=row,
+                      col=col,
+                      )
+
+    fig.update_traces(
+        jitter=0.8,  # add some jitter on points for better visibility
+        marker=dict(size=3),
+        row=row,
+        col=col,
+        showlegend=showleg, selector=dict(type='box'),
+    )
+    fig.update_yaxes(type="log", row=row,
+                     col=col, title=title_str,
+                     title_standoff=2,
+                     domain=[0, 1],
+                     tickson="boundaries",
+                     # tick0=2,  # a ne pas garder
+                     exponentformat='e',
+                     ticklabeloverflow="allow"
+                     )
+    fig.update_xaxes(row=row,
+                     col=col, color="black",
+                     showticklabels=False,
+                     ticks="",
+                     )  # no xticks)
+    return fig

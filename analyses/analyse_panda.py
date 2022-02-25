@@ -117,6 +117,8 @@ df_results["comdot"] = None
 df_results["comddot"] = None
 df_results["angular_momentum_rmse"] = None
 df_results["linear_momentum_rmse"] = None
+df_results["T1"] = None
+df_results["T2"] = None
 
 m = biorbd.Model(model)
 n_step = 5
@@ -263,5 +265,7 @@ for index, row in df_results.iterrows():
     df_results.at[index, "comddot"] = comddot
     df_results.at[index, "angular_momentum_rmse"] = angular_momentum_rmse
     df_results.at[index, "linear_momentum_rmse"] = linear_momentum_rmse
+    df_results.at[index, "T1"] = row.parameters['time'][0]
+    df_results.at[index, "T2"] = row.parameters['time'][1]
 
 df_results.to_pickle("Dataframe_results_metrics.pkl")

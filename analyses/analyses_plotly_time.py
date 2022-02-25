@@ -19,20 +19,7 @@ df_results.loc[
     df_results[
         "dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"] = r"$\text{Imp-Base-}\dddot{q}$"
 
-# sns.lineplot(x="time", y="signal",
-#              hue="dynamics",
-#              data=df_results)
 
-# get dataframes of shape
-# for explicit ... root_implicit_qdddot
-# for each q, qdot, qddot, tau
-# company
-# time  i_rand1  i_rand2 etc...
-# 0.1  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000
-# df = px.data.stocks(indexed=True) - 1
-# fig = px.area(df, facet_col="company", facet_col_wrap=2)
-
-print("hey")
 dyn = df_results["dynamics_type_label"].unique()
 grps = ["Explicit","Explicit","Implicit_qddot","Implicit_qddot","Implicit_qdddot","Implicit_qdddot"]
 dyn = dyn[[2, 4, 3, 5, 0, 1]]

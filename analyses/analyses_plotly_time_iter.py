@@ -98,7 +98,6 @@ def my_traces(fig, dyn, grps, df, key, row, col, title_str):
 
 fig = my_traces(fig, dyn, grps, df_results, "computation_time", 1, 1, r'$\text{time (min)}$')
 fig = my_traces(fig, dyn, grps, df_results, "iter_per_sec", 1, 2, r'$\text{iterations / min}$')
-# fig = my_traces(fig, dyn, grps, df_results, "cost", 1, 3, r'$\text{objective function value}$')
 
 fig.update_layout(
     # xaxis_title=r'$\text{Transcription}$',
