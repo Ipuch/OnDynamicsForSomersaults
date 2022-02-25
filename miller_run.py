@@ -78,8 +78,10 @@ def main(args=None):
 
     q_integrated = sol_integrated.states["q"]
     qdot_integrated = sol_integrated.states["qdot"]
-    if (dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
-            or dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT):
+    if (
+        dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+        or dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+    ):
         qddot_integrated = sol_integrated.states["qddot"]
     else:
         qddot_integrated = np.nan

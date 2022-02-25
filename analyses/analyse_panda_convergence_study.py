@@ -4,19 +4,21 @@ import pickle
 from bioptim import OptimalControlProgram, Shooting
 import biorbd
 from custom_dynamics.enums import MillerDynamics
-from utils import (stack_states,
-                   stack_controls,
-                   define_integrated_time,
-                   define_time,
-                   angular_momentum_time_series,
-                   linear_momentum_time_series,
-                   comdot_time_series,
-                   comddot_time_series,
-                   angular_momentum_deviation,
-                   linear_momentum_deviation,
-                   define_control_integrated,
-                   residual_torque_time_series,
-                   root_explicit_dynamics)
+from utils import (
+    stack_states,
+    stack_controls,
+    define_integrated_time,
+    define_time,
+    angular_momentum_time_series,
+    linear_momentum_time_series,
+    comdot_time_series,
+    comddot_time_series,
+    angular_momentum_deviation,
+    linear_momentum_deviation,
+    define_control_integrated,
+    residual_torque_time_series,
+    root_explicit_dynamics,
+)
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -123,15 +125,12 @@ N = 2
 N_integrated = 2
 for index, row in df_results.iterrows():
     print(index)
-    t_integrated = define_integrated_time(row.parameters["time"],
-                                          row.n_shooting,
-                                          n_step)
+    t_integrated = define_integrated_time(row.parameters["time"], row.n_shooting, n_step)
     q_integrated = row.q_integrated
     qdot_integrated = row.qdot_integrated
     N_integrated = len(t_integrated)
 
-    if row.dynamics_type == MillerDynamics.IMPLICIT \
-            or row.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
+    if row.dynamics_type == MillerDynamics.IMPLICIT or row.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
         qddot_integrated = define_control_integrated(row.controls, n_step, "qddot")
 
     elif row.dynamics_type == MillerDynamics.EXPLICIT:
@@ -143,8 +142,10 @@ for index, row in df_results.iterrows():
             qddot_integrated[:, ii] = m.ForwardDynamics(
                 q_integrated[:, ii], qdot_integrated[:, ii], tau_integrated[:, ii]
             ).to_array()
-    elif row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT \
-            or row.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
+    elif (
+        row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+        or row.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+    ):
         qddot_integrated = row.qddot_integrated
 
     elif row.dynamics_type == MillerDynamics.ROOT_EXPLICIT:
@@ -164,25 +165,25 @@ for index, row in df_results.iterrows():
     T = np.linalg.norm(T, axis=0)
     int_T = np.zeros(1)
     for j in range(T.shape[0] - 1):
-        dt = np.diff(t_integrated[j: j + 2])[0]
+        dt = np.diff(t_integrated[j : j + 2])[0]
         if dt != 0:
-            int_T += np.trapz(T[j: j + 2], dx=dt)
+            int_T += np.trapz(T[j : j + 2], dx=dt)
 
     # Rotation residuals
     R = residual_torque_time_series(m, q_integrated, qdot_integrated, qddot_integrated)[3:]
     R = np.linalg.norm(R, axis=0)
     int_R = np.zeros(1)
     for j in range(R.shape[0] - 1):
-        dt = np.diff(t_integrated[j: j + 2])[0]
+        dt = np.diff(t_integrated[j : j + 2])[0]
         if dt != 0:
-            int_R += np.trapz(R[j: j + 2], dx=dt)
+            int_R += np.trapz(R[j : j + 2], dx=dt)
 
     # store also all tau_integrated
     tau_integrated = np.zeros((m.nbQ(), N_integrated))
     for ii in range(N_integrated):
-        tau_integrated[:, ii] = m.InverseDynamics(q_integrated[:, ii],
-                                                  qdot_integrated[:, ii],
-                                                  qddot_integrated[:, ii]).to_array()
+        tau_integrated[:, ii] = m.InverseDynamics(
+            q_integrated[:, ii], qdot_integrated[:, ii], qddot_integrated[:, ii]
+        ).to_array()
 
     # non integrated values, at nodes.
     t = define_time(row.parameters["time"], row.n_shooting)
@@ -200,8 +201,7 @@ for index, row in df_results.iterrows():
         tau = stack_controls(row.controls, "tau")
 
     # compute qddot
-    if row.dynamics_type == MillerDynamics.IMPLICIT \
-            or row.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
+    if row.dynamics_type == MillerDynamics.IMPLICIT or row.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
         qddot = stack_controls(row.controls, "qddot")
 
     elif row.dynamics_type == MillerDynamics.EXPLICIT:
@@ -216,8 +216,10 @@ for index, row in df_results.iterrows():
         for i in range(N):
             qddot[:6, i] = root_explicit_dynamics(m, q[:, i], qdot[:, i], qddot_joints[:, i])
 
-    elif row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT \
-            or row.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
+    elif (
+        row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+        or row.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+    ):
         qddot = stack_states(row.states, "qddot")
 
     # compute tau for root dynamics because qddot is needed first

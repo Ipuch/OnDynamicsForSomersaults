@@ -11,16 +11,20 @@ df_results = pd.read_pickle("Dataframe_results_metrics.pkl")
 df_results["dynamics_type_label"] = None
 df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
 df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Base}$"
+    df_results["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT, "dynamics_type_label"
+] = r"$\text{Exp-Base}$"
 df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "dynamics_type_label"] = r"$\text{Imp-Full-}\ddot{q}$"
-df_results.loc[df_results[
-                   "dynamics_type"] == MillerDynamics.ROOT_IMPLICIT, "dynamics_type_label"] = r"$\text{Imp-Base-}\ddot{q}$"
-df_results.loc[df_results[
-                   "dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, "dynamics_type_label"] = r"$\text{Imp-Full-}\dddot{q}$"
+    df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "dynamics_type_label"
+] = r"$\text{Imp-Full-}\ddot{q}$"
 df_results.loc[
-    df_results[
-        "dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"] = r"$\text{Imp-Base-}\dddot{q}$"
+    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT, "dynamics_type_label"
+] = r"$\text{Imp-Base-}\ddot{q}$"
+df_results.loc[
+    df_results["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, "dynamics_type_label"
+] = r"$\text{Imp-Full-}\dddot{q}$"
+df_results.loc[
+    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"
+] = r"$\text{Imp-Base-}\dddot{q}$"
 
 # four first functions for each phase
 df_results["cost_J"] = None
@@ -32,35 +36,41 @@ for index, row in df_results.iterrows():
 
     # Index of cost functions in details costs
     idx_angular_momentum = [5, 6]
-    if row.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT \
-            or row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
-        idx_J = [0,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
-                 1,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
-                 2,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
-                 3,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker foot
-                 4,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
-                 11,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
-                 12,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
-                 13,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
-                 14,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
-                 15]  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+    if (
+        row.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+        or row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+    ):
+        idx_J = [
+            0,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            1,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            2,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            3,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker foot
+            4,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            11,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            12,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            13,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            14,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            15,
+        ]  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
     else:
-        idx_J = [0,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
-                 1,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
-                 2,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
-                 3,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker foot
-                 4,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
-                 10,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
-                 11,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
-                 12,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
-                 13,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
-                 14]  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+        idx_J = [
+            0,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            1,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            2,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            3,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker foot
+            4,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            10,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            11,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            12,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            13,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            14,
+        ]  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
 
-    df_results.at[index, "cost_J"] = \
-        np.sum([row.detailed_cost[idx]["cost_value_weighted"] for idx in idx_J])
+    df_results.at[index, "cost_J"] = np.sum([row.detailed_cost[idx]["cost_value_weighted"] for idx in idx_J])
 
-    df_results.at[index, "cost_angular_momentum"] = \
-        np.sum([row.detailed_cost[idx]["cost_value_weighted"] for idx in idx_angular_momentum])
+    df_results.at[index, "cost_angular_momentum"] = np.sum(
+        [row.detailed_cost[idx]["cost_value_weighted"] for idx in idx_angular_momentum]
+    )
 
 
 dyn = df_results["dynamics_type_label"].unique()
@@ -73,8 +83,8 @@ fig = make_subplots(rows=1, cols=2)
 # select only the one who converged
 df_results = df_results[df_results["status"] == 0]
 
-fig = my_traces(fig, dyn, grps, df_results, "cost_J", 1, 1, r'$\mathcal{J}_1 + \mathcal{J}_2$')
-fig = my_traces(fig, dyn, grps, df_results, "cost_angular_momentum", 1, 2, r'$\mathcal{M}_1$')
+fig = my_traces(fig, dyn, grps, df_results, "cost_J", 1, 1, r"$\mathcal{J}_1 + \mathcal{J}_2$")
+fig = my_traces(fig, dyn, grps, df_results, "cost_angular_momentum", 1, 2, r"$\mathcal{M}_1$")
 
 fig.update_layout(
     # xaxis_title=r'$\text{Transcription}$',
@@ -107,7 +117,7 @@ fig = go.Figure()
 # select only the one who converged
 df_results = df_results[df_results["status"] == 0]
 
-fig = my_traces(fig, dyn, grps, df_results, "cost_J", None, None, r'$\mathcal{J}_1 + \mathcal{J}_2$')
+fig = my_traces(fig, dyn, grps, df_results, "cost_J", None, None, r"$\mathcal{J}_1 + \mathcal{J}_2$")
 # fig = my_traces(fig, dyn, grps, df_results, "cost_angular_momentum", 1, 2, r'$\mathcal{M}_1$')
 
 fig.update_layout(

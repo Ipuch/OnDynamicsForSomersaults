@@ -13,20 +13,25 @@ df_results = pd.read_pickle("Dataframe_convergence_metrics.pkl")
 # Add dynamic label to the dataframe.
 df_results["dynamics_type_label"] = None
 df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "dynamics_type_label"] = r"$\text{Imp-Full-}\ddot{q}$"
-df_results.loc[df_results[
-                   "dynamics_type"] == MillerDynamics.ROOT_IMPLICIT, "dynamics_type_label"] = r"$\text{Imp-Base-}\ddot{q}$"
-df_results.loc[df_results[
-                   "dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, "dynamics_type_label"] = r"$\text{Imp-Full-}\dddot{q}$"
+    df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "dynamics_type_label"
+] = r"$\text{Imp-Full-}\ddot{q}$"
 df_results.loc[
-    df_results[
-        "dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"] = r"$\text{Imp-Base-}\dddot{q}$"
+    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT, "dynamics_type_label"
+] = r"$\text{Imp-Base-}\ddot{q}$"
+df_results.loc[
+    df_results["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, "dynamics_type_label"
+] = r"$\text{Imp-Full-}\dddot{q}$"
+df_results.loc[
+    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"
+] = r"$\text{Imp-Base-}\dddot{q}$"
 
 # List of dynamics
-dynamic_types = [MillerDynamics.IMPLICIT,
-                 MillerDynamics.ROOT_IMPLICIT,
-                 MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT,
-                 MillerDynamics.ROOT_IMPLICIT_QDDDOT]
+dynamic_types = [
+    MillerDynamics.IMPLICIT,
+    MillerDynamics.ROOT_IMPLICIT,
+    MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT,
+    MillerDynamics.ROOT_IMPLICIT_QDDDOT,
+]
 
 dyn = df_results["dynamics_type_label"].unique()
 dyn = dyn[[2, 3, 0, 1]]
@@ -51,23 +56,30 @@ df_results = df_results[df_results["status"] == 0]
 def get_all(df, dyn_label, data_key, key: str = "mean"):
     my_bool = df["dynamics_type_label"] == dyn_label
     if key == "mean":
-        return [df[my_bool & (df["n_shooting_tot"] == ii)][data_key].mean() for ii in
-                df[my_bool]["n_shooting_tot"].unique()]
+        return [
+            df[my_bool & (df["n_shooting_tot"] == ii)][data_key].mean() for ii in df[my_bool]["n_shooting_tot"].unique()
+        ]
     if key == "max":
-        return [df[my_bool & (df["n_shooting_tot"] == ii)][data_key].max() -
-                df[my_bool & (df["n_shooting_tot"] == ii)][data_key].median() for ii in
-                df[my_bool]["n_shooting_tot"].unique()]
+        return [
+            df[my_bool & (df["n_shooting_tot"] == ii)][data_key].max()
+            - df[my_bool & (df["n_shooting_tot"] == ii)][data_key].median()
+            for ii in df[my_bool]["n_shooting_tot"].unique()
+        ]
     if key == "min":
-        return [df[my_bool & (df["n_shooting_tot"] == ii)][data_key].min()
-                - df[my_bool & (df["n_shooting_tot"] == ii)][data_key].median()
-                for ii in
-                df[my_bool]["n_shooting_tot"].unique()]
+        return [
+            df[my_bool & (df["n_shooting_tot"] == ii)][data_key].min()
+            - df[my_bool & (df["n_shooting_tot"] == ii)][data_key].median()
+            for ii in df[my_bool]["n_shooting_tot"].unique()
+        ]
     if key == "median":
-        return [df[my_bool & (df["n_shooting_tot"] == ii)][data_key].median() for ii in
-                df[my_bool]["n_shooting_tot"].unique()]
+        return [
+            df[my_bool & (df["n_shooting_tot"] == ii)][data_key].median()
+            for ii in df[my_bool]["n_shooting_tot"].unique()
+        ]
     elif key == "std":
-        return [df[my_bool & (df["n_shooting_tot"] == ii)][data_key].std() for ii in
-                df[my_bool]["n_shooting_tot"].unique()]
+        return [
+            df[my_bool & (df["n_shooting_tot"] == ii)][data_key].std() for ii in df[my_bool]["n_shooting_tot"].unique()
+        ]
 
 
 #
@@ -174,12 +186,9 @@ for jj, d in enumerate(dyn):
         mode="markers",
         row=1,
         col=1,
-        marker=dict(color=c_alpha, size=8,
-                    line=dict(width=0.5,
-                              color='DarkSlateGrey')
-                    ),
+        marker=dict(color=c_alpha, size=8, line=dict(width=0.5, color="DarkSlateGrey")),
         name=d,
-        legendgroup=grps[jj]
+        legendgroup=grps[jj],
     )
 
     fig.add_scatter(
@@ -188,13 +197,10 @@ for jj, d in enumerate(dyn):
         mode="markers",
         row=1,
         col=2,
-        marker=dict(color=c_alpha, size=8,
-                    line=dict(width=0.5,
-                              color='DarkSlateGrey')
-                    ),
+        marker=dict(color=c_alpha, size=8, line=dict(width=0.5, color="DarkSlateGrey")),
         name=d,
         showlegend=False,
-        legendgroup=grps[jj]
+        legendgroup=grps[jj],
     )
 
     fig.add_scatter(
@@ -203,13 +209,10 @@ for jj, d in enumerate(dyn):
         mode="markers",
         row=2,
         col=1,
-        marker=dict(color=c_alpha, size=8,
-                    line=dict(width=0.5,
-                              color='DarkSlateGrey')
-                    ),
+        marker=dict(color=c_alpha, size=8, line=dict(width=0.5, color="DarkSlateGrey")),
         name=d,
         showlegend=False,
-        legendgroup=grps[jj]
+        legendgroup=grps[jj],
     )
 
     fig.add_scatter(
@@ -218,31 +221,48 @@ for jj, d in enumerate(dyn):
         mode="markers",
         row=2,
         col=2,
-        marker=dict(color=c_alpha, size=8,
-                    line=dict(width=0.5,
-                              color='DarkSlateGrey')
-                    ),
+        marker=dict(color=c_alpha, size=8, line=dict(width=0.5, color="DarkSlateGrey")),
         name=d,
         legendgrouptitle_text="Simulation outputs",
         showlegend=False,
-        legendgroup=grps[jj]
+        legendgroup=grps[jj],
     )
 
 # Update xaxis properties
 fig.update_xaxes(
-    title_text=r"$\textrm{Mesh point number}$", row=1, col=1, showline=True, linecolor="black", ticks="outside",
+    title_text=r"$\textrm{Mesh point number}$",
+    row=1,
+    col=1,
+    showline=True,
+    linecolor="black",
+    ticks="outside",
     title_font=dict(size=10),
 )
 fig.update_xaxes(
-    title_text=r"$\textrm{Mesh point number}$", row=1, col=2, showline=True, linecolor="black", ticks="outside",
+    title_text=r"$\textrm{Mesh point number}$",
+    row=1,
+    col=2,
+    showline=True,
+    linecolor="black",
+    ticks="outside",
     title_font=dict(size=10),
 )
 fig.update_xaxes(
-    title_text=r"$\textrm{Mesh point number}$", row=2, col=1, showline=True, linecolor="black", ticks="outside",
+    title_text=r"$\textrm{Mesh point number}$",
+    row=2,
+    col=1,
+    showline=True,
+    linecolor="black",
+    ticks="outside",
     title_font=dict(size=10),
 )
 fig.update_xaxes(
-    title_text=r"$\textrm{Mesh point number}$", row=2, col=2, showline=True, linecolor="black", ticks="outside",
+    title_text=r"$\textrm{Mesh point number}$",
+    row=2,
+    col=2,
+    showline=True,
+    linecolor="black",
+    ticks="outside",
     title_font=dict(size=10),
 )
 
@@ -256,7 +276,7 @@ fig.update_yaxes(
     ticks="outside",
     type="log",
     title_standoff=0,
-    exponentformat='e',
+    exponentformat="e",
 )
 
 fig.update_yaxes(
@@ -268,20 +288,30 @@ fig.update_yaxes(
     ticks="outside",
     type="log",
     title_standoff=0,
-    exponentformat='e',
+    exponentformat="e",
 )
 
 fig.update_yaxes(
-    title_text=r"$\textrm{RMSe  (}N.m.s^{-1}\text{)}$", row=2, col=1, showline=True, linecolor="black", ticks="outside",
+    title_text=r"$\textrm{RMSe  (}N.m.s^{-1}\text{)}$",
+    row=2,
+    col=1,
+    showline=True,
+    linecolor="black",
+    ticks="outside",
     type="log",
     title_standoff=0,
-    exponentformat='e',
+    exponentformat="e",
 )
 fig.update_yaxes(
-    title_text=r"$\textrm{RMSe  (}N.s^{-1}\text{)}$", row=2, col=2, showline=True, linecolor="black", ticks="outside",
+    title_text=r"$\textrm{RMSe  (}N.s^{-1}\text{)}$",
+    row=2,
+    col=2,
+    showline=True,
+    linecolor="black",
+    ticks="outside",
     type="log",
     title_standoff=0,
-    exponentformat='e',
+    exponentformat="e",
 )
 
 fig.update_layout(
