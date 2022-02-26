@@ -181,12 +181,18 @@ for index, row in df_results.iterrows():
         if dt != 0:
             int_R += np.trapz(R[j : j + 2], dx=dt)
 
-    # store also all tau_integrated
-    tau_integrated = np.zeros((m.nbQ(), N_integrated))
-    for ii in range(N_integrated):
-        tau_integrated[:, ii] = m.InverseDynamics(
-            q_integrated[:, ii], qdot_integrated[:, ii], qddot_integrated[:, ii]
-        ).to_array()
+    # store also all tau_integrated (already computed for EXPLICIT)
+    if row.dynamics_type != MillerDynamics.EXPLICIT:
+        if row.dynamics_type == MillerDynamics.IMPLICIT\
+                or row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
+            tau_integrated = define_control_integrated(row.controls, n_step, "tau")
+            tau_integrated = np.vstack((np.zeros((6, N_integrated)), tau_integrated))
+        else:
+            tau_integrated = np.zeros((m.nbQ(), N_integrated))
+            for ii in range(N_integrated):
+                tau_integrated[:, ii] = m.InverseDynamics(
+                    q_integrated[:, ii], qdot_integrated[:, ii], qddot_integrated[:, ii]
+                ).to_array()
 
     # non integrated values, at nodes.
     t = define_time(row.parameters["time"], row.n_shooting)
