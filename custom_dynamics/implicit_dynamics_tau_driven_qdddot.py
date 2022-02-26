@@ -71,4 +71,3 @@ def custom_configure_tau_driven_implicit(ocp: OptimalControlProgram, nlp: NonLin
     )
 
     ConfigureProblem.configure_dynamics_function(ocp, nlp, tau_implicit_qdddot_dynamic)
-

@@ -1,4 +1,7 @@
 import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import plotly.express as px
 
 
 def rmse(predictions, targets):
@@ -96,19 +99,19 @@ def define_integrated_time(time, n_shooting, nstep):
     time_integrated = np.array([])
     cum_time = get_cum_time(time)
     for i, n_shoot in enumerate(n_shooting):
-        periode = (cum_time[i + 1]-cum_time[i])/n_shoot
+        periode = (cum_time[i + 1] - cum_time[i]) / n_shoot
         for ii in range(n_shoot):
-            t_linspace = np.linspace(cum_time[i] + ii * periode, cum_time[i] + (ii+1) * periode, (nstep + 1))
+            t_linspace = np.linspace(cum_time[i] + ii * periode, cum_time[i] + (ii + 1) * periode, (nstep + 1))
             time_integrated = np.hstack((time_integrated, t_linspace))
         time_integrated = np.hstack((time_integrated, cum_time[i + 1]))
     return time_integrated
 
 
-def define_control_integrated(controls, nstep: int,  key: str = "tau"):
+def define_control_integrated(controls, nstep: int, key: str = "tau"):
     tau_integrated = np.hstack(
         (
-            np.repeat(controls[0][key], nstep+1, axis=1)[:, :-nstep],
-            np.repeat(controls[1][key], nstep+1, axis=1)[:, :-nstep],
+            np.repeat(controls[0][key], nstep + 1, axis=1)[:, :-nstep],
+            np.repeat(controls[1][key], nstep + 1, axis=1)[:, :-nstep],
         )
     )
     return tau_integrated
@@ -118,3 +121,67 @@ def get_cum_time(time):
     time = np.hstack((0, np.array(time).squeeze()))
     cum_time = np.cumsum(time)
     return cum_time
+
+
+def root_explicit_dynamics(m, q, qdot, qddot_joints):
+    mass_matrix_nl_effects = m.InverseDynamics(q, qdot, np.hstack((np.zeros((6,)), qddot_joints))).to_array()[:6]
+    mass_matrix = m.massMatrix(q).to_array()
+    qddot_base = -np.linalg.solve(mass_matrix[:6, :6], np.eye(6)) @ mass_matrix_nl_effects
+    return qddot_base
+
+
+def my_traces(fig, dyn, grps, df, key, row, col, title_str):
+    if (col == 1 and row == 1) or (col is None or row is None):
+        showleg = True
+    else:
+        showleg = False
+
+    for ii, d in enumerate(dyn):
+        # manage color
+        c = px.colors.hex_to_rgb(px.colors.qualitative.D3[ii])
+        c = str(f"rgba({c[0]},{c[1]},{c[2]},0.5)")
+        fig.add_trace(
+            go.Box(
+                x=df["dynamics_type_label"][df["dynamics_type_label"] == d],
+                y=df[key][df["dynamics_type_label"] == d],
+                name=d,
+                boxpoints="all",
+                width=0.4,
+                pointpos=-2,
+                legendgroup=grps[ii],
+                fillcolor=c,
+                marker=dict(opacity=0.5),
+                line=dict(color=px.colors.qualitative.D3[ii]),
+            ),
+            row=row,
+            col=col,
+        )
+
+    fig.update_traces(
+        jitter=0.8,  # add some jitter on points for better visibility
+        marker=dict(size=3),
+        row=row,
+        col=col,
+        showlegend=showleg,
+        selector=dict(type="box"),
+    )
+    fig.update_yaxes(
+        type="log",
+        row=row,
+        col=col,
+        title=title_str,
+        title_standoff=2,
+        domain=[0, 1],
+        tickson="boundaries",
+        # tick0=2,  # a ne pas garder
+        exponentformat="e",
+        ticklabeloverflow="allow",
+    )
+    fig.update_xaxes(
+        row=row,
+        col=col,
+        color="black",
+        showticklabels=False,
+        ticks="",
+    )  # no xticks)
+    return fig

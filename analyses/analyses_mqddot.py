@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
 import numpy as np
 
+# WIP - Working progress
 path_file = "../../OnDynamicsForSommersaults_results/raw_08-02-22/miller_explicit_i_rand0.pckl"
 model = "../Model_JeCh_15DoFs.bioMod"
 m = biorbd.Model(model)

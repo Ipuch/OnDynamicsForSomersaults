@@ -4,6 +4,7 @@ from bioptim import Solver, Shooting
 from miller_ocp import MillerOcp
 import pickle
 from time import time
+from custom_dynamics.enums import MillerDynamics
 
 
 def main(args=None):
@@ -64,8 +65,9 @@ def main(args=None):
     solver.set_linear_solver("ma57")
 
     print(f"##########################################################")
-    print(f"Solving dynamics_type={dynamics_type}, i_rand={i_rand},"
-          f"n_shooting={n_shooting}, extra_obj={extra_obj}\n")
+    print(
+        f"Solving dynamics_type={dynamics_type}, i_rand={i_rand}," f"n_shooting={n_shooting}, extra_obj={extra_obj}\n"
+    )
     print(f"##########################################################")
 
     tic = time()
@@ -76,8 +78,10 @@ def main(args=None):
 
     # if sol.status == 0:
     print(f"##########################################################")
-    print(f"Time to solve dynamics_type={dynamics_type}, i_rand={i_rand}, extra_obj={extra_obj}"
-          f"n_shooting={n_shooting}, extra_obj={extra_obj}\n:\n {toc}sec\n")
+    print(
+        f"Time to solve dynamics_type={dynamics_type}, i_rand={i_rand}, extra_obj={extra_obj}"
+        f"n_shooting={n_shooting}, extra_obj={extra_obj}\n:\n {toc}sec\n"
+    )
     print(f"##########################################################")
 
     sol_integrated = sol.integrate(
@@ -86,6 +90,13 @@ def main(args=None):
 
     q_integrated = sol_integrated.states["q"]
     qdot_integrated = sol_integrated.states["qdot"]
+    if (
+        dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+        or dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+    ):
+        qddot_integrated = sol_integrated.states["qddot"]
+    else:
+        qddot_integrated = np.nan
 
     f = open(f"{outpath}.pckl", "wb")
     data = {
@@ -105,6 +116,7 @@ def main(args=None):
         "dynamics_type": dynamics_type,
         "q_integrated": q_integrated,
         "qdot_integrated": qdot_integrated,
+        "qddot_integrated": qddot_integrated,
         "n_shooting": n_shooting,
         "n_theads": n_threads,
     }

@@ -14,8 +14,11 @@ model = "../Model_JeCh_15DoFs.bioMod"
 
 df_results = pd.read_pickle("Dataframe_convergence_metrics.pkl")
 
-# Add dynamic label to the dataframe.
 df_results["dynamics_type_label"] = None
+df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
+df_results.loc[
+    df_results["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT, "dynamics_type_label"
+] = r"$\text{Exp-Base}$"
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "dynamics_type_label"
 ] = r"$\text{Imp-Full-}\ddot{q}$"
@@ -28,6 +31,52 @@ df_results.loc[
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"
 ] = r"$\text{Imp-Base-}\dddot{q}$"
+
+# four first functions for each phase
+df_results["cost_J"] = None
+df_results["cost_angular_momentum"] = None
+
+for index, row in df_results.iterrows():
+    print(index)
+    dc = row.detailed_cost
+
+    # Index of cost functions in details costs
+    idx_angular_momentum = [5, 6]
+    if (
+        row.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+        or row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+    ):
+        idx_J = [
+            0,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            1,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            2,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            3,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker foot
+            4,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            11,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            12,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            13,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            14,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            15,
+        ]  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+    else:
+        idx_J = [
+            0,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            1,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            2,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            3,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker foot
+            4,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            10,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            11,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            12,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            13,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            14,
+        ]  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+
+    df_results.at[index, "cost_J"] = np.sum([row.detailed_cost[idx]["cost_value_weighted"] for idx in idx_J])
+
+    df_results.at[index, "cost_angular_momentum"] = np.sum(
+        [row.detailed_cost[idx]["cost_value_weighted"] for idx in idx_angular_momentum]
+    )
 
 # List of dynamics
 dynamic_types = [
@@ -44,7 +93,8 @@ pal = px.colors.qualitative.D3[2:]
 
 # select only the one who converged
 df_results = df_results[df_results["status"] == 0]
-df_results["computation_time"] = df_results["computation_time"] / 60
+
+
 fig = go.Figure()
 
 
@@ -122,7 +172,7 @@ for jj, d in enumerate(dyn):
 
     fig.add_scatter(
         x=df_results[my_boolean]["n_shooting_tot"],
-        y=df_results[my_boolean]["computation_time"],
+        y=df_results[my_boolean]["cost_J"],
         mode="markers",
         marker=dict(
             color=pal[jj],
@@ -139,15 +189,15 @@ for jj, d in enumerate(dyn):
 
     fig.add_scatter(
         x=x_shoot,
-        y=get_all(df_results, d, "computation_time", "mean"),
+        y=get_all(df_results, d, "cost_J", "mean"),
         mode="lines",
         marker=dict(color=pal[jj], size=8, line=dict(width=0.5, color="DarkSlateGrey")),
         name=d,
         legendgroup=grps[jj],
     )
 
-    y_upper = get_all(df_results, d, "computation_time", "ci_up")
-    y_lower = get_all(df_results, d, "computation_time", "ci_low")
+    y_upper = get_all(df_results, d, "cost_J", "ci_up")
+    y_lower = get_all(df_results, d, "cost_J", "ci_low")
     fig.add_scatter(
         x=x_shoot + x_shoot[::-1],  # x, then x reversed
         y=y_upper + y_lower[::-1],  # upper, then lower reversed
@@ -169,7 +219,7 @@ fig.update_xaxes(
 )
 # Update yaxis properties
 fig.update_yaxes(
-    title_text=r"$\text{Convergence time (min)}$",
+    title_text=r"$\mathcal{J}_1 + \mathcal{J}_2$",
     showline=True,
     linecolor="black",
     ticks="outside",
@@ -201,6 +251,6 @@ fig.update_layout(
 )
 
 fig.show()
-fig.write_image(out_path_file + "/analyse_convergence_time.png")
-fig.write_image(out_path_file + "/analyse_convergence_time.pdf")
-fig.write_html(out_path_file + "/analyse_convergence_time.html")
+fig.write_image(out_path_file + "/analyse_convergence_cost.png")
+fig.write_image(out_path_file + "/analyse_convergence_cost.pdf")
+fig.write_html(out_path_file + "/analyse_convergence_cost.html")

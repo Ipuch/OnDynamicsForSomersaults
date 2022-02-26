@@ -16,7 +16,7 @@ out_path_raw = "../OnDynamicsForSommersaults_results/raw_convergence" + Date
 try:
     os.mkdir(out_path_raw)
 except:
-    print("../OnDynamicsForSommersaults_results/raw_convergence" + Date + ' is already created ')
+    print("../OnDynamicsForSommersaults_results/raw_convergence" + Date + " is already created ")
 
 out_path_raw = "/home/mickaelbegon/Documents/somersaults/OnDynamicsForSommersaults_results/raw_convergence16-02-22"
 cpu_number = cpu_count()

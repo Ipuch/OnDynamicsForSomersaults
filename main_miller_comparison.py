@@ -17,7 +17,7 @@ out_path_raw = "../OnDynamicsForSommersaults_results/raw_" + Date
 try:
     os.mkdir(out_path_raw)
 except:
-    print("../OnDynamicsForSommersaults_results/raw_" + Date + ' is already created ')
+    print("../OnDynamicsForSommersaults_results/raw_" + Date + " is already created ")
 
 out_path_secondary_variables = "../OnDynamicsForSommersaults_results/secondary_variables"
 
