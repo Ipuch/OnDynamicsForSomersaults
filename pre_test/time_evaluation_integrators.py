@@ -28,7 +28,7 @@ model_path = "../Model_JeCh_15DoFs.bioMod"
 
 np.random.seed(0)
 
-n_eval = 100  # 100000
+n_eval = 100000  # 100000
 
 for i in range(6):
     miller = MillerOcp(

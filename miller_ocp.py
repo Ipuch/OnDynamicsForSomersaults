@@ -289,9 +289,14 @@ class MillerOcp:
                 # self.multinode_constraints.add(minimize_linear_momentum, phase_first_idx=0, phase_second_idx=i,
                 #                                first_node=Node.START, second_node=Node.END, weight=100000, index=[0, 1])
                 # try min bound max bound
-                self.objective_functions.add(
-                    ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qdddot", phase=i, weight=0.1
-                )
+                if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
+                    self.objective_functions.add(
+                        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qdddot", phase=i, weight=0.1
+                    )
+                if self.dynamics_type == MillerDynamics.IMPLICIT or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
+                    self.objective_functions.add(
+                        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot", phase=i, weight=0.1
+                    )
 
         # Help to stay upright at the landing.
         self.objective_functions.add(
