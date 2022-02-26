@@ -147,6 +147,7 @@ class MillerOcp:
             self.velocity_max_phase_transition = 10  # qdot hips, thorax in phase 2
 
             self.random_scale = 0.02  # relative to the maximal bounds of the states or controls
+            self.random_scale_qddot = 0.1
 
             self.dynamics = DynamicsList()
             self.constraints = ConstraintList()
@@ -303,7 +304,15 @@ class MillerOcp:
                 # self.multinode_constraints.add(minimize_linear_momentum, phase_first_idx=0, phase_second_idx=i,
                 #                                first_node=Node.START, second_node=Node.END, weight=100000, index=[0, 1])
                 # try min bound max bound
-                self.objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qdddot", phase=i, weight=0.1)
+                if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT\
+                        or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
+                    self.objective_functions.add(
+                        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qdddot", phase=i, weight=0.1
+                    )
+                if self.dynamics_type == MillerDynamics.IMPLICIT or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
+                    self.objective_functions.add(
+                        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot", phase=i, weight=0.1
+                    )
 
         # Help to stay upright at the landing.
         self.objective_functions.add(
@@ -445,13 +454,13 @@ class MillerOcp:
 
         if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
             qddot_random = (
-                (np.random.random((self.n_qddot, total_n_shooting)) * 2 - 1) * self.qddot_max * self.random_scale
+                (np.random.random((self.n_qddot, total_n_shooting)) * 2 - 1) * self.qddot_max * self.random_scale_qddot
             )
             self.x = np.vstack((self.x, qddot_random))
 
         if self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
             qddot_random = (
-                (np.random.random((self.n_qddot, total_n_shooting)) * 2 - 1) * self.qddot_max * self.random_scale
+                (np.random.random((self.n_qddot, total_n_shooting)) * 2 - 1) * self.qddot_max * self.random_scale_qddot
             )
 
             self.x = np.vstack((self.x, qddot_random))
@@ -497,10 +506,10 @@ class MillerOcp:
                 tau_J_random = tau_J_random * tau_max[:, np.newaxis] * self.random_scale
 
                 qddot_J_random = (
-                    (np.random.random((self.n_tau, n_shooting)) * 2 - 1) * self.qddot_max * self.random_scale
+                    (np.random.random((self.n_tau, n_shooting)) * 2 - 1) * self.qddot_max * self.random_scale_qddot
                 )
                 qddot_B_random = (
-                    (np.random.random((self.nb_root, n_shooting)) * 2 - 1) * self.qddot_max * self.random_scale
+                    (np.random.random((self.nb_root, n_shooting)) * 2 - 1) * self.qddot_max * self.random_scale_qddot
                 )
 
                 if self.dynamics_type == MillerDynamics.EXPLICIT:
