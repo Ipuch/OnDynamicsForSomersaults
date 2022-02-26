@@ -33,7 +33,7 @@ def main(dynamics_type, thread, solver, extra_obj: bool = False):
     miller.ocp.add_plot_penalty(CostType.CONSTRAINTS)
     np.random.seed(203)
 
-    solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
+    solver = Solver.IPOPT(show_online_optim=True, show_options=dict(show_bounds=True))
     solver.set_maximum_iterations(10000)
     solver.set_print_level(5)
     solver.set_linear_solver("ma57")
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     #      OdeSolver.RK4(n_integration_steps=5), False)
     # main(MillerDynamics.ROOT_IMPLICIT, 1,
     #      OdeSolver.RK4(n_integration_steps=5), False)
-    main(MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, 1, OdeSolver.RK4(n_integration_steps=1), True)
+    main(MillerDynamics.EXPLICIT, 8, OdeSolver.RK4(n_integration_steps=5), True)
     # main(MillerDynamics.ROOT_IMPLICIT_QDDDOT, 1,
     #      OdeSolver.RK4(n_integration_steps=5), True)
     # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")

@@ -147,7 +147,8 @@ class MillerOcp:
             self.velocity_max_phase_transition = 10  # qdot hips, thorax in phase 2
 
             self.random_scale = 0.02  # relative to the maximal bounds of the states or controls
-            self.random_scale_qddot = 0.1
+            self.random_scale_qddot = 0.2
+            self.random_scale_tau = 0.33
 
             self.dynamics = DynamicsList()
             self.constraints = ConstraintList()
@@ -304,6 +305,10 @@ class MillerOcp:
                 # self.multinode_constraints.add(minimize_linear_momentum, phase_first_idx=0, phase_second_idx=i,
                 #                                first_node=Node.START, second_node=Node.END, weight=100000, index=[0, 1])
                 # try min bound max bound
+                # if self.dynamics_type == MillerDynamics.EXPLICIT:
+                #     self.objective_functions.add(
+                #         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=0.1
+                #     )
                 if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT\
                         or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
                     self.objective_functions.add(
@@ -312,6 +317,10 @@ class MillerOcp:
                 if self.dynamics_type == MillerDynamics.IMPLICIT or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
                     self.objective_functions.add(
                         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot", phase=i, weight=0.1
+                    )
+                if self.dynamics_type == MillerDynamics.EXPLICIT:
+                    self.objective_functions.add(
+                        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=0.1
                     )
 
         # Help to stay upright at the landing.
@@ -448,7 +457,7 @@ class MillerOcp:
             tau_max = self.tau_max * np.ones(self.n_tau)
             tau_max[self.high_torque_idx] = self.tau_hips_max
             tau_max[: self.nb_root] = 0
-            tau_J_random = tau_J_random * tau_max[:, np.newaxis] * self.random_scale
+            tau_J_random = tau_J_random * tau_max[:, np.newaxis] * self.random_scale_tau
 
             self.x = np.vstack((self.x, tau_J_random))
 
@@ -503,7 +512,7 @@ class MillerOcp:
 
                 tau_max = self.tau_max * np.ones(self.n_tau)
                 tau_max[self.high_torque_idx] = self.tau_hips_max
-                tau_J_random = tau_J_random * tau_max[:, np.newaxis] * self.random_scale
+                tau_J_random = tau_J_random * tau_max[:, np.newaxis] * self.random_scale_tau
 
                 qddot_J_random = (
                     (np.random.random((self.n_tau, n_shooting)) * 2 - 1) * self.qddot_max * self.random_scale_qddot
