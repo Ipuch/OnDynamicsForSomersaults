@@ -13,7 +13,7 @@ from custom_dynamics.enums import MillerDynamics
 Date = date.today()
 Date = Date.strftime("%d-%m-%y")
 
-out_path_raw = "../OnDynamicsForSommersaults_results/raw_" + Date
+out_path_raw = "../OnDynamicsForSommersaults_results/raw_imp_min_qddot" + Date
 try:
     os.mkdir(out_path_raw)
 except:
@@ -31,8 +31,8 @@ n_shooting = (125, 25)
 nstep = 5
 
 n_threads = 1  # Should be 8
-ode_solver = [OdeSolver.RK4, OdeSolver.RK4]
-dynamics_types = [MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, MillerDynamics.ROOT_IMPLICIT_QDDDOT]
+ode_solver = [OdeSolver.RK2, OdeSolver.RK2]
+dynamics_types = [MillerDynamics.IMPLICIT, MillerDynamics.ROOT_IMPLICIT]
 
 
 def generate_calls(
@@ -71,13 +71,13 @@ def generate_calls(
     return calls
 
 
-# calls = generate_calls(
-#     100, Date, n_shooting, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, False,
-# )
+calls = generate_calls(
+  100, Date, n_shooting, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
+)
 
-# pool_number = int(cpu_number / n_threads)
-# with Pool(pool_number) as p:  # should be 4
-#     p.map(miller_run.main, calls)
+pool_number = int(cpu_number / n_threads)
+with Pool(pool_number) as p:  # should be 4
+   p.map(miller_run.main, calls)
 
 # Second call
 # n_threads = 1  # Should be 8
@@ -99,13 +99,14 @@ def generate_calls(
 #    p.map(miller_run.main, calls)
 
 # Third call missing ones
-n_threads = 1  # Should be 8
-ode_solver = [OdeSolver.RK2]
-dynamics_types = ["root_implicit"]
-irand_list = [31, 33, 35, 37, 43, 45, 55, 63, 65, 71]
-calls = generate_calls(
-    irand_list, Date, n_shooting, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, False,
-)
-pool_number = int(cpu_number / n_threads)
-with Pool(pool_number) as p:  # should be 4
-    p.map(miller_run.main, calls)
+# n_threads = 1  # Should be 8
+# ode_solver = [OdeSolver.RK4]
+# ode_solver = [OdeSolver.RK2]
+# dynamics_types = [MillerDynamics.ROOT_IMPLICIT]
+# irand_list = [29, 31, 33, 35, 39, 41, 45, 49, 67, 77, 85]
+# calls = generate_calls(
+#    irand_list, Date, n_shooting, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
+# )
+# pool_number = int(cpu_number / n_threads)
+# with Pool(pool_number) as p:  # should be 4
+#    p.map(miller_run.main, calls)
