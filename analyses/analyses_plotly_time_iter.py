@@ -5,9 +5,8 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 import numpy as np
 
-out_path_file = "../../OnDynamicsForSommersaults_results/figures/V1"
-
-df_results = pd.read_pickle("Dataframe_results_metrics.pkl")
+out_path_file = "../../OnDynamicsForSommersaults_results/figures/V3"
+df_results = pd.read_pickle("Dataframe_results_metrics_3.pkl")
 
 df_results["dynamics_type_label"] = None
 df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
@@ -27,24 +26,12 @@ df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"
 ] = r"$\text{Imp-Base-}\dddot{q}$"
 
-# sns.lineplot(x="time", y="signal",
-#              hue="dynamics",
-#              data=df_results)
 
-# get dataframes of shape
-# for explicit ... root_implicit_qdddot
-# for each q, qdot, qddot, tau
-# company
-# time  i_rand1  i_rand2 etc...
-# 0.1  0.000000  0.000000  0.000000  0.000000  0.000000  0.000000
-# df = px.data.stocks(indexed=True) - 1
-# fig = px.area(df, facet_col="company", facet_col_wrap=2)
-
-print("hey")
-dyn = df_results["dynamics_type_label"].unique()
 grps = ["Explicit", "Explicit", "Implicit_qddot", "Implicit_qddot", "Implicit_qdddot", "Implicit_qdddot"]
-dyn = dyn[[2, 4, 3, 5, 0, 1]]
-print(dyn)
+dyn = ['$\\text{Exp-Full}$','$\\text{Exp-Base}$', '$\\text{Imp-Full-}\\ddot{q}$', '$\\text{Imp-Base-}\\ddot{q}$',
+       '$\\text{Imp-Full-}\\dddot{q}$',
+       '$\\text{Imp-Base-}\\dddot{q}$']
+
 
 fig = make_subplots(rows=1, cols=2)
 

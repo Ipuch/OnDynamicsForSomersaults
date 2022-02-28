@@ -7,9 +7,8 @@ import numpy as np
 from utils import my_traces
 import numpy as np
 
-
-out_path_file = "../../OnDynamicsForSommersaults_results/figures/V1"
-df_results = pd.read_pickle("Dataframe_results_metrics.pkl")
+out_path_file = "../../OnDynamicsForSommersaults_results/figures/V3"
+df_results = pd.read_pickle("Dataframe_results_metrics_3.pkl")
 
 df_results["dynamics_type_label"] = None
 df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
@@ -39,9 +38,15 @@ for index, row in df_results.iterrows():
 
     # Index of cost functions in details costs
     idx_angular_momentum = [5, 6]
+    if row.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
+        print("coucou")
+    if row.dynamics_type == MillerDynamics.EXPLICIT:
+        print("coucou")
     if (
         row.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
         or row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+            or row.dynamics_type == MillerDynamics.IMPLICIT
+            or row.dynamics_type == MillerDynamics.ROOT_IMPLICIT
     ):
         idx_J = [
             0,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
@@ -78,8 +83,9 @@ for index, row in df_results.iterrows():
 
 dyn = df_results["dynamics_type_label"].unique()
 grps = ["Explicit", "Explicit", "Implicit_qddot", "Implicit_qddot", "Implicit_qdddot", "Implicit_qdddot"]
-dyn = dyn[[2, 4, 3, 5, 0, 1]]
-print(dyn)
+dyn = ['$\\text{Exp-Full}$','$\\text{Exp-Base}$', '$\\text{Imp-Full-}\\ddot{q}$', '$\\text{Imp-Base-}\\ddot{q}$',
+       '$\\text{Imp-Full-}\\dddot{q}$',
+       '$\\text{Imp-Base-}\\dddot{q}$']
 
 fig = make_subplots(rows=1, cols=2)
 

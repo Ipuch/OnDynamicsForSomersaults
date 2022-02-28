@@ -6,7 +6,7 @@ import plotly.express as px
 import numpy as np
 from utils import my_traces
 
-df_results = pd.read_pickle("Dataframe_results_metrics.pkl")
+df_results = pd.read_pickle("Dataframe_results_metrics_2.pkl")
 
 df_results["dynamics_type_label"] = None
 df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
@@ -52,8 +52,8 @@ df_results = df_results[df_results["status"] == 0]
 
 fig = go.Figure()
 
-q_idx = 8
-key = "qddot_integrated"
+q_idx = 10
+key = "q_integrated"
 
 first_e = 0
 first_re = 0
@@ -114,8 +114,8 @@ for index, row in df_results.iterrows():
 
 fig.update_layout(
     # xaxis_title=r'$\text{Transcription}$',
-    height=400,
-    width=600,
+    height=800,
+    width=800,
     paper_bgcolor="rgba(255,255,255,1)",
     plot_bgcolor="rgba(255,255,255,1)",
     legend=dict(
