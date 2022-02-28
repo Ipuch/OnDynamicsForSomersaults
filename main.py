@@ -59,7 +59,7 @@ def main(dynamics_type, thread, solver, extra_obj: bool = False):
         miller.ocp.save(
             sol,
             f"/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/other/"
-            f"{dynamics_type}_{current_date.__str__()}_{current_time.__str__().replace(':', '_')[:8]}",
+            f"last_test_min_qdddot",
         )
     except:
         print("not saved")
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     #      OdeSolver.RK4(n_integration_steps=5), False)
     # main(MillerDynamics.ROOT_IMPLICIT, 1,
     #      OdeSolver.RK4(n_integration_steps=5), False)
-    main(MillerDynamics.EXPLICIT, 8, OdeSolver.RK4(n_integration_steps=5), True)
+    main(MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, 1, OdeSolver.RK4(n_integration_steps=5), True)
     # main(MillerDynamics.ROOT_IMPLICIT_QDDDOT, 1,
     #      OdeSolver.RK4(n_integration_steps=5), True)
     # "implicit"  # "explicit"  # "root_explicit"  # "root_implicit")

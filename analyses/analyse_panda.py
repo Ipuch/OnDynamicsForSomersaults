@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 
-out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_all"
+out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_with_min_qddot_V2"
 model = "../Model_JeCh_15DoFs.bioMod"
 # open files
 files = os.listdir(out_path_raw)
@@ -35,8 +35,8 @@ files.sort()
 dynamic_types = [
     "explicit",
     "root_explicit",
-    "implicit",
-    "root_implicit",
+    MillerDynamics.IMPLICIT,
+    MillerDynamics.ROOT_IMPLICIT,
     MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT,
     MillerDynamics.ROOT_IMPLICIT_QDDDOT,
 ]
@@ -59,49 +59,50 @@ column_names = [
     "n_shooting",
     "n_theads",
 ]
-# df_results = pd.DataFrame(columns=column_names)
-#
-# for i, file in enumerate(files):
-#     if file.endswith(".pckl"):
-#         print(file)
-#         p = Path(f"{out_path_raw}/{file}")
-#         file_path = open(p, "rb")
-#         data = pickle.load(file_path)
-#
-#         # DM to array
-#         data["cost"] = np.array(data["cost"])[0][0]
-#         data["parameters"]["time"] = np.array(data["parameters"]["time"]).T[0]
-#
-#         # convert old dynamics_types
-#         if data["dynamics_type"] == MillerDynamics.EXPLICIT.value:
-#             data["dynamics_type"] = MillerDynamics.EXPLICIT
-#         elif data["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT.value:
-#             data["dynamics_type"] = MillerDynamics.ROOT_EXPLICIT
-#         elif data["dynamics_type"] == MillerDynamics.IMPLICIT.value:
-#             data["dynamics_type"] = MillerDynamics.IMPLICIT
-#         elif data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT.value:
-#             data["dynamics_type"] = MillerDynamics.ROOT_IMPLICIT
-#
-#         # fill qddot_integrated
-#         if data["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT\
-#                 or data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
-#             p = p.with_suffix('.bo')
-#             ocp, sol = OptimalControlProgram.load(p.resolve().__str__())
-#             sol_integrated = sol.integrate(
-#                 shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False
-#             )
-#             data["qddot_integrated"] = sol_integrated.states["qddot"]
-#         else:
-#             data["qddot_integrated"] = np.nan
-#
-#         df_dictionary = pd.DataFrame([data])
-#         df_results = pd.concat([df_results, df_dictionary], ignore_index=True)
-#
-# df_results.to_pickle("Dataframe_results.pkl")
+df_results = pd.DataFrame(columns=column_names)
+
+for i, file in enumerate(files):
+    if file.endswith(".pckl"):
+        print(file)
+        p = Path(f"{out_path_raw}/{file}")
+        file_path = open(p, "rb")
+        data = pickle.load(file_path)
+
+        # DM to array
+        data["cost"] = np.array(data["cost"])[0][0]
+        data["parameters"]["time"] = np.array(data["parameters"]["time"]).T[0]
+
+        # convert old dynamics_types
+        if data["dynamics_type"] == MillerDynamics.EXPLICIT.value:
+            data["dynamics_type"] = MillerDynamics.EXPLICIT
+        elif data["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT.value:
+            data["dynamics_type"] = MillerDynamics.ROOT_EXPLICIT
+        elif data["dynamics_type"] == MillerDynamics.IMPLICIT.value:
+            data["dynamics_type"] = MillerDynamics.IMPLICIT
+        elif data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT.value:
+            data["dynamics_type"] = MillerDynamics.ROOT_IMPLICIT
+
+        # fill qddot_integrated
+        if data["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT\
+                or data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
+            p = p.with_suffix('.bo')
+            ocp, sol = OptimalControlProgram.load(p.resolve().__str__())
+            sol_integrated = sol.integrate(
+                shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False
+            )
+            data["qddot_integrated"] = sol_integrated.states["qddot"]
+        else:
+            data["qddot_integrated"] = np.nan
+
+        df_dictionary = pd.DataFrame([data])
+        df_results = pd.concat([df_results, df_dictionary], ignore_index=True)
+
+df_results.to_pickle("Dataframe_results_3.pkl")
 
 # Add Metrics
+# df_results = pd.read_pickle("Dataframe_results.pkl")
+# df_results = pd.read_pickle("Dataframe_results_2.pkl")
 
-df_results = pd.read_pickle("Dataframe_results.pkl")
 # fill new columns
 n_row = len(df_results)
 df_results["t"] = None
@@ -276,4 +277,4 @@ for index, row in df_results.iterrows():
     df_results.at[index, "T1"] = row.parameters["time"][0]
     df_results.at[index, "T2"] = row.parameters["time"][1]
 
-df_results.to_pickle("Dataframe_results_metrics.pkl")
+df_results.to_pickle("Dataframe_results_metrics_3.pkl")

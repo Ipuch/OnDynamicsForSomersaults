@@ -147,8 +147,12 @@ class MillerOcp:
             self.velocity_max_phase_transition = 10  # qdot hips, thorax in phase 2
 
             self.random_scale = 0.02  # relative to the maximal bounds of the states or controls
-            self.random_scale_qddot = 0.2
-            self.random_scale_tau = 0.33
+            # self.random_scale_qdot = 0.1
+            # self.random_scale_qddot = 0.2
+            # self.random_scale_tau = 0.33
+            self.random_scale_qdot = 0.02
+            self.random_scale_qddot = 0.02
+            self.random_scale_tau = 0.02
 
             self.dynamics = DynamicsList()
             self.constraints = ConstraintList()
@@ -312,7 +316,7 @@ class MillerOcp:
                 if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT\
                         or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
                     self.objective_functions.add(
-                        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qdddot", phase=i, weight=0.1
+                        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qdddot", phase=i, weight=1e-8
                     )
                 if self.dynamics_type == MillerDynamics.IMPLICIT or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
                     self.objective_functions.add(
@@ -438,7 +442,7 @@ class MillerOcp:
         self.x[self.n_q + 6 :, :] = (
             (np.random.random((self.n_qdot - self.nb_root, total_n_shooting)) * 2 - 1)
             * self.velocity_max
-            * self.random_scale
+            * self.random_scale_qdot
         )
 
         # random for other velocities in phase 2 to only
@@ -448,7 +452,7 @@ class MillerOcp:
         self.x[low_speed_idx, n_shooting_phase_0:] = (
             (np.random.random((len(low_speed_idx), n_shooting_phase_1)) * 2 - 1)
             * self.velocity_max_phase_transition
-            * self.random_scale
+            * self.random_scale_qdot
         )
 
         if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
