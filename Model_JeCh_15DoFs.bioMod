@@ -374,7 +374,7 @@ external_forces 0
 	
 		// Markers
 		marker	chevilleM
-			parent	CuisseM
+			parent	PiedM
 			position	0	0	0
 			technical 1
 		endmarker
