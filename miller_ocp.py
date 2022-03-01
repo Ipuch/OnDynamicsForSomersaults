@@ -218,7 +218,9 @@ class MillerOcp:
 
         # --- Objective function --- #
         w_qdot = 1
-        w_penalty = 10
+        w_penalty = 1
+        w_penalty_foot = 10
+        w_penalty_core = 10
         w_track_final = 0.1
         w_angular_momentum_x = 100000
         w_angular_momentum_yz = 1000
@@ -232,31 +234,34 @@ class MillerOcp:
                 phase=i,
             )  # Regularization
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS,
+                ObjectiveFcn.Mayer.MINIMIZE_MARKERS,
                 derivative=True,
-                reference_jcs=1,
+                reference_jcs=0,
                 marker_index=6,
                 weight=w_penalty,
                 phase=i,
+                node=Node.ALL_SHOOTING,
             )  # Right hand trajectory
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS,
+                ObjectiveFcn.Mayer.MINIMIZE_MARKERS,
                 derivative=True,
-                reference_jcs=1,
+                reference_jcs=0,
                 marker_index=11,
                 weight=w_penalty,
                 phase=i,
+                node=Node.ALL_SHOOTING,
             )  # Left hand trajectory
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_MARKERS,
+                ObjectiveFcn.Mayer.MINIMIZE_MARKERS,
                 derivative=True,
                 reference_jcs=0,
                 marker_index=16,
-                weight=w_penalty,
+                weight=w_penalty_foot,
                 phase=i,
+                node=Node.ALL_SHOOTING,
             )  # feet trajectory
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(6, 7, 8, 13, 14), key="q", weight=w_penalty, phase=i
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(6, 7, 8, 13, 14), key="q", weight=w_penalty_core, phase=i
             )  # core DoFs
 
             self.objective_functions.add(
@@ -279,52 +284,15 @@ class MillerOcp:
         # Track momentum and Minimize delta momentum
         if self.extra_obj:
             for i in range(2):
-                # self.objective_functions.add(
-                #     ObjectiveFcn.Lagrange.MINIMIZE_ANGULAR_MOMENTUM, phase=i, index=0, derivative=True, weight=1
-                # )
-                # self.objective_functions.add(
-                #     ObjectiveFcn.Lagrange.MINIMIZE_ANGULAR_MOMENTUM, phase=i, index=[1, 2], derivative=True, weight=100000
-                # )
-                # self.objective_functions.add(
-                #     ObjectiveFcn.Lagrange.MINIMIZE_LINEAR_MOMENTUM, index=[0, 1], phase=i, derivative=True, weight=100000
-                # )
-                # self.objective_functions.add(
-                #     ObjectiveFcn.Lagrange.MINIMIZE_COM_ACCELERATION, index=2, phase=i, derivative=True, weight=100000,
-                # )
-                # juste Sigma x 500 secondes à 100000 de poids
-                # for jj in range(1, self.n_shooting[i]):
-                #     self.multinode_constraints.add(minimize_angular_momentum, phase_first_idx=0, phase_second_idx=i,
-                #                                    first_node=Node.START, second_node=int(jj),
-                #                                    weight=100000, index=0)
-                # self.multinode_constraints.add(minimize_angular_momentum, phase_first_idx=0, phase_second_idx=i,
-                #                              first_node=Node.START, second_node=int(self.n_shooting[i]/2), weight=200)
-                # self.multinode_constraints.add(minimize_angular_momentum, phase_first_idx=0, phase_second_idx=i,
-                #                                first_node=Node.START, second_node=Node.END, weight=100000, index=0)
-                # for jj in range(1, self.n_shooting[i]):
-                #     self.multinode_constraints.add(minimize_linear_momentum, phase_first_idx=0, phase_second_idx=i,
-                #                                    first_node=Node.START, second_node=int(jj),
-                #                                    weight=100000, index=[0, 1])
-                # self.multinode_constraints.add(minimize_angular_momentum, phase_first_idx=0, phase_second_idx=i,
-                #                              first_node=Node.START, second_node=int(self.n_shooting[i]/2), weight=200)
-                # self.multinode_constraints.add(minimize_linear_momentum, phase_first_idx=0, phase_second_idx=i,
-                #                                first_node=Node.START, second_node=Node.END, weight=100000, index=[0, 1])
-                # try min bound max bound
-                # if self.dynamics_type == MillerDynamics.EXPLICIT:
-                #     self.objective_functions.add(
-                #         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=0.1
-                #     )
                 if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT\
                         or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
                     self.objective_functions.add(
                         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qdddot", phase=i, weight=1e-8
                     )
-                if self.dynamics_type == MillerDynamics.IMPLICIT or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
+                if self.dynamics_type == MillerDynamics.IMPLICIT \
+                        or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
                     self.objective_functions.add(
-                        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot", phase=i, weight=0.1
-                    )
-                if self.dynamics_type == MillerDynamics.EXPLICIT:
-                    self.objective_functions.add(
-                        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", phase=i, weight=0.1
+                        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot", phase=i, weight=1e-4
                     )
 
         # Help to stay upright at the landing.
