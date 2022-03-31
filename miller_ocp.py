@@ -91,7 +91,6 @@ class MillerOcp:
             if (
                 self.dynamics_type == MillerDynamics.IMPLICIT
                 or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT
-                or self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN
                 or self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
                 or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
             ):
@@ -194,6 +193,7 @@ class MillerOcp:
                 ode_solver=ode_solver,
                 use_sx=use_sx,
             )
+            self._print_bounds()
 
     def _set_dynamics(self):
         for phase in range(len(self.n_shooting)):
@@ -284,13 +284,14 @@ class MillerOcp:
         # Track momentum and Minimize delta momentum
         if self.extra_obj:
             for i in range(2):
-                if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT\
-                        or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
+                if (
+                    self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+                    or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+                ):
                     self.objective_functions.add(
                         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qdddot", phase=i, weight=1e-8
                     )
-                if self.dynamics_type == MillerDynamics.IMPLICIT \
-                        or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
+                if self.dynamics_type == MillerDynamics.IMPLICIT or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
                     self.objective_functions.add(
                         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot", phase=i, weight=1e-4
                     )
@@ -956,3 +957,36 @@ class MillerOcp:
         self.x = states
         self.p = np.array(data.parameters["time"])
         print(self.p)
+
+    def _print_bounds(self):
+        max = []
+        min = []
+        for nlp in self.ocp.nlp:
+            max.append(np.array(nlp.x_bounds.max.tolist()))
+            min.append(np.array(nlp.x_bounds.min.tolist()))
+
+        s = ""
+        for i, nlp in enumerate(self.ocp.nlp):
+            s += f"Phase {i}"
+            s += 14 * " " + 2 * 21 * " "
+        print(s)
+
+        s = ""
+        for i, nlp in enumerate(self.ocp.nlp):
+            s += f"Beginning"
+            s += 12 * " "
+            s += f"Middle"
+            s += 15 * " "
+            s += f"End"
+            s += 18 * " "
+        print(s)
+
+        for i in range(nlp.x_bounds.shape[0]):
+            s = ""
+            coef = 180 / np.pi if i > 2 else 1
+            for p, nlp in enumerate(self.ocp.nlp):
+                for j in range(len(min[p][i])):
+                    str_interval = f"[{np.round(min[p][i][j] * coef,3)}, {np.round(max[p][i][j] * coef,3)}]"
+                    str_interval += (21 - str_interval.__len__()) * " "
+                    s += str_interval
+            print(s)

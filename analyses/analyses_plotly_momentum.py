@@ -5,30 +5,17 @@ from plotly.subplots import make_subplots
 import plotly.express as px
 import numpy as np
 
-out_path_file = "../../OnDynamicsForSommersaults_results/figures/V3"
-df_results = pd.read_pickle("Dataframe_results_metrics_3.pkl")
+out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
+df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
 
-df_results["dynamics_type_label"] = None
-df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT, "dynamics_type_label"
-] = r"$\text{Exp-Base}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "dynamics_type_label"
-] = r"$\text{Imp-Full-}\ddot{q}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT, "dynamics_type_label"
-] = r"$\text{Imp-Base-}\ddot{q}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, "dynamics_type_label"
-] = r"$\text{Imp-Full-}\dddot{q}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"
-] = r"$\text{Imp-Base-}\dddot{q}$"
-
-dyn = ['$\\text{Exp-Full}$','$\\text{Exp-Base}$', '$\\text{Imp-Full-}\\ddot{q}$', '$\\text{Imp-Base-}\\ddot{q}$',
-       '$\\text{Imp-Full-}\\dddot{q}$',
-       '$\\text{Imp-Base-}\\dddot{q}$']
+dyn = [
+    "$\\text{Exp-Full}$",
+    "$\\text{Exp-Base}$",
+    "$\\text{Imp-Full-}\\ddot{q}$",
+    "$\\text{Imp-Base-}\\ddot{q}$",
+    "$\\text{Imp-Full-}\\dddot{q}$",
+    "$\\text{Imp-Base-}\\dddot{q}$",
+]
 dyn = dyn[2:]
 grps = ["Explicit", "Explicit", "Implicit_qddot", "Implicit_qddot", "Implicit_qdddot", "Implicit_qdddot"]
 grps = grps[2:]
@@ -43,6 +30,7 @@ fig = make_subplots(
         r"$\textrm{Translation Torque}$",
         r"$\textrm{Rotation Torque}$",
     ),
+    vertical_spacing=0.09,
 )
 
 # select only the one who converged
@@ -114,7 +102,7 @@ fig = my_traces(
     "linear_momentum_rmse",
     1,
     1,
-    r"$\text{RMSe (}N.s^{-1} \text{)}$",
+    r"$\text{RMSe (}kg.m.s^{-1} \text{)}$",
     r"$\text{Linear Momentum}$",
 )
 fig = my_traces(
@@ -126,7 +114,7 @@ fig = my_traces(
     "angular_momentum_rmse",
     1,
     2,
-    r"$\text{RMSe (}N.m.s^{-1} \text{)}$",
+    r"$\text{RMSe (}kg.m^2.s^{-1}\text{)}$",
     r"$\text{Angular Momentum}$",
 )
 fig = my_traces(
@@ -161,6 +149,7 @@ fig.update_layout(
     boxgap=0.2,
 )
 fig.show()
-fig.write_image(out_path_file + "/analyse_momentum.png")
-fig.write_image(out_path_file + "/analyse_momentum.pdf")
+# fig.write_image(out_path_file + "/analyse_momentum.png")
+# fig.write_image(out_path_file + "/analyse_momentum.pdf")
+fig.write_image(out_path_file + "/analyse_momentum.eps")
 fig.write_html(out_path_file + "/analyse_momentum.html")

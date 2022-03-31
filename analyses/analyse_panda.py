@@ -21,25 +21,12 @@ from utils import (
 )
 import numpy as np
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import plotly.express as px
-import plotly.graph_objects as go
 
-out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_with_min_qddot_V2"
+out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_last01-03-22"
 model = "../Model_JeCh_15DoFs.bioMod"
 # open files
 files = os.listdir(out_path_raw)
 files.sort()
-
-dynamic_types = [
-    "explicit",
-    "root_explicit",
-    MillerDynamics.IMPLICIT,
-    MillerDynamics.ROOT_IMPLICIT,
-    MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT,
-    MillerDynamics.ROOT_IMPLICIT_QDDDOT,
-]
 
 column_names = [
     "model_path",
@@ -59,49 +46,38 @@ column_names = [
     "n_shooting",
     "n_theads",
 ]
-df_results = pd.DataFrame(columns=column_names)
+# df_results = pd.DataFrame(columns=column_names)
+#
+# for i, file in enumerate(files):
+#     if file.endswith(".pckl"):
+#         print(file)
+#         p = Path(f"{out_path_raw}/{file}")
+#         file_path = open(p, "rb")
+#         data = pickle.load(file_path)
+#
+#         # DM to array
+#         data["cost"] = np.array(data["cost"])[0][0]
+#         data["parameters"]["time"] = np.array(data["parameters"]["time"]).T[0]
+#
+#         # fill qddot_integrated
+#         if (
+#             data["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+#             or data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+#         ):
+#             p = p.with_suffix(".bo")
+#             ocp, sol = OptimalControlProgram.load(p.resolve().__str__())
+#             sol_integrated = sol.integrate(
+#                 shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False
+#             )
+#             data["qddot_integrated"] = sol_integrated.states["qddot"]
+#         else:
+#             data["qddot_integrated"] = np.nan
+#
+#         df_dictionary = pd.DataFrame([data])
+#         df_results = pd.concat([df_results, df_dictionary], ignore_index=True)
 
-for i, file in enumerate(files):
-    if file.endswith(".pckl"):
-        print(file)
-        p = Path(f"{out_path_raw}/{file}")
-        file_path = open(p, "rb")
-        data = pickle.load(file_path)
-
-        # DM to array
-        data["cost"] = np.array(data["cost"])[0][0]
-        data["parameters"]["time"] = np.array(data["parameters"]["time"]).T[0]
-
-        # convert old dynamics_types
-        if data["dynamics_type"] == MillerDynamics.EXPLICIT.value:
-            data["dynamics_type"] = MillerDynamics.EXPLICIT
-        elif data["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT.value:
-            data["dynamics_type"] = MillerDynamics.ROOT_EXPLICIT
-        elif data["dynamics_type"] == MillerDynamics.IMPLICIT.value:
-            data["dynamics_type"] = MillerDynamics.IMPLICIT
-        elif data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT.value:
-            data["dynamics_type"] = MillerDynamics.ROOT_IMPLICIT
-
-        # fill qddot_integrated
-        if data["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT\
-                or data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
-            p = p.with_suffix('.bo')
-            ocp, sol = OptimalControlProgram.load(p.resolve().__str__())
-            sol_integrated = sol.integrate(
-                shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False
-            )
-            data["qddot_integrated"] = sol_integrated.states["qddot"]
-        else:
-            data["qddot_integrated"] = np.nan
-
-        df_dictionary = pd.DataFrame([data])
-        df_results = pd.concat([df_results, df_dictionary], ignore_index=True)
-
-df_results.to_pickle("Dataframe_results_3.pkl")
-
-# Add Metrics
-# df_results = pd.read_pickle("Dataframe_results.pkl")
-# df_results = pd.read_pickle("Dataframe_results_2.pkl")
+# df_results.to_pickle("Dataframe_results_5.pkl")
+df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
 
 # fill new columns
 n_row = len(df_results)
@@ -184,10 +160,17 @@ for index, row in df_results.iterrows():
 
     # store also all tau_integrated (already computed for EXPLICIT)
     if row.dynamics_type != MillerDynamics.EXPLICIT:
-        if row.dynamics_type == MillerDynamics.IMPLICIT\
-                or row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
-            tau_integrated = define_control_integrated(row.controls, n_step, "tau")
-            tau_integrated = np.vstack((np.zeros((6, N_integrated)), tau_integrated))
+        if (
+            row.dynamics_type == MillerDynamics.IMPLICIT
+            or row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+        ):
+            # tau_integrated = define_control_integrated(row.controls, n_step, "tau")
+            # tau_integrated = np.vstack((np.zeros((6, N_integrated)), tau_integrated))
+            tau_integrated = np.zeros((m.nbQ(), N_integrated))
+            for ii in range(N_integrated):
+                tau_integrated[:, ii] = m.InverseDynamics(
+                    q_integrated[:, ii], qdot_integrated[:, ii], qddot_integrated[:, ii]
+                ).to_array()
         else:
             tau_integrated = np.zeros((m.nbQ(), N_integrated))
             for ii in range(N_integrated):
@@ -277,4 +260,118 @@ for index, row in df_results.iterrows():
     df_results.at[index, "T1"] = row.parameters["time"][0]
     df_results.at[index, "T2"] = row.parameters["time"][1]
 
-df_results.to_pickle("Dataframe_results_metrics_3.pkl")
+# EXTRA COMPUTATIONS
+# NICE LATEX LABELS
+df_results["dynamics_type_label"] = None
+df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
+df_results.loc[
+    df_results["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT, "dynamics_type_label"
+] = r"$\text{Exp-Base}$"
+df_results.loc[
+    df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "dynamics_type_label"
+] = r"$\text{Imp-Full-}\ddot{q}$"
+df_results.loc[
+    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT, "dynamics_type_label"
+] = r"$\text{Imp-Base-}\ddot{q}$"
+df_results.loc[
+    df_results["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, "dynamics_type_label"
+] = r"$\text{Imp-Full-}\dddot{q}$"
+df_results.loc[
+    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"
+] = r"$\text{Imp-Base-}\dddot{q}$"
+
+# COST FUNCTIONS
+# four first functions for each phase
+df_results["cost_J"] = None
+df_results["cost_angular_momentum"] = None
+
+for ii in range(10):
+    df_results[f"cost_J{ii}"] = None
+
+for index, row in df_results.iterrows():
+    print(index)
+    dc = row.detailed_cost
+
+    # Index of cost functions in details costs
+    idx_angular_momentum = [5, 6]
+
+    if (
+        row.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+        or row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+        or row.dynamics_type == MillerDynamics.IMPLICIT
+        or row.dynamics_type == MillerDynamics.ROOT_IMPLICIT
+    ):
+        idx_J = [
+            0,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            1,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            2,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            3,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker foot
+            4,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            11,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            12,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            13,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            14,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            15,
+        ]  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+    else:
+        idx_J = [
+            0,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            1,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            2,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            3,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker foot
+            4,  # Phase 1 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            10,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, derivative=True, key = qdot
+            11,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            12,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_MARKERS, derivative=True, marker hand
+            13,  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+            14,
+        ]  # Phase 2 ObjectiveFcn.Lagrange.MINIMIZE_STATE, key = q # core dof
+
+    for ii, idx in enumerate(idx_J):
+        df_results.at[index, f"cost_J{ii}"] = row.detailed_cost[idx]["cost_value_weighted"]
+
+    df_results.at[index, "cost_J"] = np.sum([row.detailed_cost[idx]["cost_value_weighted"] for idx in idx_J])
+    print(np.sum([row.detailed_cost[idx]["cost_value_weighted"] for idx in idx_J]))
+
+    df_results.at[index, "cost_angular_momentum"] = np.sum(
+        [row.detailed_cost[idx]["cost_value_weighted"] for idx in idx_angular_momentum]
+    )
+
+
+df_results["grps"] = None
+df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "grps"] = "Explicit"
+df_results.loc[df_results["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT, "grps"] = "Root_Explicit"
+df_results.loc[df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "grps"] = "Implicit_qddot"
+df_results.loc[df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT, "grps"] = "Root_Implicit_qddot"
+df_results.loc[df_results["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, "grps"] = "Implicit_qdddot"
+df_results.loc[df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "grps"] = "Root_Implicit_qdddot"
+
+# df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
+# df_results.to_pickle("Dataframe_results_metrics_5.pkl")
+
+# COMPUTE CLUSTERS of same value for Cost_J
+df_results["main_cluster"] = False
+# specify the value for each dynamic type
+cost_J_cluster_values = [10.63299, 10.61718, 2.68905, 2.591474, 10.58839, 10.58604]
+for index, row in df_results.iterrows():
+    if row.dynamics_type == MillerDynamics.EXPLICIT:
+        cluster_val = cost_J_cluster_values[0]
+    elif row.dynamics_type == MillerDynamics.ROOT_EXPLICIT:
+        cluster_val = cost_J_cluster_values[1]
+    elif row.dynamics_type == MillerDynamics.IMPLICIT:
+        cluster_val = cost_J_cluster_values[2]
+    elif row.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
+        cluster_val = cost_J_cluster_values[3]
+    elif row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
+        cluster_val = cost_J_cluster_values[4]
+    elif row.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
+        cluster_val = cost_J_cluster_values[5]
+
+    if abs(cluster_val - row["cost_J"]) < 1e-3:
+        print(row.dynamics_type)
+        print(cluster_val - row["cost_J"])
+        print(row.irand)
+        df_results.at[index, "main_cluster"] = True
+
+# finir ici
+df_results.to_pickle("Dataframe_results_metrics_5.pkl")

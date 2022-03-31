@@ -35,16 +35,16 @@ dynamics_types = [MillerDynamics.EXPLICIT]
 
 
 def generate_calls(
-        n: Union[int, list],
-        Date,
-        n_shooting: tuple,
-        dynamics_types: list,
-        ode_solver: list,
-        nstep: int,
-        n_threads: int,
-        out_path_raw: str,
-        model_str: str,
-        extra_obj: bool,
+    n: Union[int, list],
+    Date,
+    n_shooting: tuple,
+    dynamics_types: list,
+    ode_solver: list,
+    nstep: int,
+    n_threads: int,
+    out_path_raw: str,
+    model_str: str,
+    extra_obj: bool,
 ):
     if isinstance(n, int):
         rand_loop = range(n)
@@ -71,7 +71,7 @@ def generate_calls(
 
 
 calls = generate_calls(
-    [4,5,6,7],
+    [4, 5, 6, 7],
     Date,
     n_shooting,
     dynamics_types,

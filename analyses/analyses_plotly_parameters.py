@@ -6,8 +6,8 @@ import plotly.express as px
 import numpy as np
 from utils import my_traces
 
-out_path_file = "../../OnDynamicsForSommersaults_results/figures/V3"
-df_results = pd.read_pickle("Dataframe_results_metrics_3.pkl")
+out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
+df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
 
 df_results["dynamics_type_label"] = None
 df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
@@ -28,9 +28,14 @@ df_results.loc[
 ] = r"$\text{Imp-Base-}\dddot{q}$"
 
 grps = ["Explicit", "Explicit", "Implicit_qddot", "Implicit_qddot", "Implicit_qdddot", "Implicit_qdddot"]
-dyn = ['$\\text{Exp-Full}$','$\\text{Exp-Base}$', '$\\text{Imp-Full-}\\ddot{q}$', '$\\text{Imp-Base-}\\ddot{q}$',
-       '$\\text{Imp-Full-}\\dddot{q}$',
-       '$\\text{Imp-Base-}\\dddot{q}$']
+dyn = [
+    "$\\text{Exp-Full}$",
+    "$\\text{Exp-Base}$",
+    "$\\text{Imp-Full-}\\ddot{q}$",
+    "$\\text{Imp-Base-}\\ddot{q}$",
+    "$\\text{Imp-Full-}\\dddot{q}$",
+    "$\\text{Imp-Base-}\\dddot{q}$",
+]
 
 fig = make_subplots(rows=1, cols=2)
 

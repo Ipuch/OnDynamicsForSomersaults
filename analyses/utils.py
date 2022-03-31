@@ -2,6 +2,8 @@ import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
+import scipy.stats
+import math
 
 
 def rmse(predictions, targets):
@@ -130,16 +132,31 @@ def root_explicit_dynamics(m, q, qdot, qddot_joints):
     return qddot_base
 
 
-def my_traces(fig, dyn, grps, df, key, row, col, title_str):
-    if (col == 1 and row == 1) or (col is None or row is None):
+def my_traces(
+    fig,
+    dyn,
+    grps,
+    df,
+    key,
+    row,
+    col,
+    ylabel: str = None,
+    title_str: str = None,
+    ylog: bool = True,
+    color: list = None,
+    show_legend: bool = False,
+):
+    ylog = "log" if ylog == True else None
+    if (col == 1 and row == 1) or (col is None or row is None) or show_legend == True:
         showleg = True
     else:
         showleg = False
 
     for ii, d in enumerate(dyn):
         # manage color
-        c = px.colors.hex_to_rgb(px.colors.qualitative.D3[ii])
+        c = px.colors.hex_to_rgb(px.colors.qualitative.D3[ii]) if color is None else color[ii]
         c = str(f"rgba({c[0]},{c[1]},{c[2]},0.5)")
+        c1 = px.colors.qualitative.D3[ii] if color is None else px.colors.label_rgb(color[ii])
         fig.add_trace(
             go.Box(
                 x=df["dynamics_type_label"][df["dynamics_type_label"] == d],
@@ -151,7 +168,7 @@ def my_traces(fig, dyn, grps, df, key, row, col, title_str):
                 legendgroup=grps[ii],
                 fillcolor=c,
                 marker=dict(opacity=0.5),
-                line=dict(color=px.colors.qualitative.D3[ii]),
+                line=dict(color=c1),
             ),
             row=row,
             col=col,
@@ -166,16 +183,16 @@ def my_traces(fig, dyn, grps, df, key, row, col, title_str):
         selector=dict(type="box"),
     )
     fig.update_yaxes(
-        type="log",
+        type=ylog,
         row=row,
         col=col,
-        title=title_str,
+        title=ylabel,
         title_standoff=2,
-        domain=[0, 1],
-        tickson="boundaries",
+        # domain=[0, 1],
+        # tickson="boundaries",
         # tick0=2,  # a ne pas garder
         exponentformat="e",
-        ticklabeloverflow="allow",
+        # ticklabeloverflow="allow",
     )
     fig.update_xaxes(
         row=row,
@@ -185,3 +202,143 @@ def my_traces(fig, dyn, grps, df, key, row, col, title_str):
         ticks="",
     )  # no xticks)
     return fig
+
+
+def my_shaded_trace(fig, df, d, color, grps, key, col=None, row=None, show_legend=True):
+    my_boolean = df["dynamics_type_label"] == d
+
+    c_rgb = px.colors.hex_to_rgb(color)
+    c_alpha = str(f"rgba({c_rgb[0]},{c_rgb[1]},{c_rgb[2]},0.2)")
+
+    fig.add_scatter(
+        x=df[my_boolean]["n_shooting_tot"],
+        y=df[my_boolean][key],
+        mode="markers",
+        marker=dict(
+            color=color,
+            size=3,
+            # line=dict(width=0.5,
+            #           color='DarkSlateGrey')
+        ),
+        name=d,
+        legendgroup=grps,
+        showlegend=False,
+        row=row,
+        col=col,
+    )
+
+    x_shoot = sorted(df[my_boolean]["n_shooting_tot"].unique())
+
+    fig.add_scatter(
+        x=x_shoot,
+        y=get_all(df, d, key, "mean"),
+        mode="lines",
+        marker=dict(color=color, size=8, line=dict(width=0.5, color="DarkSlateGrey")),
+        name=d,
+        legendgroup=grps,
+        row=row,
+        col=col,
+        showlegend=show_legend,
+    )
+
+    y_upper = get_all(df, d, key, "ci_up")
+    y_upper = [0 if math.isnan(x) else x for x in y_upper]
+    y_lower = get_all(df, d, key, "ci_low")
+    y_lower = [0 if math.isnan(x) else x for x in y_lower]
+
+    fig.add_scatter(
+        x=x_shoot + x_shoot[::-1],  # x, then x reversed
+        y=y_upper + y_lower[::-1],  # upper, then lower reversed
+        fill="toself",
+        fillcolor=c_alpha,
+        line=dict(color="rgba(255,255,255,0)"),
+        hoverinfo="skip",
+        showlegend=False,
+        legendgroup=grps,
+        row=row,
+        col=col,
+    )
+    return fig
+
+
+def mean_confidence_interval(data, confidence=0.95):
+    a = 1.0 * np.array(data)
+    n = len(a)
+    m, se = np.mean(a), scipy.stats.sem(a)
+    h = se * scipy.stats.t.ppf((1 + confidence) / 2.0, n - 1)
+    return m, m - h, m + h
+
+
+def fn_ci_up(data, confidence=0.95):
+    a = 1.0 * np.array(data)
+    n = len(a)
+    m, se = np.mean(a), scipy.stats.sem(a)
+    h = se * scipy.stats.t.ppf((1 + confidence) / 2.0, n - 1)
+    return m + h
+
+
+def fn_ci_low(data, confidence=0.95):
+    a = 1.0 * np.array(data)
+    n = len(a)
+    m, se = np.mean(a), scipy.stats.sem(a)
+    h = se * scipy.stats.t.ppf((1 + confidence) / 2.0, n - 1)
+    return m - h
+
+
+def get_all(df, dyn_label, data_key, key: str = "mean"):
+    my_bool = df["dynamics_type_label"] == dyn_label
+    if key == "mean":
+        return [
+            df[my_bool & (df["n_shooting_tot"] == ii)][data_key].mean()
+            for ii in sorted(df[my_bool]["n_shooting_tot"].unique())
+        ]
+    if key == "max":
+        return [
+            df[my_bool & (df["n_shooting_tot"] == ii)][data_key].max()
+            - df[my_bool & (df["n_shooting_tot"] == ii)][data_key].median()
+            for ii in sorted(df[my_bool]["n_shooting_tot"].unique())
+        ]
+    if key == "min":
+        return [
+            df[my_bool & (df["n_shooting_tot"] == ii)][data_key].min()
+            - df[my_bool & (df["n_shooting_tot"] == ii)][data_key].median()
+            for ii in sorted(df[my_bool]["n_shooting_tot"].unique())
+        ]
+    if key == "median":
+        return [
+            df[my_bool & (df["n_shooting_tot"] == ii)][data_key].median()
+            for ii in sorted(df[my_bool]["n_shooting_tot"].unique())
+        ]
+    elif key == "std":
+        return [
+            df[my_bool & (df["n_shooting_tot"] == ii)][data_key].std()
+            for ii in sorted(df[my_bool]["n_shooting_tot"].unique())
+        ]
+    elif key == "ci_up":
+        return [
+            fn_ci_up(df[my_bool & (df["n_shooting_tot"] == ii)][data_key])
+            for ii in sorted(df[my_bool]["n_shooting_tot"].unique())
+        ]
+    elif key == "ci_low":
+        return [
+            fn_ci_low(df[my_bool & (df["n_shooting_tot"] == ii)][data_key])
+            for ii in sorted(df[my_bool]["n_shooting_tot"].unique())
+        ]
+
+
+def generate_windows_size(nb: int) -> tuple:
+    """
+    Defines the number of column and rows of subplots from the number of variables to plot.
+
+    Parameters
+    ----------
+    nb: int
+        Number of variables to plot
+
+    Returns
+    -------
+    The optimized number of rows and columns
+    """
+
+    n_rows = int(round(np.sqrt(nb)))
+    return n_rows + 1 if n_rows * n_rows < nb else n_rows, n_rows
