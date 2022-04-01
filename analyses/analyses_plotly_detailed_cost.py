@@ -13,12 +13,12 @@ df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
 dyn = df_results["dynamics_type_label"].unique()
 grps = ["Explicit", "Explicit", "Implicit_qddot", "Implicit_qddot", "Implicit_qdddot", "Implicit_qdddot"]
 dyn = [
-    "$\\text{Exp-Full}$",
-    "$\\text{Exp-Base}$",
-    "$\\text{Imp-Full-}\\ddot{q}$",
-    "$\\text{Imp-Base-}\\ddot{q}$",
-    "$\\text{Imp-Full-}\\dddot{q}$",
-    "$\\text{Imp-Base-}\\dddot{q}$",
+    "$\\text{Full-Exp}$",
+    "$\\text{Base-Exp}$",
+    "$\\text{Full-Imp-}\\ddot{q}$",
+    "$\\text{Base-Imp-}\\ddot{q}$",
+    "$\\text{Full-Imp-}\\dddot{q}$",
+    "$\\text{Base-Imp-}\\dddot{q}$",
 ]
 
 fig = make_subplots(rows=1, cols=2)
@@ -92,10 +92,6 @@ fig.update_layout(
     legend=dict(
         title_font_family="Times New Roman",
         font=dict(family="Times New Roman", color="black", size=11),
-        # orientation="h",
-        # xanchor="center",
-        # x=0.5,
-        # y=-0.05,
     ),
     font=dict(
         size=12,
@@ -103,11 +99,9 @@ fig.update_layout(
     ),
     yaxis=dict(color="black"),
     template="simple_white",
-    # showlegend=False,
-    # violingap=0.1,
     boxgap=0.2,
 )
-# fig.show()
+fig.show()
 fig.write_image(out_path_file + "/detailed_cost.png")
 fig.write_image(out_path_file + "/detailed_cost.pdf")
 fig.write_image(out_path_file + "/detailed_cost.eps")
@@ -145,7 +139,6 @@ fig.add_annotation(
     yref="paper",
 )
 fig.update_layout(
-    # xaxis_title=r'$\text{Transcription}$',
     height=400,
     width=600,
     paper_bgcolor="rgba(255,255,255,1)",
@@ -153,10 +146,6 @@ fig.update_layout(
     legend=dict(
         title_font_family="Times New Roman",
         font=dict(family="Times New Roman", color="black", size=11),
-        # orientation="h",
-        # xanchor="center",
-        # x=0.5,
-        # y=-0.05,
     ),
     font=dict(
         size=12,
@@ -164,14 +153,10 @@ fig.update_layout(
     ),
     yaxis=dict(color="black"),
     template="simple_white",
-    # showlegend=False,
-    # violingap=0.1,
     boxgap=0.2,
 )
 fig.show()
-fig.write_image(out_path_file + "/detailed_cost.png")
-fig.write_image(out_path_file + "/detailed_cost.pdf")
-fig.write_html(out_path_file + "/detailed_cost.html")
+
 
 label_J = [
     r"$\omega_2 \int_{T_{i-1}}^{T_i} \Delta \dot{\mathbf{q}}^\top_J \Delta \dot{\mathbf{q}}_J\: dt$",
@@ -241,8 +226,6 @@ fig.update_layout(
     ),
     yaxis=dict(color="black"),
     template="simple_white",
-    # showlegend=False,
-    # violingap=0.1,
     boxgap=0.2,
 )
 fig.show()
@@ -294,10 +277,6 @@ fig.update_layout(
     legend=dict(
         title_font_family="Times New Roman",
         font=dict(family="Times New Roman", color="black", size=11),
-        # orientation="h",
-        # xanchor="center",
-        # x=0.5,
-        # y=-0.05,
     ),
     font=dict(
         size=12,
@@ -305,8 +284,6 @@ fig.update_layout(
     ),
     yaxis=dict(color="black"),
     template="simple_white",
-    # showlegend=False,
-    # violingap=0.1,
     boxgap=0.2,
 )
 fig.show()

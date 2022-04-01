@@ -4,18 +4,19 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
 import numpy as np
+from utils import add_annotation_letter
 
 out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
-
 dyn = [
-    "$\\text{Exp-Full}$",
-    "$\\text{Exp-Base}$",
-    "$\\text{Imp-Full-}\\ddot{q}$",
-    "$\\text{Imp-Base-}\\ddot{q}$",
-    "$\\text{Imp-Full-}\\dddot{q}$",
-    "$\\text{Imp-Base-}\\dddot{q}$",
+    "$\\text{Full-Exp}$",
+    "$\\text{Base-Exp}$",
+    "$\\text{Full-Imp-}\\ddot{q}$",
+    "$\\text{Base-Imp-}\\ddot{q}$",
+    "$\\text{Full-Imp-}\\dddot{q}$",
+    "$\\text{Base-Imp-}\\dddot{q}$",
 ]
+
 dyn = dyn[2:]
 grps = ["Explicit", "Explicit", "Implicit_qddot", "Implicit_qddot", "Implicit_qdddot", "Implicit_qdddot"]
 grps = grps[2:]
@@ -27,8 +28,8 @@ fig = make_subplots(
     subplot_titles=(
         r"$\textrm{Linear Momentum}$",
         r"$\textrm{Angular Momentum}$",
-        r"$\textrm{Translation Torque}$",
-        r"$\textrm{Rotation Torque}$",
+        r"$\textrm{Forces}$",
+        r"$\textrm{Torques}$",
     ),
     vertical_spacing=0.09,
 )
@@ -118,10 +119,10 @@ fig = my_traces(
     r"$\text{Angular Momentum}$",
 )
 fig = my_traces(
-    fig, dyn, grps, colors, df_results, "int_T", 2, 1, r"$\text{Residuals (N.s)}$", r"$\text{Translation torques}$"
+    fig, dyn, grps, colors, df_results, "int_T", 2, 1, r"$\text{Residuals (N.s)}$", r"$\text{Forces}$"
 )
 fig = my_traces(
-    fig, dyn, grps, colors, df_results, "int_R", 2, 2, r"$\text{Residuals (N.m.s)}$", r"$\text{Rotation torques}$"
+    fig, dyn, grps, colors, df_results, "int_R", 2, 2, r"$\text{Residuals (N.m.s)}$", r"$\text{Torques}$"
 )
 
 fig.update_layout(
@@ -148,6 +149,13 @@ fig.update_layout(
     # violingap=0.1,
     boxgap=0.2,
 )
+
+fig = add_annotation_letter(fig, "A", x=0.01, y=0.99, on_paper=True)
+fig = add_annotation_letter(fig, "B", x=0.56, y=0.99, on_paper=True)
+fig = add_annotation_letter(fig, "C", x=0.01, y=0.44, on_paper=True)
+fig = add_annotation_letter(fig, "D", x=0.56, y=0.44, on_paper=True)
+
+
 fig.show()
 # fig.write_image(out_path_file + "/analyse_momentum.png")
 # fig.write_image(out_path_file + "/analyse_momentum.pdf")

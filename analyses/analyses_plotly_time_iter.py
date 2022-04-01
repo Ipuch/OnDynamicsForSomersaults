@@ -4,19 +4,19 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
 import numpy as np
-from utils import my_traces
+from utils import my_traces, add_annotation_letter
 
 out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
 
 grps = ["Explicit", "Explicit", "Implicit_qddot", "Implicit_qddot", "Implicit_qdddot", "Implicit_qdddot"]
 dyn = [
-    "$\\text{Exp-Full}$",
-    "$\\text{Exp-Base}$",
-    "$\\text{Imp-Full-}\\ddot{q}$",
-    "$\\text{Imp-Base-}\\ddot{q}$",
-    "$\\text{Imp-Full-}\\dddot{q}$",
-    "$\\text{Imp-Base-}\\dddot{q}$",
+    "$\\text{Full-Exp}$",
+    "$\\text{Base-Exp}$",
+    "$\\text{Full-Imp-}\\ddot{q}$",
+    "$\\text{Base-Imp-}\\ddot{q}$",
+    "$\\text{Full-Imp-}\\dddot{q}$",
+    "$\\text{Base-Imp-}\\dddot{q}$",
 ]
 
 
@@ -52,6 +52,9 @@ fig.update_layout(
     template="simple_white",
     boxgap=0.2,
 )
+fig = add_annotation_letter(fig, "A", x=0.01, y=0.99, on_paper=True)
+fig = add_annotation_letter(fig, "B", x=0.56, y=0.99, on_paper=True)
+
 fig.show()
 
 fig.write_image(out_path_file + "/analyse_time_iter.png")

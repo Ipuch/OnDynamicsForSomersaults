@@ -1,10 +1,8 @@
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
-import numpy as np
-from utils import get_all, my_shaded_trace
+from utils import my_shaded_trace, add_annotation_letter
 
 out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
 model = "../Model_JeCh_15DoFs.bioMod"
@@ -30,8 +28,8 @@ fig = make_subplots(
     subplot_titles=(
         r"$\text{Linear Momentum}$",
         r"$\text{Angular Momentum}$",
-        r"$\text{Translation Torque}$",
-        r"$\text{Rotation Torque}$",
+        r"$\text{Forces}$",
+        r"$\text{Torques}$",
     ),
     vertical_spacing=0.1,
     horizontal_spacing=0.15,
@@ -171,6 +169,10 @@ fig.update_layout(
     yaxis=dict(color="black"),
     template="simple_white",
 )
+fig = add_annotation_letter(fig, "A", x=0.01, y=0.99, on_paper=True)
+fig = add_annotation_letter(fig, "B", x=0.59, y=0.99, on_paper=True)
+fig = add_annotation_letter(fig, "C", x=0.01, y=0.44, on_paper=True)
+fig = add_annotation_letter(fig, "D", x=0.59, y=0.44, on_paper=True)
 
 fig.show()
 fig.write_image(out_path_file + "/analyse_convergence.png")

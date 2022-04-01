@@ -26,7 +26,6 @@ pal = px.colors.qualitative.D3[2:]
 
 # select only the one who converged
 df_results = df_results[df_results["status"] == 0]
-df_results = df_results[df_results["n_shooting_tot"] >= 150]
 df_results["computation_time"] = df_results["computation_time"] / 60
 fig = go.Figure()
 
@@ -69,6 +68,7 @@ fig.update_layout(
     yaxis=dict(color="black"),
     template="simple_white",
 )
+
 
 fig.show()
 fig.write_image(out_path_file + "/analyse_convergence_time.png")
