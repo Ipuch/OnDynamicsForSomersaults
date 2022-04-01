@@ -90,4 +90,3 @@ fig.write_image(out_path_file + "/analyse_convergence_cost_large.png")
 fig.write_image(out_path_file + "/analyse_convergence_cost_large.pdf")
 fig.write_image(out_path_file + "/analyse_convergence_cost_large.eps")
 fig.write_html(out_path_file + "/analyse_convergence_cost_large.html")
-

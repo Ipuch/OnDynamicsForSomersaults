@@ -79,9 +79,7 @@ fig.write_html(out_path_file + "/analyse_convergence_time.html")
 fig.update_layout(
     height=600,
     width=800,
-    legend=dict(
-        xanchor="left",
-        x=0.05),
+    legend=dict(xanchor="left", x=0.05),
 )
 
 fig.show()

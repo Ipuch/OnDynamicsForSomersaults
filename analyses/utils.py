@@ -133,18 +133,18 @@ def root_explicit_dynamics(m, q, qdot, qddot_joints):
 
 
 def my_traces(
-        fig,
-        dyn,
-        grps,
-        df,
-        key,
-        row,
-        col,
-        ylabel: str = None,
-        title_str: str = None,
-        ylog: bool = True,
-        color: list = None,
-        show_legend: bool = False,
+    fig,
+    dyn,
+    grps,
+    df,
+    key,
+    row,
+    col,
+    ylabel: str = None,
+    title_str: str = None,
+    ylog: bool = True,
+    color: list = None,
+    show_legend: bool = False,
 ):
     ylog = "log" if ylog == True else None
     if (col == 1 and row == 1) or (col is None or row is None) or show_legend == True:
@@ -344,8 +344,9 @@ def generate_windows_size(nb: int) -> tuple:
     return n_rows + 1 if n_rows * n_rows < nb else n_rows, n_rows
 
 
-def add_annotation_letter(fig: go.Figure, letter: str,x:float, y: float, row: int = None, col: int = None,
-                          on_paper: bool = False) -> go.Figure:
+def add_annotation_letter(
+    fig: go.Figure, letter: str, x: float, y: float, row: int = None, col: int = None, on_paper: bool = False
+) -> go.Figure:
     """
     Adds a letter to the plot for scientific articles.
 
@@ -377,15 +378,17 @@ def add_annotation_letter(fig: go.Figure, letter: str,x:float, y: float, row: in
         yref = f"y{row}" if row is not None else None
 
     fig["layout"]["annotations"] += (
-        dict(x=x,
-             y=y,
-             xanchor="left",
-             yanchor="bottom",
-             text=f"{letter})",
-             font=dict(family="Times", size=14, color="black"),
-             showarrow=False,
-             xref=xref,
-             yref=yref, ),
+        dict(
+            x=x,
+            y=y,
+            xanchor="left",
+            yanchor="bottom",
+            text=f"{letter})",
+            font=dict(family="Times", size=14, color="black"),
+            showarrow=False,
+            xref=xref,
+            yref=yref,
+        ),
     )
 
     return fig

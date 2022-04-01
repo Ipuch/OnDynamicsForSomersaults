@@ -118,12 +118,8 @@ fig = my_traces(
     r"$\text{RMSe (}kg.m^2.s^{-1}\text{)}$",
     r"$\text{Angular Momentum}$",
 )
-fig = my_traces(
-    fig, dyn, grps, colors, df_results, "int_T", 2, 1, r"$\text{Residuals (N.s)}$", r"$\text{Forces}$"
-)
-fig = my_traces(
-    fig, dyn, grps, colors, df_results, "int_R", 2, 2, r"$\text{Residuals (N.m.s)}$", r"$\text{Torques}$"
-)
+fig = my_traces(fig, dyn, grps, colors, df_results, "int_T", 2, 1, r"$\text{Residuals (N.s)}$", r"$\text{Forces}$")
+fig = my_traces(fig, dyn, grps, colors, df_results, "int_R", 2, 2, r"$\text{Residuals (N.m.s)}$", r"$\text{Torques}$")
 
 fig.update_layout(
     # xaxis_title=r'$\text{Transcription}$',

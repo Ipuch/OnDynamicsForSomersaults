@@ -5,12 +5,10 @@ sys.path.append(os.getcwd() + "/..")
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
 import numpy as np
-import scipy
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 import matplotlib.pyplot as plt
-from IPython import embed
 
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
 
@@ -82,12 +80,7 @@ def show_stats_graphs(tukey_table):
     plt.gca().set_yticks(range(len(rows)))
     plt.gca().set_yticklabels([f"{x[0]}-{x[1]}" for x in rows])
     plt.show()
-    # return
 
-
-# def convert_from_pandas_to_array(df, type, to_be_tested):
-#     print("to_do")
-#     return "new format"
 
 print("Computation time")
 res = function_test_anova(df_results, "computation_time")
@@ -108,7 +101,3 @@ post_hoc_res = function_test_post_hoc(df_results_implicit, "int_T")
 print("int_R")
 res = function_test_anova(df_results_implicit, "int_R")
 post_hoc_res = function_test_post_hoc(df_results_implicit, "int_R")
-
-function_test_anova(df_results_implicit, "int_T")  # tau residuels
-
-# function_test_post_hoc(df_results, "computation_time")
