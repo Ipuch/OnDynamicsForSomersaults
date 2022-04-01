@@ -1,11 +1,6 @@
-import os, shutil
-
-# from Comparison import ComparisonAnalysis, ComparisonParameters
-import pickle
-import numpy as np
+import os
 from multiprocessing import Pool, cpu_count
 from datetime import date
-import smtplib, ssl
 import miller_run
 from bioptim import OdeSolver
 
@@ -48,16 +43,16 @@ dynamics_types = ["implicit", "root_implicit"]
 
 
 def generate_calls(
-    n,
-    Date,
-    n_shooting: tuple,
-    dynamics_types: list,
-    ode_solver: OdeSolver,
-    nstep: int,
-    n_threads: int,
-    out_path_raw: str,
-    model_str: str,
-    extra_obj: bool,
+        n,
+        Date,
+        n_shooting: tuple,
+        dynamics_types: list,
+        ode_solver: OdeSolver,
+        nstep: int,
+        n_threads: int,
+        out_path_raw: str,
+        model_str: str,
+        extra_obj: bool,
 ):
     calls = []
     for i, dynamics_type in enumerate(dynamics_types):

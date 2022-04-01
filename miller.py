@@ -1,5 +1,5 @@
 """
-This file is the main file of the project.
+This file is a demo to run optimal control problem of a miller with the chosen dynamics and with the 15-dof human model.
 """
 
 import numpy as np
