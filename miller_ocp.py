@@ -95,15 +95,10 @@ class MillerOcp:
                 or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
             ):
                 self.n_qddot = self.biorbd_model[0].nbQddot()
-                if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                    self.n_taudot = self.biorbd_model[0].nbQddot()
             elif self.dynamics_type == MillerDynamics.EXPLICIT or self.dynamics_type == MillerDynamics.ROOT_EXPLICIT:
                 self.n_qddot = self.biorbd_model[0].nbQddot() - self.biorbd_model[0].nbRoot()
 
-            if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                self.n_tau = self.biorbd_model[0].nbGeneralizedTorque()
-            else:
-                self.n_tau = self.biorbd_model[0].nbGeneralizedTorque() - self.biorbd_model[0].nbRoot()
+            self.n_tau = self.biorbd_model[0].nbGeneralizedTorque() - self.biorbd_model[0].nbRoot()
 
             if (
                 self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
@@ -114,26 +109,13 @@ class MillerOcp:
             self.tau_min, self.tau_init, self.tau_max = -100, 0, 100
             self.tau_hips_min, self.tau_hips_init, self.tau_hips_max = -300, 0, 300  # hips and torso
 
-            if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                self.taudot_min, self.tau_init, self.taudot_max = -1000, 0, 1000
-                self.taudot_hips_min, self.taudot_hips_init, self.taudot_hips_max = -3000, 0, 3000  # hips and torso
-
-            if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                self.high_torque_idx = [
-                    6,
-                    7,
-                    8,
-                    13,
-                    14,
-                ]
-            else:
-                self.high_torque_idx = [
-                    6 - self.nb_root,
-                    7 - self.nb_root,
-                    8 - self.nb_root,
-                    13 - self.nb_root,
-                    14 - self.nb_root,
-                ]
+            self.high_torque_idx = [
+                6 - self.nb_root,
+                7 - self.nb_root,
+                8 - self.nb_root,
+                13 - self.nb_root,
+                14 - self.nb_root,
+            ]
             self.qddot_min, self.qddot_init, self.qddot_max = -1000, 0, 1000
 
             if (
@@ -205,8 +187,6 @@ class MillerOcp:
                 self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False)
             elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
                 self.dynamics.add(custom_configure_root_implicit, dynamic_function=root_implicit_dynamic)
-            elif self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                self.dynamics.add(custom_configure_taudot_implicit, dynamic_function=taudot_implicit_dynamic)
             elif self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
                 self.dynamics.add(custom_configure_tau_driven_implicit, dynamic_function=tau_implicit_qdddot_dynamic)
             elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
@@ -424,16 +404,6 @@ class MillerOcp:
             * self.random_scale_qdot
         )
 
-        if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-            tau_J_random = np.random.random((self.n_tau, total_n_shooting)) * 2 - 1
-
-            tau_max = self.tau_max * np.ones(self.n_tau)
-            tau_max[self.high_torque_idx] = self.tau_hips_max
-            tau_max[: self.nb_root] = 0
-            tau_J_random = tau_J_random * tau_max[:, np.newaxis] * self.random_scale_tau
-
-            self.x = np.vstack((self.x, tau_J_random))
-
         if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
             qddot_random = (
                 (np.random.random((self.n_qddot, total_n_shooting)) * 2 - 1) * self.qddot_max * self.random_scale_qddot
@@ -503,10 +473,6 @@ class MillerOcp:
                     self.u_init.add(u, interpolation=InterpolationType.EACH_FRAME)
                 elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
                     u = np.vstack((qddot_B_random, qddot_J_random))
-                    self.u_init.add(u, interpolation=InterpolationType.EACH_FRAME)
-                elif self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                    tau_J_random[: self.nb_root, :] = 0
-                    u = np.vstack((tau_J_random * 10, qddot_J_random))
                     self.u_init.add(u, interpolation=InterpolationType.EACH_FRAME)
                 elif self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
                     u = np.vstack((tau_J_random, qddot_B_random * 10, qddot_J_random * 10))
@@ -832,16 +798,6 @@ class MillerOcp:
                     interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT,
                 )
             )
-            if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                tau_min = np.ones((self.n_tau, 3)) * self.tau_min
-                tau_max = np.ones((self.n_tau, 3)) * self.tau_max
-                tau_min[: self.nb_root, :] = 0
-                tau_max[: self.nb_root, :] = 0
-                tau_min[self.high_torque_idx, :] = self.tau_hips_min
-                tau_max[self.high_torque_idx, :] = self.tau_hips_max
-                self.x_bounds[phase].concatenate(
-                    Bounds(tau_min, tau_max, interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT)
-                )
 
             if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
                 qddot_min = np.ones((self.n_qddot, 3)) * self.qddot_min
@@ -872,11 +828,6 @@ class MillerOcp:
                 self.u_bounds[0].max[self.high_torque_idx, :] = self.tau_hips_max
             elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
                 self.u_bounds.add([self.qddot_min] * self.n_qddot, [self.qddot_max] * self.n_qddot)
-            elif self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                self.u_bounds.add(
-                    np.squeeze(tau_min[:, 0] * 10).tolist() + [self.qddot_min] * self.n_qddot,
-                    np.squeeze(tau_max[:, 0] * 10).tolist() + [self.qddot_max] * self.n_qddot,
-                )
             elif self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
                 self.u_bounds.add(
                     [self.tau_min] * self.n_tau + [self.qdddot_min] * self.n_qdddot,
@@ -917,31 +868,18 @@ class MillerOcp:
             )
         elif self.dynamics_type == MillerDynamics.ROOT_EXPLICIT:
             print("no bimapping")
-            # self.mapping.add(
-            #     "qddot",
-            #     [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8],
-            #     [6, 7, 8, 9, 10, 11, 12, 13, 14],
-            # )
         elif self.dynamics_type == MillerDynamics.IMPLICIT:
             self.mapping.add(
                 "tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14]
             )
         elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
             pass
-            # self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14])
-        elif self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-            pass
-            # self.mapping.add(
-            #     "tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14]
-            # )
         elif self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
-            # pass
             self.mapping.add(
                 "tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14]
             )
         elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
             pass
-            # self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14])
         else:
             raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
 
