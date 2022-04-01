@@ -34,7 +34,7 @@ from custom_dynamics.enums import MillerDynamics
 class MillerOcp:
     """
     Class to generate the OCP for the miller acrobatic task for a 15-dof human model.
-    
+
     Methods
     ----------
     _set_dynamics
@@ -52,6 +52,7 @@ class MillerOcp:
     _print_bounds
         method to print the bounds of the states into the console
     """
+
     def __init__(
         self,
         biorbd_model_path: str = None,
@@ -74,7 +75,7 @@ class MillerOcp:
         n_shooting : tuple
             number of shooting points for each phase
         phase_durations : tuple
-            duration of each phase 
+            duration of each phase
         n_threads : int
             number of threads to use for the solver
         ode_solver : OdeSolver
@@ -360,7 +361,7 @@ class MillerOcp:
             phase=1,
             weight=1e-6,
         )
-        
+
     def _set_initial_momentum(self):
         """
         Set initial angular momentum and linear momentum.

@@ -32,4 +32,3 @@ elif filename.endswith(".pkl"):
         biorbd_viz.exec()
 else:
     raise ValueError("filename must end with .bo or .pkl")
-
