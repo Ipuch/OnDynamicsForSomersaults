@@ -2,10 +2,8 @@ import bioviz
 from bioptim import OptimalControlProgram
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-import numpy as np
 from custom_dynamics.enums import MillerDynamics
 import os
-import plotly.express as px
 import pandas as pd
 
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")

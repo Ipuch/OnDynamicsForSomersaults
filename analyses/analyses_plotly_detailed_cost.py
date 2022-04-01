@@ -1,11 +1,8 @@
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
-import numpy as np
 from utils import my_traces
-import numpy as np
 
 out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
@@ -157,7 +154,6 @@ fig.update_layout(
 )
 fig.show()
 
-
 label_J = [
     r"$\omega_2 \int_{T_{i-1}}^{T_i} \Delta \dot{\mathbf{q}}^\top_J \Delta \dot{\mathbf{q}}_J\: dt$",
     r"$\omega_1 \; \int_{\widehat{P_{\text{right_hand}}(\mathbf{T})}}  ds$",
@@ -190,7 +186,6 @@ fig = make_subplots(
 )
 
 # select only the one who converged
-
 df_results = df_results[df_results["status"] == 0]
 
 ii = 1
@@ -233,7 +228,6 @@ fig.write_image(out_path_file + "/detailed_detailed_cost.png")
 fig.write_image(out_path_file + "/detailed_detailed_cost.pdf")
 fig.write_html(out_path_file + "/detailed_detailed_cost.html")
 fig.write_image(out_path_file + "/detailed_detailed_cost.eps")
-
 
 # only the one that were in the main cluster
 df_results = df_results[df_results["main_cluster"] == True]

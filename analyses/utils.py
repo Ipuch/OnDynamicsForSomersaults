@@ -1,6 +1,5 @@
 import numpy as np
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import plotly.express as px
 import scipy.stats
 import math
@@ -188,9 +187,6 @@ def my_traces(
         col=col,
         title=ylabel,
         title_standoff=2,
-        # domain=[0, 1],
-        # tickson="boundaries",
-        # tick0=2,  # a ne pas garder
         exponentformat="e",
         # ticklabeloverflow="allow",
     )
@@ -200,7 +196,7 @@ def my_traces(
         color="black",
         showticklabels=False,
         ticks="",
-    )  # no xticks)
+    )
     return fig
 
 
@@ -217,8 +213,6 @@ def my_shaded_trace(fig, df, d, color, grps, key, col=None, row=None, show_legen
         marker=dict(
             color=color,
             size=3,
-            # line=dict(width=0.5,
-            #           color='DarkSlateGrey')
         ),
         name=d,
         legendgroup=grps,

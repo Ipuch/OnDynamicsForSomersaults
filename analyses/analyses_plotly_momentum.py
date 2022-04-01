@@ -1,9 +1,7 @@
-from custom_dynamics.enums import MillerDynamics
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
-import numpy as np
 from utils import add_annotation_letter
 
 out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
@@ -78,7 +76,6 @@ def my_traces(fig, dyn, grps, c, df, key, row, col, ylabel, title_str: str = Non
         row=row,
         col=col,
         title=ylabel,
-        # range=[np.log10(min_y * 2.5), np.log10(max_y)],
         title_standoff=2,
         tickson="boundaries",
         exponentformat="e",
@@ -122,7 +119,6 @@ fig = my_traces(fig, dyn, grps, colors, df_results, "int_T", 2, 1, r"$\text{Resi
 fig = my_traces(fig, dyn, grps, colors, df_results, "int_R", 2, 2, r"$\text{Residuals (N.m.s)}$", r"$\text{Torques}$")
 
 fig.update_layout(
-    # xaxis_title=r'$\text{Transcription}$',
     height=800,
     width=800,
     paper_bgcolor="rgba(255,255,255,1)",
@@ -141,8 +137,6 @@ fig.update_layout(
     ),
     yaxis=dict(color="black"),
     template="simple_white",
-    # showlegend=False,
-    # violingap=0.1,
     boxgap=0.2,
 )
 

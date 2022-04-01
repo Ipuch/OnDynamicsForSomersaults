@@ -1,35 +1,14 @@
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.express as px
-import numpy as np
 
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
-
-df_results["dynamics_type_label"] = None
-df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT, "dynamics_type_label"
-] = r"$\text{Exp-Base}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "dynamics_type_label"
-] = r"$\text{Imp-Full-}\ddot{q}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT, "dynamics_type_label"
-] = r"$\text{Imp-Base-}\ddot{q}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, "dynamics_type_label"
-] = r"$\text{Imp-Full-}\dddot{q}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"
-] = r"$\text{Imp-Base-}\dddot{q}$"
 
 # Did everything converged ?
 a = len(df_results[df_results["status"] == 1])
 print(f"{a} of the trials did not converge to an optimal solutions")
 dyn = df_results["dynamics_type_label"].unique()
 dyn = dyn[[0, 3, 2, 5, 1, 4]]
+
 for d in dyn:
     print(d)
     a = len(df_results[(df_results["status"] == 1) & (df_results["dynamics_type_label"] == d)])
@@ -51,7 +30,7 @@ print(
 
 # Time and iterations
 print(
-    "For Exp-Full, Expl-Base, Imp-Full-$\qddot$, and Imp-Base-$\qddot$, Imp-Full-$\qdddot$, and Imp-Base-$\qdddot$, respectively"
+    "For Full-Exp, Base-Exp, Full-Imp-$\qddot$, and Base-Imp-$\qddot$, Full-Imp-$\qdddot$, and Base-Imp-$\qdddot$, respectively"
     " the time (and iterations) required to converge"
     " were in average "
 )
@@ -63,7 +42,7 @@ for ii, d in enumerate(dyn):
 
 # iterations
 print(
-    "For Exp-Full, Expl-Base, Imp-Full-$\qddot$, and Imp-Base-$\qddot$, Imp-Full-$\qdddot$, and Imp-Base-$\qdddot$, respectively"
+    "For Full-Exp, Base-Exp, Full-Imp-$\qddot$, and Base-Imp-$\qddot$, Full-Imp-$\qdddot$, and Base-Imp-$\qdddot$, respectively"
     " the iterations"
     " were in average "
 )

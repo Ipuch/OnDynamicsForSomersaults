@@ -1,9 +1,4 @@
-from custom_dynamics.enums import MillerDynamics
 import pandas as pd
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.express as px
-import numpy as np
 
 df_results = pd.read_pickle("Dataframe_convergence_metrics_5.pkl")
 
@@ -36,7 +31,7 @@ def batch_computation(df_results, key, d):
 
 # Time and iterations
 print(
-    "For Exp-Full, Expl-Base, Imp-Full-$\qddot$, and Imp-Base-$\qddot$, Imp-Full-$\qdddot$, and Imp-Base-$\qdddot$, respectively"
+    "For Full-Exp, Base-Exp, Full-Imp-$\qddot$, and Base-Imp-$\qddot$, Full-Imp-$\qdddot$, and Base-Imp-$\qdddot$, respectively"
     " the time (and iterations) required to converge"
     " were in average "
 )

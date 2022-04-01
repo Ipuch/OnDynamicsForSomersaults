@@ -1,7 +1,5 @@
 import sys
 import os
-
-sys.path.append(os.getcwd() + "/..")
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
 import numpy as np
@@ -10,6 +8,8 @@ from statsmodels.formula.api import ols
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 import matplotlib.pyplot as plt
 
+
+sys.path.append(os.getcwd() + "/..")
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
 
 df_results["Exp_Imp_Imp_jerk"] = None

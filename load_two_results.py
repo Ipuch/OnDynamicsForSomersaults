@@ -37,4 +37,3 @@ elif nb_DoFs == 15:
     plt.plot(q[10, :], label="exp")
     plt.legend()
     plt.show()
-

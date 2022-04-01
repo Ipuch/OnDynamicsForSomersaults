@@ -19,7 +19,6 @@ dyn = [
     "$\\text{Base-Imp-}\\dddot{q}$",
 ]
 
-
 fig = make_subplots(rows=1, cols=2)
 
 # select only the one who converged

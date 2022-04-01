@@ -1,10 +1,8 @@
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
 import numpy as np
-from utils import my_traces, generate_windows_size
 import biorbd
 
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
