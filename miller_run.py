@@ -1,3 +1,7 @@
+"""
+This script runs the miller optimal control problem with a given set of parameters and save the results.
+The main function is used in main_comparison.py and main_convergence.py. to run the different Miller optimal control problem.
+"""
 import numpy as np
 from bioptim import OdeSolver, CostType
 from bioptim import Solver, Shooting
@@ -8,6 +12,35 @@ from custom_dynamics.enums import MillerDynamics
 
 
 def main(args: list = None):
+    """
+    Main function for the miller_run.py script.
+    It runs the optimization and saves the results of a Miller Optimal Control Problem.
+
+    Parameters
+    ----------
+    args : list
+        List of arguments containing the following:
+        args[0] : date
+            Date of the optimization.
+        args[1] : i_rand
+            Random seed.
+        args[2] : n_shooting
+            Number of shooting nodes.
+        args[3] : dynamics_type
+            Type of dynamics to use such as MillerDynamics.EXPLICIT, MillerDynamics.IMPLICIT, ...
+        args[4] : ode_solver
+            Type of ode solver to use such as OdeSolver.RK4, OdeSolver.RK2, ...
+        args[5] : nstep
+            Number of steps for the ode solver.
+        args[6] : n_threads
+            Number of threads to use.
+        args[7] : out_path_raw
+            Path to the raw results.
+        args[8] : biorbd_model_path
+            Path to the biorbd model.
+        args[9] : extra_obj
+            Extra objective to add to the cost function mainly for implicit formulations
+    """
     if args:
         Date = args[0]
         i_rand = args[1]
@@ -47,18 +80,7 @@ def main(args: list = None):
     filename = f"miller_{dynamics_type}_irand{i_rand}_extraobj{extra_obj}_{n_shooting[0]}_{n_shooting[1]}"
     outpath = f"{out_path_raw}/" + filename
 
-    # test if the file converged or not, if yes stop the script
-    # previous = open(outpath + ".pckl", "rb")
-    # previous_data = pickle.load(previous)
-    # if previous_data["status"] == 0:
-    #     print(f"##########################################################")
-    #     print(f"Solving dynamics_type={dynamics_type}, i_rand={i_rand},"
-    #           f"n_shooting={n_shooting}, extra_obj={extra_obj}\n")
-    #     print(f"##########################################################")
-    #     print("has already converged !! pass ...")
-    #     print(f"##########################################################")
-    #     return
-
+    # --- Solve the program --- #
     solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
     solver.set_maximum_iterations(10000)
     solver.set_print_level(5)
@@ -70,6 +92,7 @@ def main(args: list = None):
     )
     print(f"##########################################################")
 
+    # --- time to solve --- #
     tic = time()
     sol = miller.ocp.solve(solver)
     toc = time() - tic
@@ -83,6 +106,7 @@ def main(args: list = None):
     )
     print(f"##########################################################")
 
+    # --- Save the results --- #
     sol_integrated = sol.integrate(
         shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False
     )
