@@ -408,7 +408,9 @@ def my_traces(
     return fig
 
 
-def my_shaded_trace(fig: go.Figure, df: DataFrame, d: str, color: str, grps: list, key: str, col=None, row=None, show_legend=True):
+def my_shaded_trace(
+    fig: go.Figure, df: DataFrame, d: str, color: str, grps: list, key: str, col=None, row=None, show_legend=True
+):
     """
     Add a shaded trace to a plotly figure
 
