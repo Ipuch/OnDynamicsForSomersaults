@@ -1,8 +1,8 @@
+"""
+This script performs the time evaluation of all the MillerDynamics without considering the optimal control problem.
+"""
 import biorbd_casadi as biorbd
-from casadi import MX, SX, DM, Function, inv, solve, ldl_solve, mtimes, lt, vertcat
-
-# MX : matrix symbolic
-# SX : scalar symbolic
+from casadi import MX, Function, solve, mtimes, vertcat
 import numpy as np
 import time
 

@@ -2,9 +2,6 @@ import biorbd_casadi as biorbd
 import biorbd as brd
 import numpy as np
 from scipy import interpolate
-import pickle
-from typing import Union
-import casadi as cas
 from bioptim import (
     OdeSolver,
     Node,
@@ -24,20 +21,38 @@ from bioptim import (
     MultinodeConstraintList,
 )
 
-from casadi import MX
 from custom_dynamics.root_explicit_qddot_joint import root_explicit_dynamic, custom_configure_root_explicit
 from custom_dynamics.root_implicit import root_implicit_dynamic, custom_configure_root_implicit
-from custom_dynamics.implicit_dynamics_taudot_driven import taudot_implicit_dynamic, custom_configure_taudot_implicit
 from custom_dynamics.implicit_dynamics_tau_driven_qdddot import (
     tau_implicit_qdddot_dynamic,
     custom_configure_tau_driven_implicit,
 )
 from custom_dynamics.root_implicit_qddot import root_implicit_qdddot_dynamic, custom_configure_root_implicit_qdddot
-from custom_dynamics.custom_transitions import minimize_linear_momentum, minimize_angular_momentum
 from custom_dynamics.enums import MillerDynamics
 
 
 class MillerOcp:
+    """
+    Class to generate the OCP for the miller acrobatic task for a 15-dof human model.
+
+    Methods
+    ----------
+    _set_dynamics
+        Set the dynamics of the OCP
+    _set_objective
+        Set the objective of the OCP
+    _set_constraints
+        Set the constraints of the OCP
+    _set_bounds
+        method to set the bounds of the OCP
+    _set_initial_guess
+        method to set the initial guess of the OCP
+    _set_mapping
+        method to set the mapping between variables of the model
+    _print_bounds
+        method to print the bounds of the states into the console
+    """
+
     def __init__(
         self,
         biorbd_model_path: str = None,
@@ -52,6 +67,32 @@ class MillerOcp:
         use_sx: bool = False,
         extra_obj: bool = False,
     ):
+        """
+        Parameters
+        ----------
+        biorbd_model_path : str
+            path to the biorbd model
+        n_shooting : tuple
+            number of shooting points for each phase
+        phase_durations : tuple
+            duration of each phase
+        n_threads : int
+            number of threads to use for the solver
+        ode_solver : OdeSolver
+            type of ordinary differential equation solver to use
+        dynamics_type : MillerDynamics
+            type of dynamics to use
+        vertical_velocity_0 : float
+            initial vertical velocity of the model to execute the Miller task
+        somersaults : float
+            number of somersaults to execute
+        twists : float
+            number of twists to execute
+        use_sx : bool
+            use SX for the dynamics
+        extra_obj : bool
+            use extra objective to the extra controls of implicit dynamics (algebraic states)
+        """
         self.biorbd_model_path = biorbd_model_path
         self.extra_obj = extra_obj
         self.n_shooting = n_shooting
@@ -60,20 +101,16 @@ class MillerOcp:
         self.somersaults = somersaults
         self.twists = twists
 
-        # test to reload a previous solution.
         self.x = None
         self.u = None
-        # self._load_initial_guess()
+
         self.phase_durations = phase_durations
         self.duration = np.sum(self.phase_durations)
         self.phase_proportions = (self.phase_durations[0] / self.duration, self.phase_durations[1] / self.duration)
 
-        # self.velocity_x = -0.006024447069071293
-        # self.velocity_y = 0.44094157867162764
         self.velocity_x = 0
         self.velocity_y = 0
         self.vertical_velocity_0 = vertical_velocity_0
-        # self.somersault_rate_0 = 5.133573161842047
         self.somersault_rate_0 = self.somersaults / self.duration
 
         self.n_threads = n_threads
@@ -91,20 +128,14 @@ class MillerOcp:
             if (
                 self.dynamics_type == MillerDynamics.IMPLICIT
                 or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT
-                or self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN
                 or self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
                 or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
             ):
                 self.n_qddot = self.biorbd_model[0].nbQddot()
-                if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                    self.n_taudot = self.biorbd_model[0].nbQddot()
             elif self.dynamics_type == MillerDynamics.EXPLICIT or self.dynamics_type == MillerDynamics.ROOT_EXPLICIT:
                 self.n_qddot = self.biorbd_model[0].nbQddot() - self.biorbd_model[0].nbRoot()
 
-            if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                self.n_tau = self.biorbd_model[0].nbGeneralizedTorque()
-            else:
-                self.n_tau = self.biorbd_model[0].nbGeneralizedTorque() - self.biorbd_model[0].nbRoot()
+            self.n_tau = self.biorbd_model[0].nbGeneralizedTorque() - self.biorbd_model[0].nbRoot()
 
             if (
                 self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
@@ -115,26 +146,13 @@ class MillerOcp:
             self.tau_min, self.tau_init, self.tau_max = -100, 0, 100
             self.tau_hips_min, self.tau_hips_init, self.tau_hips_max = -300, 0, 300  # hips and torso
 
-            if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                self.taudot_min, self.tau_init, self.taudot_max = -1000, 0, 1000
-                self.taudot_hips_min, self.taudot_hips_init, self.taudot_hips_max = -3000, 0, 3000  # hips and torso
-
-            if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                self.high_torque_idx = [
-                    6,
-                    7,
-                    8,
-                    13,
-                    14,
-                ]
-            else:
-                self.high_torque_idx = [
-                    6 - self.nb_root,
-                    7 - self.nb_root,
-                    8 - self.nb_root,
-                    13 - self.nb_root,
-                    14 - self.nb_root,
-                ]
+            self.high_torque_idx = [
+                6 - self.nb_root,
+                7 - self.nb_root,
+                8 - self.nb_root,
+                13 - self.nb_root,
+                14 - self.nb_root,
+            ]
             self.qddot_min, self.qddot_init, self.qddot_max = -1000, 0, 1000
 
             if (
@@ -147,9 +165,6 @@ class MillerOcp:
             self.velocity_max_phase_transition = 10  # qdot hips, thorax in phase 2
 
             self.random_scale = 0.02  # relative to the maximal bounds of the states or controls
-            # self.random_scale_qdot = 0.1
-            # self.random_scale_qddot = 0.2
-            # self.random_scale_tau = 0.33
             self.random_scale_qdot = 0.02
             self.random_scale_qddot = 0.02
             self.random_scale_tau = 0.02
@@ -170,7 +185,6 @@ class MillerOcp:
             self._set_initial_guesses()
             self._set_initial_momentum()
             self._set_dynamics()
-            # self._set_constraints()
             self._set_objective_functions()
 
             self._set_mapping()
@@ -185,7 +199,6 @@ class MillerOcp:
                 u_init=self.u_init,
                 u_bounds=self.u_bounds,
                 objective_functions=self.objective_functions,
-                # constraints=self.constraints,
                 phase_transitions=self.phase_transitions,
                 multinode_constraints=self.multinode_constraints,
                 n_threads=n_threads,
@@ -194,8 +207,12 @@ class MillerOcp:
                 ode_solver=ode_solver,
                 use_sx=use_sx,
             )
+            self._print_bounds()
 
     def _set_dynamics(self):
+        """
+        Set the dynamics of the optimal control problem
+        """
         for phase in range(len(self.n_shooting)):
             if self.dynamics_type == MillerDynamics.EXPLICIT:
                 self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=False)
@@ -205,16 +222,17 @@ class MillerOcp:
                 self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, implicit_dynamics=True, with_contact=False)
             elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
                 self.dynamics.add(custom_configure_root_implicit, dynamic_function=root_implicit_dynamic)
-            elif self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                self.dynamics.add(custom_configure_taudot_implicit, dynamic_function=taudot_implicit_dynamic)
             elif self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
                 self.dynamics.add(custom_configure_tau_driven_implicit, dynamic_function=tau_implicit_qdddot_dynamic)
             elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
                 self.dynamics.add(custom_configure_root_implicit_qdddot, dynamic_function=root_implicit_qdddot_dynamic)
             else:
-                raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
+                raise ValueError("This dynamics has not been implemented")
 
     def _set_objective_functions(self):
+        """
+        Set the multi-objective functions for each phase with specific weights
+        """
 
         # --- Objective function --- #
         w_qdot = 1
@@ -284,13 +302,14 @@ class MillerOcp:
         # Track momentum and Minimize delta momentum
         if self.extra_obj:
             for i in range(2):
-                if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT\
-                        or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
+                if (
+                    self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+                    or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+                ):
                     self.objective_functions.add(
                         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qdddot", phase=i, weight=1e-8
                     )
-                if self.dynamics_type == MillerDynamics.IMPLICIT \
-                        or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
+                if self.dynamics_type == MillerDynamics.IMPLICIT or self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
                     self.objective_functions.add(
                         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="qddot", phase=i, weight=1e-4
                     )
@@ -343,30 +362,21 @@ class MillerOcp:
             weight=1e-6,
         )
 
-    # def _set_constraints(self):
-    # --- Constraints --- #
-    # Set time as a variable
-    # slack_duration = 0.3
-    # self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
-    #                      node=Node.END,
-    #                      min_bound=7/8 * self.duration - 1/2*slack_duration,
-    #                      max_bound=7/8 * self.duration + 1/2*slack_duration, phase=0)
-    # self.constraints.add(ConstraintFcn.TIME_CONSTRAINT,
-    #                      node=Node.END,
-    #                      min_bound=1/8 * self.duration - 1/2*slack_duration,
-    #                      max_bound=1/8 * self.duration + 1/2*slack_duration, phase=1)
-
     def _set_initial_momentum(self):
+        """
+        Set initial angular momentum and linear momentum.
+        """
         q_init = self.x_bounds[0].min[: self.n_q, 0]
         qdot_init = self.x_bounds[0].min[self.n_q :, 0]
 
         m = brd.Model(self.biorbd_model_path)
         self.sigma0 = m.angularMomentum(q_init, qdot_init, True).to_array()
-        print(self.sigma0)
         self.p0 = m.mass() * m.CoMdot(q_init, qdot_init, True).to_array()
-        print(self.p0)
 
     def _set_initial_guesses(self):
+        """
+        Set the initial guess for the optimal control problem (states and controls)
+        """
         # --- Initial guess --- #
         total_n_shooting = np.sum(self.n_shooting) + len(self.n_shooting)
         # Initialize state vector
@@ -423,16 +433,6 @@ class MillerOcp:
             * self.random_scale_qdot
         )
 
-        if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-            tau_J_random = np.random.random((self.n_tau, total_n_shooting)) * 2 - 1
-
-            tau_max = self.tau_max * np.ones(self.n_tau)
-            tau_max[self.high_torque_idx] = self.tau_hips_max
-            tau_max[: self.nb_root] = 0
-            tau_J_random = tau_J_random * tau_max[:, np.newaxis] * self.random_scale_tau
-
-            self.x = np.vstack((self.x, tau_J_random))
-
         if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
             qddot_random = (
                 (np.random.random((self.n_qddot, total_n_shooting)) * 2 - 1) * self.qddot_max * self.random_scale_qddot
@@ -450,6 +450,9 @@ class MillerOcp:
         self._set_initial_controls()
 
     def _set_initial_states(self, X0: np.array = None):
+        """
+        Set the initial states of the optimal control problem.
+        """
         if self.ode_solver.is_direct_shooting:
             if X0 is None:
                 self.x_init.add([0] * (self.n_q + self.n_q))
@@ -503,10 +506,6 @@ class MillerOcp:
                 elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
                     u = np.vstack((qddot_B_random, qddot_J_random))
                     self.u_init.add(u, interpolation=InterpolationType.EACH_FRAME)
-                elif self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                    tau_J_random[: self.nb_root, :] = 0
-                    u = np.vstack((tau_J_random * 10, qddot_J_random))
-                    self.u_init.add(u, interpolation=InterpolationType.EACH_FRAME)
                 elif self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
                     u = np.vstack((tau_J_random, qddot_B_random * 10, qddot_J_random * 10))
                     self.u_init.add(u, interpolation=InterpolationType.EACH_FRAME)
@@ -514,7 +513,7 @@ class MillerOcp:
                     u = np.vstack((qddot_B_random * 10, qddot_J_random * 10))
                     self.u_init.add(u, interpolation=InterpolationType.EACH_FRAME)
                 else:
-                    raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
+                    raise ValueError("This dynamics has not been implemented")
         elif self.u is not None:
             for phase in range(len(self.n_shooting)):
                 self.u_init.add(self.u[phase][:, :-1], interpolation=InterpolationType.EACH_FRAME)
@@ -530,6 +529,9 @@ class MillerOcp:
                     shooting += self.n_shooting[i]
 
     def _set_boundary_conditions(self):
+        """
+        Set the boundary conditions for controls and states for each phase.
+        """
         self.x_bounds = BoundsList()
 
         tilt_bound = np.pi / 4
@@ -547,9 +549,6 @@ class MillerOcp:
         slack_initial_vertical_velocity = 2
         slack_initial_somersault_rate = 3
         slack_initial_translation_velocities = 1
-        # slack_initial_translation_velocities = 0
-        # slack_initial_vertical_velocity = 0
-        # slack_initial_somersault_rate = 0
 
         # end phase 0
         slack_somersault = 30 * 3.14 / 180
@@ -831,16 +830,6 @@ class MillerOcp:
                     interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT,
                 )
             )
-            if self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                tau_min = np.ones((self.n_tau, 3)) * self.tau_min
-                tau_max = np.ones((self.n_tau, 3)) * self.tau_max
-                tau_min[: self.nb_root, :] = 0
-                tau_max[: self.nb_root, :] = 0
-                tau_min[self.high_torque_idx, :] = self.tau_hips_min
-                tau_max[self.high_torque_idx, :] = self.tau_hips_max
-                self.x_bounds[phase].concatenate(
-                    Bounds(tau_min, tau_max, interpolation=InterpolationType.CONSTANT_WITH_FIRST_AND_LAST_DIFFERENT)
-                )
 
             if self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
                 qddot_min = np.ones((self.n_qddot, 3)) * self.qddot_min
@@ -871,11 +860,6 @@ class MillerOcp:
                 self.u_bounds[0].max[self.high_torque_idx, :] = self.tau_hips_max
             elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
                 self.u_bounds.add([self.qddot_min] * self.n_qddot, [self.qddot_max] * self.n_qddot)
-            elif self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-                self.u_bounds.add(
-                    np.squeeze(tau_min[:, 0] * 10).tolist() + [self.qddot_min] * self.n_qddot,
-                    np.squeeze(tau_max[:, 0] * 10).tolist() + [self.qddot_max] * self.n_qddot,
-                )
             elif self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
                 self.u_bounds.add(
                     [self.tau_min] * self.n_tau + [self.qdddot_min] * self.n_qdddot,
@@ -889,9 +873,12 @@ class MillerOcp:
                     [self.qdddot_max] * self.n_qdddot,
                 )
             else:
-                raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
+                raise ValueError("This dynamics has not been implemented")
 
     def _interpolate_initial_states(self, X0: np.array):
+        """
+        Interpolate the initial states to match the number of shooting nodes
+        """
         print("interpolating initial states to match the number of shooting nodes")
         x = np.linspace(0, self.phase_time, X0.shape[1])
         y = X0
@@ -901,6 +888,9 @@ class MillerOcp:
         return y_new
 
     def _interpolate_initial_controls(self, U0: np.array):
+        """
+        Interpolate the initial controls to match the number of shooting nodes
+        """
         print("interpolating initial controls to match the number of shooting nodes")
         x = np.linspace(0, self.phase_time, U0.shape[1])
         y = U0
@@ -910,49 +900,62 @@ class MillerOcp:
         return y_new
 
     def _set_mapping(self):
+        """
+        Set the mapping between the states and controls of the model
+        """
         if self.dynamics_type == MillerDynamics.EXPLICIT:
             self.mapping.add(
                 "tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14]
             )
         elif self.dynamics_type == MillerDynamics.ROOT_EXPLICIT:
             print("no bimapping")
-            # self.mapping.add(
-            #     "qddot",
-            #     [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8],
-            #     [6, 7, 8, 9, 10, 11, 12, 13, 14],
-            # )
         elif self.dynamics_type == MillerDynamics.IMPLICIT:
             self.mapping.add(
                 "tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14]
             )
         elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT:
             pass
-            # self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14])
-        elif self.dynamics_type == MillerDynamics.IMPLICIT_TAUDOT_DRIVEN:
-            pass
-            # self.mapping.add(
-            #     "tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14]
-            # )
         elif self.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
-            # pass
             self.mapping.add(
                 "tau", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14]
             )
         elif self.dynamics_type == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
             pass
-            # self.mapping.add("qddot", [None, None, None, None, None, None, 0, 1, 2, 3, 4, 5, 6, 7, 8], [6, 7, 8, 9, 10, 11, 12, 13, 14])
         else:
-            raise ValueError("Check spelling, choices are explicit, root_explicit, implicit, root_implicit")
+            raise ValueError("This dynamics has not been implemented")
 
-    def _load_initial_guess(self):
+    def _print_bounds(self):
+        """
+        Prints the bounds of the states
+        """
+        max = []
+        min = []
+        for nlp in self.ocp.nlp:
+            max.append(np.array(nlp.x_bounds.max.tolist()))
+            min.append(np.array(nlp.x_bounds.min.tolist()))
 
-        file_name = (
-            "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/other/root_explicit_2022-02-09_18_45_25.bo"
-        )
-        ocp, data = OptimalControlProgram.load(file_name)
-        q = np.hstack((data.states[0]["q"], data.states[1]["q"]))
-        qdot = np.hstack((data.states[0]["qdot"], data.states[1]["qdot"]))
-        states = np.hstack((data.states[0]["all"], data.states[1]["all"]))
-        self.x = states
-        self.p = np.array(data.parameters["time"])
-        print(self.p)
+        s = ""
+        for i, nlp in enumerate(self.ocp.nlp):
+            s += f"Phase {i}"
+            s += 14 * " " + 2 * 21 * " "
+        print(s)
+
+        s = ""
+        for i, nlp in enumerate(self.ocp.nlp):
+            s += f"Beginning"
+            s += 12 * " "
+            s += f"Middle"
+            s += 15 * " "
+            s += f"End"
+            s += 18 * " "
+        print(s)
+
+        for i in range(nlp.x_bounds.shape[0]):
+            s = ""
+            coef = 180 / np.pi if i > 2 else 1
+            for p, nlp in enumerate(self.ocp.nlp):
+                for j in range(len(min[p][i])):
+                    str_interval = f"[{np.round(min[p][i][j] * coef,3)}, {np.round(max[p][i][j] * coef,3)}]"
+                    str_interval += (21 - str_interval.__len__()) * " "
+                    s += str_interval
+            print(s)

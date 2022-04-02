@@ -7,7 +7,7 @@ from time import time
 from custom_dynamics.enums import MillerDynamics
 
 
-def main(args=None):
+def main(args: list = None):
     if args:
         Date = args[0]
         i_rand = args[1]
@@ -76,7 +76,6 @@ def main(args=None):
 
     sol.print(cost_type=CostType.OBJECTIVES, to_console=False)
 
-    # if sol.status == 0:
     print(f"##########################################################")
     print(
         f"Time to solve dynamics_type={dynamics_type}, i_rand={i_rand}, extra_obj={extra_obj}"
@@ -106,9 +105,7 @@ def main(args=None):
         "computation_time": toc,
         "cost": sol.cost,
         "detailed_cost": sol.detailed_cost,
-        # "inf_du" : sol.inf_du,
         "iterations": sol.iterations,
-        # "inf_pr" : sol.inf_pr,
         "status": sol.status,
         "states": sol.states,
         "controls": sol.controls,

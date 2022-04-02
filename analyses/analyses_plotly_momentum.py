@@ -1,34 +1,24 @@
-from custom_dynamics.enums import MillerDynamics
+"""
+This script is used to plot the linear momentum, angular momentum and force and torque residuals
+for the different MillerDynamics
+"""
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
-import numpy as np
+from utils import add_annotation_letter
 
-out_path_file = "../../OnDynamicsForSommersaults_results/figures/V3"
-df_results = pd.read_pickle("Dataframe_results_metrics_3.pkl")
+out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
+df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
+dyn = [
+    "$\\text{Full-Exp}$",
+    "$\\text{Base-Exp}$",
+    "$\\text{Full-Imp-}\\ddot{q}$",
+    "$\\text{Base-Imp-}\\ddot{q}$",
+    "$\\text{Full-Imp-}\\dddot{q}$",
+    "$\\text{Base-Imp-}\\dddot{q}$",
+]
 
-df_results["dynamics_type_label"] = None
-df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT, "dynamics_type_label"
-] = r"$\text{Exp-Base}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "dynamics_type_label"
-] = r"$\text{Imp-Full-}\ddot{q}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT, "dynamics_type_label"
-] = r"$\text{Imp-Base-}\ddot{q}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, "dynamics_type_label"
-] = r"$\text{Imp-Full-}\dddot{q}$"
-df_results.loc[
-    df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"
-] = r"$\text{Imp-Base-}\dddot{q}$"
-
-dyn = ['$\\text{Exp-Full}$','$\\text{Exp-Base}$', '$\\text{Imp-Full-}\\ddot{q}$', '$\\text{Imp-Base-}\\ddot{q}$',
-       '$\\text{Imp-Full-}\\dddot{q}$',
-       '$\\text{Imp-Base-}\\dddot{q}$']
 dyn = dyn[2:]
 grps = ["Explicit", "Explicit", "Implicit_qddot", "Implicit_qddot", "Implicit_qdddot", "Implicit_qdddot"]
 grps = grps[2:]
@@ -40,9 +30,10 @@ fig = make_subplots(
     subplot_titles=(
         r"$\textrm{Linear Momentum}$",
         r"$\textrm{Angular Momentum}$",
-        r"$\textrm{Translation Torque}$",
-        r"$\textrm{Rotation Torque}$",
+        r"$\textrm{Forces}$",
+        r"$\textrm{Torques}$",
     ),
+    vertical_spacing=0.09,
 )
 
 # select only the one who converged
@@ -89,7 +80,6 @@ def my_traces(fig, dyn, grps, c, df, key, row, col, ylabel, title_str: str = Non
         row=row,
         col=col,
         title=ylabel,
-        # range=[np.log10(min_y * 2.5), np.log10(max_y)],
         title_standoff=2,
         tickson="boundaries",
         exponentformat="e",
@@ -114,7 +104,7 @@ fig = my_traces(
     "linear_momentum_rmse",
     1,
     1,
-    r"$\text{RMSe (}N.s^{-1} \text{)}$",
+    r"$\text{RMSe (}kg.m.s^{-1} \text{)}$",
     r"$\text{Linear Momentum}$",
 )
 fig = my_traces(
@@ -126,18 +116,13 @@ fig = my_traces(
     "angular_momentum_rmse",
     1,
     2,
-    r"$\text{RMSe (}N.m.s^{-1} \text{)}$",
+    r"$\text{RMSe (}kg.m^2.s^{-1}\text{)}$",
     r"$\text{Angular Momentum}$",
 )
-fig = my_traces(
-    fig, dyn, grps, colors, df_results, "int_T", 2, 1, r"$\text{Residuals (N.s)}$", r"$\text{Translation torques}$"
-)
-fig = my_traces(
-    fig, dyn, grps, colors, df_results, "int_R", 2, 2, r"$\text{Residuals (N.m.s)}$", r"$\text{Rotation torques}$"
-)
+fig = my_traces(fig, dyn, grps, colors, df_results, "int_T", 2, 1, r"$\text{Residuals (N.s)}$", r"$\text{Forces}$")
+fig = my_traces(fig, dyn, grps, colors, df_results, "int_R", 2, 2, r"$\text{Residuals (N.m.s)}$", r"$\text{Torques}$")
 
 fig.update_layout(
-    # xaxis_title=r'$\text{Transcription}$',
     height=800,
     width=800,
     paper_bgcolor="rgba(255,255,255,1)",
@@ -156,11 +141,17 @@ fig.update_layout(
     ),
     yaxis=dict(color="black"),
     template="simple_white",
-    # showlegend=False,
-    # violingap=0.1,
     boxgap=0.2,
 )
+
+fig = add_annotation_letter(fig, "A", x=0.01, y=0.99, on_paper=True)
+fig = add_annotation_letter(fig, "B", x=0.56, y=0.99, on_paper=True)
+fig = add_annotation_letter(fig, "C", x=0.01, y=0.44, on_paper=True)
+fig = add_annotation_letter(fig, "D", x=0.56, y=0.44, on_paper=True)
+
+
 fig.show()
-fig.write_image(out_path_file + "/analyse_momentum.png")
-fig.write_image(out_path_file + "/analyse_momentum.pdf")
+# fig.write_image(out_path_file + "/analyse_momentum.png")
+# fig.write_image(out_path_file + "/analyse_momentum.pdf")
+fig.write_image(out_path_file + "/analyse_momentum.eps")
 fig.write_html(out_path_file + "/analyse_momentum.html")

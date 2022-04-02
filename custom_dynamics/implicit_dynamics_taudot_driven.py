@@ -1,6 +1,6 @@
 from typing import Union
 import casadi as cas
-from casadi import solve, MX, Function
+from casadi import MX
 from bioptim import (
     OptimalControlProgram,
     NonLinearProgram,

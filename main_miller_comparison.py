@@ -32,16 +32,16 @@ nstep = 5
 
 
 def generate_calls(
-        n: Union[int, list],
-        Date,
-        n_shooting: tuple,
-        dynamics_types: list,
-        ode_solver: list,
-        nstep: int,
-        n_threads: int,
-        out_path_raw: str,
-        model_str: str,
-        extra_obj: bool,
+    n: Union[int, list],
+    Date,
+    n_shooting: tuple,
+    dynamics_types: list,
+    ode_solver: list,
+    nstep: int,
+    n_threads: int,
+    out_path_raw: str,
+    model_str: str,
+    extra_obj: bool,
 ):
     if isinstance(n, int):
         rand_loop = range(n)

@@ -1,10 +1,24 @@
+"""
+This file contains functions to plot extra information for the optimal control problem of the Miller.
+"""
+
 import numpy as np
 import biorbd_casadi as biorbd
-from bioptim import PlotType, BiorbdInterface
+from bioptim import PlotType, NonLinearProgram, OptimalControlProgram
 from custom_dynamics.enums import MillerDynamics
 
 
-def plot_linear_momentum(x, nlp):
+def plot_linear_momentum(x, nlp: NonLinearProgram):
+    """
+    Compute the linear momentum of the system.
+
+    Parameters
+    ----------
+    x
+        State vector
+    nlp: NonLinearProgram
+        Non linear program
+    """
     linear_momentum = (
         nlp.model.mass().to_mx() * nlp.model.CoMdot(nlp.states["q"].mx, nlp.states["qdot"].mx, True).to_mx()
     )
@@ -19,7 +33,17 @@ def plot_linear_momentum(x, nlp):
     return np.array(linear_momentum_func(q, qdot))
 
 
-def plot_angular_momentum(x, nlp):
+def plot_angular_momentum(x, nlp: NonLinearProgram):
+    """
+    Compute the angular momentum of the system.
+
+    Parameters
+    ----------
+    x
+        State vector
+    nlp: NonLinearProgram
+        Non linear program
+    """
     angular_momentum_func = biorbd.to_casadi_func(
         "AngularMomentum", nlp.model.angularMomentum, nlp.states["q"].mx, nlp.states["qdot"].mx, expand=False
     )
@@ -30,7 +54,19 @@ def plot_angular_momentum(x, nlp):
     return np.array(angular_momentum_func(q, qdot))
 
 
-def plot_residual_torque(x, u, nlp):
+def plot_residual_torque(x, u, nlp: NonLinearProgram):
+    """
+    Compute the residual torque of the system.
+
+    Parameters
+    ----------
+    x
+        State vector
+    u
+        Control vector
+    nlp: NonLinearProgram
+        Non linear program
+    """
     qddot_mx = nlp.controls["qddot"].mx if "qddot" in nlp.controls.keys() else nlp.states["qddot"].mx
     ID_func = biorbd.to_casadi_func(
         "ResidualTorque",
@@ -52,12 +88,18 @@ def plot_residual_torque(x, u, nlp):
     return np.array(ID_func(q, qdot, qddot)[:6, :])
 
 
-def add_custom_plots(ocp, dynamics_type):
+def add_custom_plots(ocp: OptimalControlProgram, dynamics_type: MillerDynamics):
+    """
+    Add extra plots to the OCP.
+
+    Parameters
+    ----------
+    ocp: OptimalControlProgram
+        Optimal control program
+    dynamics_type: MillerDynamics
+        Type of dynamics of the Miller optimal control problem
+    """
     for i, nlp in enumerate(ocp.nlp):
-        # ocp.add_plot(
-        #     "LinearMomentum", lambda t, x, u, p: plot_linear_momentum(x, nlp), phase=i,
-        #     legend=["Linear Momentum x", "Linear Momentum y", "Linear Momentum z"]
-        # )
 
         ocp.add_plot(
             "LinearMomentum",

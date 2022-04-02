@@ -6,9 +6,10 @@ from bioptim import (
     ConfigureProblem,
     DynamicsFunctions,
     Node,
+    PenaltyNodeList,
 )
-from bioptim.limits.constraints import ImplicitConstraintFcn
 from bioptim.misc.enums import ConstraintType
+from bioptim.interfaces.biorbd_interface import BiorbdInterface
 
 
 def root_implicit_dynamic(
@@ -59,10 +60,45 @@ def custom_configure_root_implicit(ocp: OptimalControlProgram, nlp: NonLinearPro
     ConfigureProblem.configure_qddot(nlp, as_states=False, as_controls=True)
 
     ocp.implicit_constraints.add(
-        ImplicitConstraintFcn.QDDOT_ROOT_EQUALS_ROOT_DYNAMICS,
+        implicit_root_dynamics,
         node=Node.ALL_SHOOTING,
         constraint_type=ConstraintType.IMPLICIT,
         phase=nlp.phase_idx,
     )
 
     ConfigureProblem.configure_dynamics_function(ocp, nlp, root_implicit_dynamic)
+
+
+def implicit_root_dynamics(all_pn: PenaltyNodeList, **unused_param):
+    """
+    Compute the difference between symbolic joint torques and inverse dynamic results
+    It does not include any inversion of mass matrix
+
+    Parameters
+    ----------
+    all_pn: PenaltyNodeList
+        The penalty node elements
+    **unused_param: dict
+        Since the function does nothing, we can safely ignore any argument
+    """
+
+    nlp = all_pn.nlp
+    nb_root = nlp.model.nbRoot()
+
+    q = nlp.states["q"].mx
+    qdot = nlp.states["qdot"].mx
+    qddot = nlp.states["qddot"].mx if "qddot" in nlp.states.keys() else nlp.controls["qddot"].mx
+
+    if nlp.external_forces:
+        raise NotImplementedError(
+            "This implicit constraint implicit_root_dynamics is not implemented yet with external forces"
+        )
+
+    floating_base_constraint = nlp.model.InverseDynamics(q, qdot, qddot).to_mx()[:nb_root]
+
+    var = []
+    var.extend([nlp.states[key] for key in nlp.states])
+    var.extend([nlp.controls[key] for key in nlp.controls])
+    var.extend([param for param in nlp.parameters])
+
+    return BiorbdInterface.mx_to_cx("FloatingBaseConstraint", floating_base_constraint, *var)

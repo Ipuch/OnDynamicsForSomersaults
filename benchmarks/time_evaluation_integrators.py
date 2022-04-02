@@ -1,8 +1,11 @@
+"""
+This script performs the time evaluation of the integrators
+including the chosen MillerDynamics without considering the optimal control problem.
+"""
 import numpy as np
 from bioptim import OdeSolver
 from miller_ocp import MillerOcp
 from time import perf_counter
-import pandas as pd
 from custom_dynamics.enums import MillerDynamics
 
 ode_solvers = [
