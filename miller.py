@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     main(MillerDynamics.EXPLICIT, 4, OdeSolver.RK4(n_integration_steps=5), False)
     main(MillerDynamics.ROOT_EXPLICIT, 4, OdeSolver.RK4(n_integration_steps=5), False)
-    main(MillerDynamics.IMPLICIT, 1, OdeSolver.RK4(n_integration_steps=5), True)
-    main(MillerDynamics.ROOT_IMPLICIT, 1, OdeSolver.RK4(n_integration_steps=5), True)
+    main(MillerDynamics.IMPLICIT, 1, OdeSolver.RK2(n_integration_steps=5), True)
+    main(MillerDynamics.ROOT_IMPLICIT, 1, OdeSolver.RK2(n_integration_steps=5), True)
     main(MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, 1, OdeSolver.RK4(n_integration_steps=5), True)
     main(MillerDynamics.ROOT_IMPLICIT_QDDDOT, 1, OdeSolver.RK4(n_integration_steps=5), True)
