@@ -1,3 +1,10 @@
+"""
+This script runs 100 simulations per MillerDynamics such as MillerDynamics.EXPLICIT, MillerDynamics.ROOT_EXPLICIT,
+MillerDynamics.ROOT_IMPLICIT, MillerDynamics.IMPLICIT, MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDOT, ...
+It does it with  multiprocessing.Pool() to compare explicit and implicit formulations and equations of motion namely,
+full-body dynamics and free-floating base dynamics.
+This script was originally run on an AMD Ryzen 9 5950X processor and with 128 Go RAM.
+"""
 import os
 from pathlib import Path
 from typing import Union
@@ -18,9 +25,6 @@ except:
     print("../OnDynamicsForSommersaults_results/raw_" + Date + " is already created ")
 
 cpu_number = cpu_count()
-
-# ode_solver = [OdeSolver.RK4, OdeSolver.RK4, OdeSolver.RK2, OdeSolver.RK2]
-
 model_str = "Model_JeCh_15DoFs.bioMod"
 n_shooting = (125, 25)
 nstep = 5
@@ -37,7 +41,38 @@ def generate_calls(
     out_path_raw: str,
     model_str: str,
     extra_obj: bool,
-):
+) -> list:
+    """
+    Generate the list of calls to be used in multiprocessing
+
+    Parameters
+    ----------
+    n : Union[int, list]
+        The int of list of irand to be run
+    Date : str
+        The date of the run
+    n_shooting : tuple
+        The number of shooting points for each phase
+    dynamics_types : list
+        The list of dynamics types to be run such as MillerDynamics.EXPLICIT, MillerDynamics.IMPLICIT, MillerDynamics.EXPLICIT_IMPLICIT
+    ode_solver : list
+        The list of OdeSolver to be run such as OdeSolver.RK4, OdeSolver.RK2
+    nstep : int
+        The number of intermediate steps between two shooting points
+    n_threads : int
+        The number of threads to be used
+    out_path_raw : str
+        The path to store the raw results
+    model_str : str
+        The path to the bioMod model
+    extra_obj : bool
+        Whether to run with the extra objective or not (minimizing extra controls for implicit formulations)
+
+    Returns
+    -------
+    calls: list
+        The list of calls to be run
+    """
     if isinstance(n, int):
         rand_loop = range(n)
     else:
@@ -63,12 +98,22 @@ def generate_calls(
 
 
 def run_pool(calls: list, pool_nb: int):
+    """
+    Run the pool of processes
+
+    Parameters
+    ----------
+    calls : list
+        The list of calls to be run
+    pool_nb : int
+        The number of processes to be used in parallel
+    """
     with Pool(pool_nb) as p:  # should be 4
         p.map(miller_run.main, calls)
 
 
 def run_the_missing_ones(
-    out_path_raw,
+    out_path_raw: str,
     Date,
     n_shooting: tuple,
     dynamics_types: list,
@@ -79,6 +124,30 @@ def run_the_missing_ones(
     extra_obj: bool,
     pool_nb: int,
 ):
+    """
+    This function is used to run the process that were not run during the previous pool of processes
+
+    Parameters
+    ----------
+    out_path_raw : str
+        The path to store the raw results
+    Date : str
+        The date of the run
+    n_shooting : tuple
+        The number of shooting points for each phase
+    dynamics_types : list
+        The list of dynamics types to be run such as MillerDynamics.EXPLICIT, MillerDynamics.IMPLICIT, MillerDynamics.ROOT_EXPLICIT
+    ode_solver : list
+        The list of OdeSolver to be run such as OdeSolver.RK4, OdeSolver.RK2
+    nstep : int
+        The number of intermediate steps between two shooting points
+    n_threads : int
+        The number of threads to be used
+    model_str : str
+        The path to the bioMod model
+    extra_obj : bool
+        Whether to run with the extra objective or not (minimizing extra controls for implicit formulations)
+    """
     # Run the one that did not run
     files = os.listdir(out_path_raw)
     files.sort()
@@ -131,7 +200,8 @@ def run_the_missing_ones(
         run_pool(calls, pool_nb)
 
 
-n_threads = 4  # Should be 8
+# Running explicit formulations full-body dynamics and free-floating dynamics
+n_threads = 4
 ode_solver = [OdeSolver.RK4, OdeSolver.RK4]
 dynamics_types = [MillerDynamics.EXPLICIT, MillerDynamics.ROOT_EXPLICIT]
 
@@ -153,8 +223,8 @@ run_the_missing_ones(
     out_path_raw, Date, n_shooting, dynamics_types, ode_solver, nstep, n_threads, model_str, False, my_pool_number
 )
 
-# Second call
-n_threads = 1  # Should be 8
+# Running implicit formulations full-body dynamics and free-floating dynamics
+n_threads = 1
 ode_solver = [OdeSolver.RK2, OdeSolver.RK2]
 dynamics_types = [MillerDynamics.IMPLICIT, MillerDynamics.ROOT_IMPLICIT]
 
@@ -172,12 +242,12 @@ my_calls = generate_calls(
 )
 
 my_pool_number = int(cpu_number / n_threads)
-# run_pool(my_calls, my_pool_number)
+run_pool(my_calls, my_pool_number)
 run_the_missing_ones(
     out_path_raw, Date, n_shooting, dynamics_types, ode_solver, nstep, n_threads, model_str, True, my_pool_number
 )
 
-# Third call
+# Running implicit formulations with jerks as extra controls full-body dynamics and free-floating dynamics
 n_threads = 1  # Should be 8
 ode_solver = [OdeSolver.RK4, OdeSolver.RK4]
 dynamics_types = [MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, MillerDynamics.ROOT_IMPLICIT_QDDDOT]
@@ -196,7 +266,7 @@ my_calls = generate_calls(
 )
 
 my_pool_number = int(cpu_number / n_threads)
-# run_pool(my_calls, my_pool_number)
+run_pool(my_calls, my_pool_number)
 run_the_missing_ones(
     out_path_raw, Date, n_shooting, dynamics_types, ode_solver, nstep, n_threads, model_str, True, my_pool_number
 )
