@@ -1,11 +1,6 @@
-import os, shutil
-
-# from Comparison import ComparisonAnalysis, ComparisonParameters
-import pickle
-import numpy as np
+import os
 from multiprocessing import Pool, cpu_count
 from datetime import date
-import smtplib, ssl
 import miller_run
 from bioptim import OdeSolver
 from custom_dynamics.enums import MillerDynamics
@@ -13,7 +8,7 @@ from custom_dynamics.enums import MillerDynamics
 Date = date.today()
 Date = Date.strftime("%d-%m-%y")
 
-out_path_raw = "../OnDynamicsForSommersaults_results/raw_convergence_minqddot" + Date
+out_path_raw = "../OnDynamicsForSommersaults_results/raw_convergence" + Date
 try:
     os.mkdir(out_path_raw)
 except:
@@ -21,22 +16,14 @@ except:
 
 cpu_number = cpu_count()
 
-# n_shooting = [(125, 25), (250, 50), (500, 100)]
-# n_shooting_list = [(50, 10), (75, 15), (100, 20), (125, 25), (175, 35), (200, 40), (250, 50)]
-# n_shooting_list = [
-# n_shooting_list = [(900, 180), (2500, 500)]
-
-n_shooting_list_1 = [(50, 10), (75, 15), (100, 20), (125, 25), (175, 35), (200, 40)]
+n_shooting_list_1 = [(125, 25), (175, 35), (200, 40)]
 n_shooting_list_2 = [(250, 50), (300, 60)]
 n_shooting_list_3 = [(400, 80), (500, 100)]
 n_shooting_list_4 = [(600, 120), (700, 140)]
-# n_shooting_list_4 = [(700, 140)]
+
 model_str = "Model_JeCh_15DoFs.bioMod"
 nstep = 5
-
-#n_threads = 1
-#ode_solver = OdeSolver.RK2
-#dynamics_types = ["implicit", "root_implicit"]
+repeat = 30
 
 
 def generate_calls(
@@ -72,44 +59,29 @@ def generate_calls(
     return calls
 
 
-#calls = generate_calls(
-#    10, Date, n_shooting_list_3, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, False,
-#)
-#pool_number = 4
-#with Pool(pool_number) as p:
-#    p.map(miller_run.main, calls)
-
 n_threads = 1
 ode_solver = OdeSolver.RK2
-dynamics_types = [MillerDynamics.IMPLICIT, MillerDynamics.ROOT_IMPLICIT]
+dynamics_types = [MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT]
 
 calls = generate_calls(
-    10, Date, n_shooting_list_1, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
+    repeat, Date, n_shooting_list_1, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
 )
-pool_number = 32
+pool_number = 5
 with Pool(pool_number) as p:
     p.map(miller_run.main, calls)
 
 
 calls = generate_calls(
-    10, Date, n_shooting_list_2, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
+    repeat, Date, n_shooting_list_2, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
 )
-pool_number = 8
+pool_number = 5
 with Pool(pool_number) as p:
     p.map(miller_run.main, calls)
 
 
 calls = generate_calls(
-   10, Date, n_shooting_list_3, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
+   repeat, Date, n_shooting_list_3, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
  )
-pool_number = 6
-with Pool(pool_number) as p:
-    p.map(miller_run.main, calls)
-
-
-calls = generate_calls(
-    10, Date, n_shooting_list_4, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
-)
-pool_number = 4
+pool_number = 5
 with Pool(pool_number) as p:
     p.map(miller_run.main, calls)
