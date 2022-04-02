@@ -1,6 +1,6 @@
 from typing import Union
 import casadi as cas
-from casadi import solve, MX, Function
+from casadi import solve, MX
 from bioptim import (
     OptimalControlProgram,
     NonLinearProgram,
@@ -38,28 +38,11 @@ def root_explicit_dynamic(
     nb_root = nlp.model.nbRoot()
     qddot_joints = DynamicsFunctions.get(nlp.controls["qddot"], controls)[nb_root:]
     qddot = cas.vertcat(cas.MX.zeros((nb_root, 1)), qddot_joints)
-    # qddot = DynamicsFunctions.get(nlp.controls["qddot"], controls)
-    mass_matrix_nl_effects = nlp.model.InverseDynamics(q, qdot, qddot).to_mx()
-    # mass_matrix_inverse = nlp.model.massMatrixInverse(q).to_mx()
-    mass_matrix = nlp.model.massMatrix(q).to_mx()
-    # M_func = cas.Function("M_func", [q], [mass_matrix], ["q"], ["M"]).expand()
-    # N_func = cas.Function("N_func", [q, qdot], [mass_matrix], ["q"], ["M"]).expand()
 
-    # qddot_root = -M_BB^-1 * ( M_BJ  * qddot_joints + N_B )
-    # qddot_root = -mass_matrix_inverse[:nb_root, :nb_root] @ mass_matrix_nl_effects[:nb_root]
-    # qddot_root = ldl_solve(mass_matrix_inverse[:nb_root, :nb_root], mass_matrix_nl_effects[:nb_root])
+    mass_matrix_nl_effects = nlp.model.InverseDynamics(q, qdot, qddot).to_mx()
+    mass_matrix = nlp.model.massMatrix(q).to_mx()
 
     qddot_root = solve(mass_matrix[:nb_root, :nb_root], MX.eye(nb_root), "ldl") @ mass_matrix_nl_effects[:nb_root]
-    # qddot_root = solve(mass_matrix[: nb_root, : nb_root], mass_matrix_nl_effects[: nb_root], "ldl")
-    # q_sym = MX.sym("q_sym", nlp.model.nbQ(), 1)
-    # qdot_sym = MX.sym("q_sym", nlp.model.nbQdot(), 1)
-    # qddot_sym = MX.sym("q_sym", nlp.model.nbQddot(), 1)
-
-    mass_matrix_nl_effects_func = Function(
-        "mass_matrix_nl_effects_func", [q, qdot, qddot], [mass_matrix_nl_effects[:nb_root]]
-    ).expand()
-
-    # qddot_root = solve(mass_matrix[: nb_root, : nb_root], MX.eye(nb_root), "ldl") @ mass_matrix_nl_effects_func(q, qdot, qddot)
 
     return qdot, cas.vertcat(qddot_root, qddot_joints)
 

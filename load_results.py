@@ -6,14 +6,14 @@ import pickle
 from bioptim import OptimalControlProgram
 import bioviz
 
-filename = "file.bo"  # or file.pkl
+filename = "raw/miller_MillerDynamics.EXPLICIT_irand10_extraobjFalse_125_25.pckl"  # or .bo, any file in raw.
 
 if filename.endswith(".bo"):
     ocp, sol = OptimalControlProgram.load(filename)
     sol.graphs()
     sol.animate()
 
-elif filename.endswith(".pkl"):
+elif filename.endswith(".pckl"):
     model_name = "Model_JeCh_15DoFs.bioMod"
     file = open(f"{filename}", "rb")
     data = pickle.load(file)

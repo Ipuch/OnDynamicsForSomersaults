@@ -18,7 +18,7 @@ from custom_dynamics.enums import MillerDynamics
 Date = date.today()
 Date = Date.strftime("%d-%m-%y")
 
-out_path_raw = "/home/mickaelbegon/Documents/somersaults/OnDynamicsForSommersaults_results/raw_last01-03-22"  # + Date
+out_path_raw = "../OnDynamicsForSommersaults_results/raw_" + Date
 try:
     os.mkdir(out_path_raw)
 except:

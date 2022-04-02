@@ -1,3 +1,8 @@
+"""
+This script is reading and organizing the raw data results from Miller Optimal control problems into a nice DataFrame
+It concerns all the files studying the effect of increasing the number of shooting nodes.
+It requires the all the raw data to run the script.
+"""
 import os
 from pathlib import Path
 import pickle
@@ -71,11 +76,9 @@ for i, file in enumerate(files):
             data["dynamics_type"] = MillerDynamics.ROOT_IMPLICIT
 
         # fill qddot_integrated
-        if (
-            data["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
-            or data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT
-        ):
-            p = p.with_suffix(".bo")
+        if data["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT\
+                or data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
+            p = p.with_suffix('.bo')
             ocp, sol = OptimalControlProgram.load(p.resolve().__str__())
             sol_integrated = sol.integrate(
                 shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False
@@ -87,11 +90,7 @@ for i, file in enumerate(files):
         df_dictionary = pd.DataFrame([data])
         df_results = pd.concat([df_results, df_dictionary], ignore_index=True)
 
-df_results.to_pickle("Dataframe_convergence_results_5.pkl")
-
-# Add Metrics
-
-df_results = pd.read_pickle("Dataframe_convergence_results_5.pkl")
+# # Add Metrics
 # fill new columns
 n_row = len(df_results)
 df_results["t"] = None
@@ -279,22 +278,22 @@ for index, row in df_results.iterrows():
 # EXTRA COMPUTATIONS
 # NICE LATEX LABELS
 df_results["dynamics_type_label"] = None
-df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
+df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Full-Exp}$"
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT, "dynamics_type_label"
-] = r"$\text{Exp-Base}$"
+] = r"$\text{Base-Exp}$"
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "dynamics_type_label"
-] = r"$\text{Imp-Full-}\ddot{q}$"
+] = r"$\text{Full-Imp-}\ddot{q}$"
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT, "dynamics_type_label"
-] = r"$\text{Imp-Base-}\ddot{q}$"
+] = r"$\text{Base-Imp-}\ddot{q}$"
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, "dynamics_type_label"
-] = r"$\text{Imp-Full-}\dddot{q}$"
+] = r"$\text{Full-Imp-}\dddot{q}$"
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"
-] = r"$\text{Imp-Base-}\dddot{q}$"
+] = r"$\text{Base-Imp-}\dddot{q}$"
 
 # COST FUNCTIONS
 # four first functions for each phase

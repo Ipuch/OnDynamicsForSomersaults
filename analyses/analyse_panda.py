@@ -1,3 +1,7 @@
+"""
+This script is reading and organizing the raw data results from Miller Optimal control problems into a nice DataFrame.
+It requires the all the raw data to run the script.
+"""
 import os
 from pathlib import Path
 import pickle
@@ -22,7 +26,7 @@ from utils import (
 import numpy as np
 import pandas as pd
 
-out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_last01-03-22"
+out_path_raw = "../../OnDynamicsForSommersaults_results/raw_last01-03-22"
 model = "../Model_JeCh_15DoFs.bioMod"
 # open files
 files = os.listdir(out_path_raw)
@@ -46,38 +50,38 @@ column_names = [
     "n_shooting",
     "n_theads",
 ]
-# df_results = pd.DataFrame(columns=column_names)
-#
-# for i, file in enumerate(files):
-#     if file.endswith(".pckl"):
-#         print(file)
-#         p = Path(f"{out_path_raw}/{file}")
-#         file_path = open(p, "rb")
-#         data = pickle.load(file_path)
-#
-#         # DM to array
-#         data["cost"] = np.array(data["cost"])[0][0]
-#         data["parameters"]["time"] = np.array(data["parameters"]["time"]).T[0]
-#
-#         # fill qddot_integrated
-#         if (
-#             data["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
-#             or data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT
-#         ):
-#             p = p.with_suffix(".bo")
-#             ocp, sol = OptimalControlProgram.load(p.resolve().__str__())
-#             sol_integrated = sol.integrate(
-#                 shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False
-#             )
-#             data["qddot_integrated"] = sol_integrated.states["qddot"]
-#         else:
-#             data["qddot_integrated"] = np.nan
-#
-#         df_dictionary = pd.DataFrame([data])
-#         df_results = pd.concat([df_results, df_dictionary], ignore_index=True)
+df_results = pd.DataFrame(columns=column_names)
+
+for i, file in enumerate(files):
+    if file.endswith(".pckl"):
+        print(file)
+        p = Path(f"{out_path_raw}/{file}")
+        file_path = open(p, "rb")
+        data = pickle.load(file_path)
+
+        # DM to array
+        data["cost"] = np.array(data["cost"])[0][0]
+        data["parameters"]["time"] = np.array(data["parameters"]["time"]).T[0]
+
+        # fill qddot_integrated
+        if (
+            data["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+            or data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+        ):
+            p = p.with_suffix(".bo")
+            ocp, sol = OptimalControlProgram.load(p.resolve().__str__())
+            sol_integrated = sol.integrate(
+                shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False
+            )
+            data["qddot_integrated"] = sol_integrated.states["qddot"]
+        else:
+            data["qddot_integrated"] = np.nan
+
+        df_dictionary = pd.DataFrame([data])
+        df_results = pd.concat([df_results, df_dictionary], ignore_index=True)
 
 # df_results.to_pickle("Dataframe_results_5.pkl")
-df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
+# df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
 
 # fill new columns
 n_row = len(df_results)
@@ -263,22 +267,22 @@ for index, row in df_results.iterrows():
 # EXTRA COMPUTATIONS
 # NICE LATEX LABELS
 df_results["dynamics_type_label"] = None
-df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Exp-Full}$"
+df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "dynamics_type_label"] = r"$\text{Full-Exp}$"
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT, "dynamics_type_label"
-] = r"$\text{Exp-Base}$"
+] = r"$\text{Base-Exp}$"
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.IMPLICIT, "dynamics_type_label"
-] = r"$\text{Imp-Full-}\ddot{q}$"
+] = r"$\text{Full-Imp-}\ddot{q}$"
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT, "dynamics_type_label"
-] = r"$\text{Imp-Base-}\ddot{q}$"
+] = r"$\text{Base-Imp-}\ddot{q}$"
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT, "dynamics_type_label"
-] = r"$\text{Imp-Full-}\dddot{q}$"
+] = r"$\text{Full-Imp-}\dddot{q}$"
 df_results.loc[
     df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "dynamics_type_label"
-] = r"$\text{Imp-Base-}\dddot{q}$"
+] = r"$\text{Base-Imp-}\dddot{q}$"
 
 # COST FUNCTIONS
 # four first functions for each phase
@@ -373,5 +377,5 @@ for index, row in df_results.iterrows():
         print(row.irand)
         df_results.at[index, "main_cluster"] = True
 
-# finir ici
+# saves the dataframe
 df_results.to_pickle("Dataframe_results_metrics_5.pkl")
