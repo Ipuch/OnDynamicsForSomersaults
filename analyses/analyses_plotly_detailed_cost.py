@@ -1,5 +1,6 @@
 """
 This script is used to plot the optimal cost of the different MillerDynamics.
+It requires the dataframe of all results to run the script.
 """
 
 from custom_dynamics.enums import MillerDynamics

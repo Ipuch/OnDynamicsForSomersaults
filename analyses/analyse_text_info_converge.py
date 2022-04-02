@@ -1,6 +1,7 @@
 """
 This script is used to print out information about the main results comparing the different dynamics
 studying the effect of incrasing the number of shooting points.
+It requires the dataframe of all results to run the script.
 """
 import pandas as pd
 from pandas import DataFrame

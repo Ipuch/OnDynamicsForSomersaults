@@ -1,5 +1,6 @@
 """
 This script is used to plot curves of chosen state or control for a given dof for all type of dynamics.
+It requires the dataframe of all results to run the script.
 """
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd

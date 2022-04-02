@@ -1,5 +1,6 @@
 """
 This script is used to plot the CPU time and number of iterations of for each OCP of each dynamics type
+It requires the dataframe of all results to run the script.
 """
 import pandas as pd
 from plotly.subplots import make_subplots

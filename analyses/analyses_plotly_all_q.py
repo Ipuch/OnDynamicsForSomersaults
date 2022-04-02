@@ -1,6 +1,7 @@
 """
 This script plots all generalized coordinates and all torques for all MillerDynamics
 contained in the main cluster of optimal costs
+It requires the dataframe of all results to run the script.
 """
 
 from custom_dynamics.enums import MillerDynamics

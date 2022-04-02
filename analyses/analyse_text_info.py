@@ -1,5 +1,6 @@
 """
 This script is used to print out information about the main results comparing the different dynamics.
+It requires the dataframe of all results to run the script.
 """
 import pandas as pd
 

@@ -1,5 +1,6 @@
 """
 This script is used to plot the value of parameters namely final times of phase 1 and phase 2 for each MillerDynamics
+It requires the dataframe of all results to run the script.
 """
 import pandas as pd
 from plotly.subplots import make_subplots

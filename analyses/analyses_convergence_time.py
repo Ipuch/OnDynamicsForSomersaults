@@ -1,6 +1,7 @@
 """
 This script is used to analyse the convergence time of the different MillerDynamics
 when increasing the number of shooting points
+It requires the dataframe of all results to run the script.
 """
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd

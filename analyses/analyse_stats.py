@@ -1,5 +1,6 @@
 """
 This script does the main statistics analysis between each variables
+It requires the dataframe of all results to run the script.
 """
 import sys
 import os

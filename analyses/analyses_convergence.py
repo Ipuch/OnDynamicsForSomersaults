@@ -1,5 +1,6 @@
 """
 This script is used to plot angular momentum, linear momentum, torque and force residuals for the convergence analysis.
+It requires the dataframe of all results to run the script.
 """
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd

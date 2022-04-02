@@ -1,3 +1,7 @@
+"""
+This script is used to analyse the optimal cost while studying the effect of inscreasing the number of shooting points.
+It requires the dataframe of all results to run the script.
+"""
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
 import plotly.graph_objects as go
@@ -6,7 +10,6 @@ from utils import my_shaded_trace
 
 out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
 model = "../Model_JeCh_15DoFs.bioMod"
-
 df_results = pd.read_pickle("Dataframe_convergence_metrics_5.pkl")
 
 # List of dynamics

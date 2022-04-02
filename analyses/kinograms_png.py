@@ -1,5 +1,6 @@
 """
 This script is used to generate the kinograms of Miller optimal control problems.
+It requires the dataframe of all results to run the script and dataframe.
 """
 
 import bioviz

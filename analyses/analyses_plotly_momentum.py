@@ -1,6 +1,7 @@
 """
 This script is used to plot the linear momentum, angular momentum and force and torque residuals
 for the different MillerDynamics
+It requires the dataframe of all results to run the script.
 """
 import pandas as pd
 import plotly.graph_objects as go
