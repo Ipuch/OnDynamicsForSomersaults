@@ -21,7 +21,7 @@ for d in dyn:
 df_results = df_results[df_results["status"] == 0]
 
 
-def batch_computation(df_results: DataFrame, key: str, d: str)->float:
+def batch_computation(df_results: DataFrame, key: str, d: str) -> float:
     """
     This function is used to compute the ratio between the min and the max for a given dynamics d and a given key.
 

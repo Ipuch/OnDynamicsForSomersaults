@@ -64,7 +64,16 @@ ode_solver = OdeSolver.RK2
 dynamics_types = [MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT]
 
 calls = generate_calls(
-    repeat, Date, n_shooting_list_1, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
+    repeat,
+    Date,
+    n_shooting_list_1,
+    dynamics_types,
+    ode_solver,
+    nstep,
+    n_threads,
+    out_path_raw,
+    model_str,
+    True,
 )
 pool_number = 5
 with Pool(pool_number) as p:
@@ -72,7 +81,16 @@ with Pool(pool_number) as p:
 
 
 calls = generate_calls(
-    repeat, Date, n_shooting_list_2, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
+    repeat,
+    Date,
+    n_shooting_list_2,
+    dynamics_types,
+    ode_solver,
+    nstep,
+    n_threads,
+    out_path_raw,
+    model_str,
+    True,
 )
 pool_number = 5
 with Pool(pool_number) as p:
@@ -80,8 +98,17 @@ with Pool(pool_number) as p:
 
 
 calls = generate_calls(
-   repeat, Date, n_shooting_list_3, dynamics_types, ode_solver, nstep, n_threads, out_path_raw, model_str, True,
- )
+    repeat,
+    Date,
+    n_shooting_list_3,
+    dynamics_types,
+    ode_solver,
+    nstep,
+    n_threads,
+    out_path_raw,
+    model_str,
+    True,
+)
 pool_number = 5
 with Pool(pool_number) as p:
     p.map(miller_run.main, calls)

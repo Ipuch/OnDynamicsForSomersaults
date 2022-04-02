@@ -71,9 +71,11 @@ for i, file in enumerate(files):
             data["dynamics_type"] = MillerDynamics.ROOT_IMPLICIT
 
         # fill qddot_integrated
-        if data["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT\
-                or data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT:
-            p = p.with_suffix('.bo')
+        if (
+            data["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+            or data["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT
+        ):
+            p = p.with_suffix(".bo")
             ocp, sol = OptimalControlProgram.load(p.resolve().__str__())
             sol_integrated = sol.integrate(
                 shooting_type=Shooting.MULTIPLE, keep_intermediate_points=True, merge_phases=True, continuous=False
@@ -360,5 +362,3 @@ df_results.loc[df_results["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN
 df_results.loc[df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT, "grps"] = "Root_Implicit_qdddot"
 
 df_results.to_pickle("Dataframe_convergence_metrics_5.pkl")
-
-
