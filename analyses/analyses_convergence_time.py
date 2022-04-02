@@ -1,9 +1,11 @@
+"""
+This script is used to analyse the convergence time of the different MillerDynamics
+when increasing the number of shooting points
+"""
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-import numpy as np
-import scipy.stats
 from utils import my_shaded_trace
 
 out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"

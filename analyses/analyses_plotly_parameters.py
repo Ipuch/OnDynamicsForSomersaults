@@ -1,9 +1,8 @@
-from custom_dynamics.enums import MillerDynamics
+"""
+This script is used to plot the value of parameters namely final times of phase 1 and phase 2 for each MillerDynamics
+"""
 import pandas as pd
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import plotly.express as px
-import numpy as np
 from utils import my_traces
 
 out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"

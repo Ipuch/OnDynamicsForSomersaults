@@ -1,4 +1,9 @@
+"""
+This script is used to print out information about the main results comparing the different dynamics
+studying the effect of incrasing the number of shooting points.
+"""
 import pandas as pd
+from pandas import DataFrame
 
 df_results = pd.read_pickle("Dataframe_convergence_metrics_5.pkl")
 
@@ -16,7 +21,24 @@ for d in dyn:
 df_results = df_results[df_results["status"] == 0]
 
 
-def batch_computation(df_results, key, d):
+def batch_computation(df_results: DataFrame, key: str, d: str)->float:
+    """
+    This function is used to compute the ratio between the min and the max for a given dynamics d and a given key.
+
+    Parameters
+    ----------
+    df_results : DataFrame
+        The dataframe containing the results.
+    key : str
+        The key suc as "computation_time" or "cost".
+    d : str
+        The dynamics type such as the one contained in dynamics_type_label.
+
+    Returns
+    -------
+    ratio : float
+        The ratio between the max and the min.
+    """
     df = df_results[key]
     n_shoot_max = df_results["n_shooting_tot"][df_results["dynamics_type_label"] == d].max()
     df = df[df_results["dynamics_type_label"] == d]

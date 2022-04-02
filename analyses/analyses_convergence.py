@@ -1,3 +1,6 @@
+"""
+This script is used to plot angular momentum, linear momentum, torque and force residuals for the convergence analysis.
+"""
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
 from plotly.subplots import make_subplots

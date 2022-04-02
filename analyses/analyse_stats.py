@@ -1,3 +1,6 @@
+"""
+This script does the main statistics analysis between each variables
+"""
 import sys
 import os
 from custom_dynamics.enums import MillerDynamics
@@ -6,7 +9,8 @@ import numpy as np
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+from pandas import DataFrame
 
 
 sys.path.append(os.getcwd() + "/..")
@@ -55,7 +59,22 @@ df_results_implicit.linear_momentum_rmse = pd.to_numeric(df_results_implicit.lin
 df_results_implicit.int_T = pd.to_numeric(df_results_implicit.int_T)
 
 
-def function_test_anova(df_results, to_be_tested):
+def function_test_anova(df_results: DataFrame, to_be_tested: str):
+    """
+    This function does the two-ways ANOVA test on the dataframe for a given key to be tested
+
+    Parameters
+    ----------
+    df_results : DataFrame
+        The dataframe with the results
+    to_be_tested : str
+        The key to be tested
+
+    Returns
+    -------
+    anova_results : DataFrame
+        The results of the two-ways ANOVA test
+    """
     df_results[to_be_tested] = pd.to_numeric(df_results[to_be_tested])
     model = ols(
         f"{to_be_tested} ~ C(Exp_Imp_Imp_jerk) + C(Root_Full) + C(Exp_Imp_Imp_jerk):C(Root_Full)", data=df_results
@@ -65,7 +84,22 @@ def function_test_anova(df_results, to_be_tested):
     return ANOVA_table
 
 
-def function_test_post_hoc(df_results, to_be_tested):
+def function_test_post_hoc(df_results: DataFrame, to_be_tested: str):
+    """
+    This fnunction does the pairwise tukeyhsd test on the dataframe for a given key to be tested
+
+    Parameters
+    ----------
+    df_results : DataFrame
+        The dataframe with the results
+    to_be_tested : str
+        The key to be tested
+
+    Returns
+    -------
+    post_hoc_results : DataFrame
+        The results of the pairwise tukeyhsd test
+    """
     tukey_table = pairwise_tukeyhsd(
         endog=df_results[to_be_tested], groups=df_results["dynamics_type_label"], alpha=0.05
     )
@@ -73,13 +107,13 @@ def function_test_post_hoc(df_results, to_be_tested):
     return tukey_table
 
 
-def show_stats_graphs(tukey_table):
-    rows = tukey_table.summary().data[1:]
-    plt.hlines(range(len(rows)), [row[4] for row in rows], [row[5] for row in rows])
-    plt.vlines(0, -1, len(rows) - 1, linestyles="dashed")
-    plt.gca().set_yticks(range(len(rows)))
-    plt.gca().set_yticklabels([f"{x[0]}-{x[1]}" for x in rows])
-    plt.show()
+# def show_stats_graphs(tukey_table):
+#     rows = tukey_table.summary().data[1:]
+#     plt.hlines(range(len(rows)), [row[4] for row in rows], [row[5] for row in rows])
+#     plt.vlines(0, -1, len(rows) - 1, linestyles="dashed")
+#     plt.gca().set_yticks(range(len(rows)))
+#     plt.gca().set_yticklabels([f"{x[0]}-{x[1]}" for x in rows])
+#     plt.show()
 
 
 print("Computation time")

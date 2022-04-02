@@ -1,7 +1,14 @@
+"""
+This script is used to plot curves of chosen state or control for a given dof for all type of dynamics.
+"""
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
-import plotly.graph_objects as go
 import plotly.express as px
+import plotly.graph_objects as go
+
+fig = go.Figure()
+q_idx = 10  # 0 to 14
+key = "q_integrated"  # "qdot_integrated", qddot_integrated, tau_integrated
 
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
 
@@ -28,10 +35,6 @@ print(dyn)
 
 # select only the one who converged
 df_results = df_results[df_results["status"] == 0]
-
-fig = go.Figure()
-q_idx = 10  # 0 to 14
-key = "q_integrated"  # "qdot_integrated", qddot_integrated, tau_integrated
 
 first_e = 0
 first_re = 0

@@ -1,3 +1,7 @@
+"""
+This script is used to plot the optimal cost of the different MillerDynamics.
+"""
+
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
 from plotly.subplots import make_subplots

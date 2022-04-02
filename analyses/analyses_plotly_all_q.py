@@ -1,3 +1,8 @@
+"""
+This script plots all generalized coordinates and all torques for all MillerDynamics
+contained in the main cluster of optimal costs
+"""
+
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
 from plotly.subplots import make_subplots

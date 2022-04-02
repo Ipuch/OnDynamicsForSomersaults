@@ -1,3 +1,7 @@
+"""
+This script is used to generate the kinograms of Miller optimal control problems.
+"""
+
 import bioviz
 from bioptim import OptimalControlProgram
 import matplotlib.pyplot as plt

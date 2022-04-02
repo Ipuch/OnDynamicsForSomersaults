@@ -1,9 +1,8 @@
-from custom_dynamics.enums import MillerDynamics
+"""
+This script is used to plot the CPU time and number of iterations of for each OCP of each dynamics type
+"""
 import pandas as pd
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import plotly.express as px
-import numpy as np
 from utils import my_traces, add_annotation_letter
 
 out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
@@ -28,7 +27,6 @@ df_results["iter_per_sec"] = df_results["iterations"] / df_results["computation_
 
 fig = my_traces(fig, dyn, grps, df_results, "computation_time", 1, 1, r"$\text{time (min)}$")
 fig = my_traces(fig, dyn, grps, df_results, "iterations", 1, 2, r"$\text{iterations}$")
-# fig = my_traces(fig, dyn, grps, df_results, "iter_per_sec", 1, 2, r"$\text{iterations / min}$")
 
 fig.update_layout(
     height=400,

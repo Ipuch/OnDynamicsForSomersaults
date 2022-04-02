@@ -1,4 +1,6 @@
-from custom_dynamics.enums import MillerDynamics
+"""
+This script is used to print out information about the main results comparing the different dynamics.
+"""
 import pandas as pd
 
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
