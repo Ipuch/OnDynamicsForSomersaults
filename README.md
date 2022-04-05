@@ -35,10 +35,9 @@ conda install -c conda-forge biorbd=1.8.4
 conda install -c conda-forge bioviz=2.1.7
 ```
 ```bash
-conda install -c conda-forge bioptim=2.2.3
+conda install -c conda-forge bioptim=2.2.1
 ```
 
-# Dependencies
 Extra dependencies are required to run the code.
 - statsmodels: <a href="https://www.statsmodels.org/stable/index.html">statsmodels</a>
 - plotly: <a href="https://plot.ly/python/">plotly</a>
@@ -46,8 +45,40 @@ Extra dependencies are required to run the code.
 
 # Contents from the paper
 
-## Equations of motions
+Free-floating base dynamics equations are already used to quickly produce optimal trajectories in parametric optimization
+for airborne motions in acrobatic movements. 
+Implicit dynamics is also recommended in the literature to solve optimal control problems faster. 
+However, these features have never been used to solve optimal control problems with a direct multiple shooting approach.
+This study compared both full-body <i>vs</i> free-floating base dynamics and explicit <i>vs</i> implicit formulations of 
+an optimal control problem generating a double straight somersault with three twists. Free-floating dynamics conducted to 
+similar optimal costs for each formulation and systematically hastened the optimization. It was respectively 10 times and 2 times faster in explicit and implicit. 
+Using implicit dynamics also hastened the optimization, but to achieve acceptable levels of dynamical consistency, 
+additional variables were needed in the implicit formulation, being generalized jerks as controls and generalized accelerations as states.
 
-## Optimal control problems formulations
+## Equations of motions
+Free-floating base dynamics equations are written as:
+```math
+\begin{equation}
+    \qddot_B = -M_{BB}(\q)^{-1} \; \left( M_{BJ}(\q) \; \qddot_J + N_B(\q, \qdot)\right)
+\end{equation}
+```
+Full-body dynamics equations are written as:
+```math
+\begin{equation}
+    \qddot = M(\q)^{-1} \left( S^{\top} \btau_J - N(\q, \qdot) \right)  
+\end{equation}
+```
+
+## OCP formulations
 
 ## Implementation
+
+The Enum Class MillerDynamics is used to define the Equation of Motion and the OCP formulation
+
+- MillerDynamics.EXPLICIT: Explicit formulation of the OCP with full-body dynamics
+- MillerDynamics.ROOT_EXPLICIT: Explicit formulation of the OCP with free-floating base dynamics
+- MillerDynamics.IMPLICIT: Implicit formulation of the OCP with full-body dynamics
+- MillerDynamics.ROOT_IMPLICIT: Implicit formulation of the OCP with free-floating base dynamics
+- MillerDynamics.IMPLICIT_QDDDOT: Implicit formulation of the OCP with full-body dynamics and generalized accelerations as states and jerks as controls
+- MillerDynamics.ROOT_IMPLICIT_QDDDOT: Implicit formulation of the OCP with free-floating base dynamics and generalized accelerations as states and jerks as controls
+
