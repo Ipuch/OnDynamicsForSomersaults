@@ -77,7 +77,7 @@ fig.show()
 fig.write_image(out_path_file + "/analyse_convergence_time.png")
 fig.write_image(out_path_file + "/analyse_convergence_time.pdf")
 fig.write_image(out_path_file + "/analyse_convergence_time.eps")
-fig.write_html(out_path_file + "/analyse_convergence_time.html")
+fig.write_html(out_path_file + "/analyse_convergence_time.html", include_mathjax="cdn")
 
 fig.update_layout(
     height=600,
@@ -89,4 +89,4 @@ fig.show()
 fig.write_image(out_path_file + "/analyse_convergence_time_large.png")
 fig.write_image(out_path_file + "/analyse_convergence_time_large.pdf")
 fig.write_image(out_path_file + "/analyse_convergence_time_large.eps")
-fig.write_html(out_path_file + "/analyse_convergence_time_large.html")
+fig.write_html(out_path_file + "/analyse_convergence_time_large.html", include_mathjax="cdn")

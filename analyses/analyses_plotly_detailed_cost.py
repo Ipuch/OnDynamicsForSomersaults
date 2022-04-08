@@ -107,7 +107,7 @@ fig.show()
 fig.write_image(out_path_file + "/detailed_cost.png")
 fig.write_image(out_path_file + "/detailed_cost.pdf")
 fig.write_image(out_path_file + "/detailed_cost.eps")
-fig.write_html(out_path_file + "/detailed_cost.html")
+fig.write_html(out_path_file + "/detailed_cost.html", include_mathjax="cdn")
 
 ## fig 2
 fig = make_subplots(rows=1, cols=3, horizontal_spacing=0.1)
@@ -231,7 +231,7 @@ fig.update_layout(
 fig.show()
 fig.write_image(out_path_file + "/detailed_detailed_cost.png")
 fig.write_image(out_path_file + "/detailed_detailed_cost.pdf")
-fig.write_html(out_path_file + "/detailed_detailed_cost.html")
+fig.write_html(out_path_file + "/detailed_detailed_cost.html", include_mathjax="cdn")
 fig.write_image(out_path_file + "/detailed_detailed_cost.eps")
 
 # only the one that were in the main cluster

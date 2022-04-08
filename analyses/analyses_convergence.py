@@ -182,7 +182,7 @@ fig.show()
 fig.write_image(out_path_file + "/analyse_convergence.png")
 fig.write_image(out_path_file + "/analyse_convergence.pdf")
 fig.write_image(out_path_file + "/analyse_convergence.eps")
-fig.write_html(out_path_file + "/analyse_convergence.html")
+fig.write_html(out_path_file + "/analyse_convergence.html", include_mathjax="cdn")
 
 fig.update_layout(
     height=1200,
@@ -193,4 +193,4 @@ fig.show()
 fig.write_image(out_path_file + "/analyse_convergence_large.png")
 fig.write_image(out_path_file + "/analyse_convergence_large.pdf")
 fig.write_image(out_path_file + "/analyse_convergence_large.eps")
-fig.write_html(out_path_file + "/analyse_convergence_large.html")
+fig.write_html(out_path_file + "/analyse_convergence_large.html", include_mathjax="cdn")

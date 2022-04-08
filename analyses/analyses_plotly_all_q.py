@@ -173,7 +173,7 @@ for i in range(1, cols + 1):
 fig.show()
 fig.write_image(out_path_file + "/tau_integrated.png")
 fig.write_image(out_path_file + "/tau_integrated.pdf")
-fig.write_html(out_path_file + "/tau_integrated.html")
+fig.write_html(out_path_file + "/tau_integrated.html", include_mathjax="cdn")
 fig.write_image(out_path_file + "/tau_integrated.eps")
 
 
@@ -188,4 +188,4 @@ fig.show()
 fig.write_image(out_path_file + "/q_integrated.png")
 fig.write_image(out_path_file + "/q_integrated.pdf")
 fig.write_image(out_path_file + "/q_integrated.eps")
-fig.write_html(out_path_file + "/q_integrated.html")
+fig.write_html(out_path_file + "/q_integrated.html", include_mathjax="cdn")

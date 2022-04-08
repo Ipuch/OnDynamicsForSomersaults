@@ -54,4 +54,4 @@ fig.show()
 
 fig.write_image(out_path_file + "/parameters.png")
 fig.write_image(out_path_file + "/parameters.pdf")
-fig.write_html(out_path_file + "/parameters.html")
+fig.write_html(out_path_file + "/parameters.html", include_mathjax="cdn")

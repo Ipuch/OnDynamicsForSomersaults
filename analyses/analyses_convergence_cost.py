@@ -79,7 +79,7 @@ fig.show()
 fig.write_image(out_path_file + "/analyse_convergence_cost.png")
 fig.write_image(out_path_file + "/analyse_convergence_cost.pdf")
 fig.write_image(out_path_file + "/analyse_convergence_cost.eps")
-fig.write_html(out_path_file + "/analyse_convergence_cost.html")
+fig.write_html(out_path_file + "/analyse_convergence_cost.html", include_mathjax="cdn")
 
 fig.update_layout(
     height=600,
@@ -90,4 +90,4 @@ fig.show()
 fig.write_image(out_path_file + "/analyse_convergence_cost_large.png")
 fig.write_image(out_path_file + "/analyse_convergence_cost_large.pdf")
 fig.write_image(out_path_file + "/analyse_convergence_cost_large.eps")
-fig.write_html(out_path_file + "/analyse_convergence_cost_large.html")
+fig.write_html(out_path_file + "/analyse_convergence_cost_large.html", include_mathjax="cdn")
