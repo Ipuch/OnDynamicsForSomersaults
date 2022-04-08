@@ -152,7 +152,7 @@ fig = add_annotation_letter(fig, "D", x=0.56, y=0.44, on_paper=True)
 
 
 fig.show()
-# fig.write_image(out_path_file + "/analyse_momentum.png")
-# fig.write_image(out_path_file + "/analyse_momentum.pdf")
+fig.write_image(out_path_file + "/analyse_momentum.png")
+fig.write_image(out_path_file + "/analyse_momentum.pdf")
 fig.write_image(out_path_file + "/analyse_momentum.eps")
 fig.write_html(out_path_file + "/analyse_momentum.html")

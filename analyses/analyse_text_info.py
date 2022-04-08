@@ -20,6 +20,15 @@ for d in dyn:
 # select only the one who converged
 df_results = df_results[df_results["status"] == 0]
 
+# only the one that were in the main cluster
+df_sub = df_results[df_results["main_cluster"] == True]
+# Clusters
+print("The number of optimal cost in the main cluster were respectively")
+for ii, d in enumerate(dyn):
+    df_sub_sub = df_sub[df_sub["dynamics_type_label"] == d]
+    print(f"{df_sub_sub.__len__()}")
+print("for explicit{}, rootexplicit{}, implicit{}, rootimplicit{}, implicitqdddot{} " "and rootimplicitqdddot{}. ")
+
 # Costs
 print("The average cost were")
 for ii, d in enumerate(dyn):
