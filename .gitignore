@@ -26,3 +26,9 @@ ocp_graph.gv
 ocp_graph.gv.pdf
 
 *.pkl
+
+jacobian_analysis/jac_analysis.eps
+
+jacobian_analysis/jac_analysis.pdf
+
+jacobian_analysis/jac_analysis.svg
