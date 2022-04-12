@@ -270,13 +270,14 @@ class MillerOcp:
                 node=Node.ALL_SHOOTING,
             )  # Left hand trajectory
             self.objective_functions.add(
-                ObjectiveFcn.Mayer.MINIMIZE_MARKERS,
+                ObjectiveFcn.Mayer.MINIMIZE_MARKERS, ########### Lagrange
+                node=Node.ALL_SHOOTING,
                 derivative=True,
                 reference_jcs=0,
                 marker_index=16,
                 weight=w_penalty_foot,
                 phase=i,
-                node=Node.ALL_SHOOTING,
+                quadratic=False,
             )  # feet trajectory
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=(6, 7, 8, 13, 14), key="q", weight=w_penalty_core, phase=i
