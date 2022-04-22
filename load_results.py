@@ -22,6 +22,7 @@ elif filename.endswith(".pckl"):
     # Animate the model
     manually_animate = False
     import bioviz
+
     biorbd_viz = bioviz.Viz(model_name, show_floor=False, show_gravity_vector=False)
     if manually_animate:
         i = 0

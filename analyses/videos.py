@@ -42,7 +42,7 @@ def generate_video(solution: Solution, save_folder: str, filename: str) -> None:
     # Record
     b.start_recording(f"{save_folder}/{filename}")
 
-    for f in range(sum(solution.ns)+2):
+    for f in range(sum(solution.ns) + 2):
         b.movement_slider[0].setValue(f)
         b.add_frame()
     b.stop_recording()

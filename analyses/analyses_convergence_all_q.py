@@ -19,7 +19,9 @@ df_results = df_results[df_results["status"] == 0]
 n_shooting_tot = df_results["n_shooting_tot"].unique()
 for d in MillerDynamics:
     for n in n_shooting_tot:
-        df_results = df_results.drop(df_results[(df_results["dynamics_type"] == d) & (df_results["n_shooting_tot"] == n)].index[1:])
+        df_results = df_results.drop(
+            df_results[(df_results["dynamics_type"] == d) & (df_results["n_shooting_tot"] == n)].index[1:]
+        )
 
 df_results["grps"] = None
 df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "grps"] = "Explicit"

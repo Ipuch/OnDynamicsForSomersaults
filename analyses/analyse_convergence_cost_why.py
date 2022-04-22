@@ -26,8 +26,14 @@ for d in MillerDynamics:
         for n_shoot in n_shooting_tot:
             sub_df_n_shoot = sub_df[sub_df["n_shooting_tot"] == n_shoot]
             for i in range(0, 10):
-                data.append(go.Bar(name=f"cost_J{i}", x=[n_shoot], y=[sub_df_n_shoot[f"cost_J{i}"].mean()]
-                                   ,legendgroup=f"cost_J{i}"))
+                data.append(
+                    go.Bar(
+                        name=f"cost_J{i}",
+                        x=[n_shoot],
+                        y=[sub_df_n_shoot[f"cost_J{i}"].mean()],
+                        legendgroup=f"cost_J{i}",
+                    )
+                )
 
 fig = go.Figure(data=data)
 fig.show()

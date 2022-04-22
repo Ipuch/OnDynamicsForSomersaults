@@ -270,7 +270,7 @@ class MillerOcp:
                 node=Node.ALL_SHOOTING,
             )  # Left hand trajectory
             self.objective_functions.add(
-                ObjectiveFcn.Mayer.MINIMIZE_MARKERS, ########### Lagrange
+                ObjectiveFcn.Mayer.MINIMIZE_MARKERS,  ########### Lagrange
                 node=Node.ALL_SHOOTING,
                 derivative=True,
                 reference_jcs=0,

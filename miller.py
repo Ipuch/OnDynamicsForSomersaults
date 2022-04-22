@@ -10,7 +10,13 @@ from miller_viz import add_custom_plots
 from custom_dynamics.enums import MillerDynamics
 
 
-def main(dynamics_type: MillerDynamics, thread: int = 1, solver: OdeSolver = OdeSolver.RK4, extra_obj: bool = False, n_shooting: tuple = (125, 25)):
+def main(
+    dynamics_type: MillerDynamics,
+    thread: int = 1,
+    solver: OdeSolver = OdeSolver.RK4,
+    extra_obj: bool = False,
+    n_shooting: tuple = (125, 25),
+):
     """
     Main function for running the Miller optimal control problem with 15-dof human.
 

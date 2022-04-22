@@ -103,19 +103,16 @@ def main(args: list = None):
     parameters = sol.parameters["all"]
 
     states_2 = states[:, :2]
-    for i in range(1, np.shape(states)[1]-1):
-        states_2 = np.hstack((states_2, states[:, i:i+2]))
+    for i in range(1, np.shape(states)[1] - 1):
+        states_2 = np.hstack((states_2, states[:, i : i + 2]))
 
-    vals = miller.ocp.nlp[0].J[3].weighted_function(states_2, [], [], 10, [], parameters[0]/125)
+    vals = miller.ocp.nlp[0].J[3].weighted_function(states_2, [], [], 10, [], parameters[0] / 125)
     np.sum(vals)
 
     # En Mayer avec vrai norme comme val : toujours -1.6674162217789566e-18
 
     q_modifs = np.zeros((15, 126))
     q_modifs[13:16] = states[13:16, :]
-
-
-
 
     sol.print(cost_type=CostType.OBJECTIVES, to_console=False)
 

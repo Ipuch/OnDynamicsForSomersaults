@@ -15,8 +15,8 @@ jac_root_explicit = pickle.load(file_path)
 file_path.close()
 
 # get the colors from plotly
-c0 = '#3383B8' # px.colors.qualitative.D3[0]
-c1 = '#FF5B01' # px.colors.qualitative.D3[1] #
+c0 = "#3383B8"  # px.colors.qualitative.D3[0]
+c1 = "#FF5B01"  # px.colors.qualitative.D3[1] #
 markersize = 5.25
 
 
@@ -43,7 +43,7 @@ ax_2.spy(jac_root_explicit["jac"], markersize=markersize, marker=".", color=c1)
 ax_2.set_xlabel("Controls (first and second intervals)")
 ax_2.set_xlim(4559.5, 4577.5)
 ax_2.set_ylim(29.5, -0.5)
-leg = plt.legend([r'$Full-Exp$', r'$Base-Exp$'], loc="center left", bbox_to_anchor=(1.4, 0.5))
+leg = plt.legend([r"$Full-Exp$", r"$Base-Exp$"], loc="center left", bbox_to_anchor=(1.4, 0.5))
 leg.get_frame().set_linewidth(0.0)
 leg.get_frame().set_facecolor("none")
 
@@ -56,8 +56,8 @@ plt.show()
 
 
 # Jacobian constraints large view
-markersize=0.005
-fig_3, ax_3 = plt.subplots(1, 1) # figsize=(5.5, 3)
+markersize = 0.005
+fig_3, ax_3 = plt.subplots(1, 1)  # figsize=(5.5, 3)
 ax_3.spy(jac_explicit["jac"], markersize=markersize, marker=".", color=c0)
 ax_3.spy(jac_root_explicit["jac"], markersize=markersize, marker=".", color=c1)
 # ax_3.set_xlabel("Problem variables")
@@ -70,8 +70,6 @@ ax_3.set_frame_on(False)
 fig_3.tight_layout()
 fig_3.savefig("jac_analysis_largeView.png", format="png", dpi=600)
 plt.show()
-
-
 
 
 # # create a figure and axes
