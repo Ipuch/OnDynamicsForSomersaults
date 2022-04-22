@@ -20,6 +20,10 @@ The repository is made available as accompanying material of [this publication](
 ```
 and includes scripts, models and materials to reproduce figures and results of that work.
 
+## Data is available at
+
+Puchaud, Pierre; Charbonneau, Eve; Michaud, Benjamin; Begon, Mickael (2022), “Simulation data of optimal control problems - Comparison of free-floating base and full-body dynamics for Trampoline Miller acrobatic”, Mendeley Data, V1, doi: 10.17632/rz8t786st8.1
+
 ## Status
 
 | Type | Status |
