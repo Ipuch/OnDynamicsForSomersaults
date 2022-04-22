@@ -55,22 +55,6 @@ similar optimal costs for each formulation and systematically hastened the optim
 Using implicit dynamics also hastened the optimization, but to achieve acceptable levels of dynamical consistency, 
 additional variables were needed in the implicit formulation, being generalized jerks as controls and generalized accelerations as states.
 
-## Equations of motions
-Free-floating base dynamics equations are written as:
-```math
-\begin{equation}
-    \qddot_B = -M_{BB}(\q)^{-1} \; \left( M_{BJ}(\q) \; \qddot_J + N_B(\q, \qdot)\right)
-\end{equation}
-```
-Full-body dynamics equations are written as:
-```math
-\begin{equation}
-    \qddot = M(\q)^{-1} \left( S^{\top} \btau_J - N(\q, \qdot) \right)  
-\end{equation}
-```
-
-## OCP formulations
-
 ## Implementation
 
 The Enum Class MillerDynamics is used to define the Equation of Motion and the OCP formulation
