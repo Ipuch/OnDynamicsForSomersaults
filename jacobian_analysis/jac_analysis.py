@@ -1,7 +1,6 @@
 import pickle
 import matplotlib.pyplot as plt
 from matplotlib.colors import colorConverter
-# import pathlib
 from pathlib import Path
 import plotly.express as px
 import numpy as np
@@ -46,7 +45,7 @@ ax_2.set_xlim(4559.5, 4577.5)
 ax_2.set_ylim(29.5, -0.5)
 leg = plt.legend([r'$Full-Exp$', r'$Base-Exp$'], loc="center left", bbox_to_anchor=(1.4, 0.5))
 leg.get_frame().set_linewidth(0.0)
-leg.get_frame().set_facecolor('none')
+leg.get_frame().set_facecolor("none")
 
 ax_2.get_xaxis().set_visible(False)
 ax_2.get_yaxis().set_visible(False)

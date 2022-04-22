@@ -11,6 +11,12 @@ from custom_dynamics.enums import MillerDynamics
 import os
 import pandas as pd
 
+# all data path
+my_path = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_simulation_data/"
+# save data path
+save_path = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/figures/V5/somersaults/"
+
+# Load dataframe and select main results in the main cluster
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
 df_results = df_results[df_results["status"] == 0]
 # only the one that were in the main cluster
@@ -22,10 +28,7 @@ grps = ["Explicit", "Root_Explicit", "Implicit_qddot", "Root_Implicit_qddot", "I
 df_results["grps"] = pd.Categorical(df_results["grps"], grps)
 df_results = df_results.sort_values("grps")
 
-my_path = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_last01-03-22/"
-model_name = "Model_JeCh_15DoFs.bioMod"
-save_path = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/figures/V5/somersaults/"
-# open files
+# open files in the data path
 all_files = os.listdir(my_path)
 all_files.sort()
 files = []
@@ -38,6 +41,7 @@ for index, row in df_results.iterrows():
             if file.endswith(".bo") and f"irand{rand_n}" in file:
                 files.append(file)
 
+# number of frames considered with steps
 start = 0
 step = 15
 end = 151

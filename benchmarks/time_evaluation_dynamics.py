@@ -19,7 +19,7 @@ Minv = m.massMatrixInverse(q).to_mx()
 Minv_func = Function("Minv_func", [q], [Minv], ["q"], ["Minv"]).expand()
 
 np.random.seed(0)
-n = 10000
+n = 100000
 Q = np.random.random((m.nbQ(), n))
 t = np.zeros(4)
 

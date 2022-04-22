@@ -10,6 +10,7 @@ from bioptim import (
 )
 from bioptim.misc.enums import ConstraintType
 from bioptim.interfaces.biorbd_interface import BiorbdInterface
+from bioptim.limits.constraints import ImplicitConstraintFcn
 
 
 def root_implicit_dynamic(
@@ -59,6 +60,13 @@ def custom_configure_root_implicit(ocp: OptimalControlProgram, nlp: NonLinearPro
     ConfigureProblem.configure_qdot(nlp, as_states=True, as_controls=False)
     ConfigureProblem.configure_qddot(nlp, as_states=False, as_controls=True)
 
+    # we call the implicit constraint function in Bioptim but we could have called the custom one written below
+    # ocp.implicit_constraints.add(
+    #     ImplicitConstraintFcn.QDDOT_ROOT_EQUALS_ROOT_DYNAMICS,
+    #     node=Node.ALL_SHOOTING,
+    #     constraint_type=ConstraintType.IMPLICIT,
+    #     phase=nlp.phase_idx,
+    # )
     ocp.implicit_constraints.add(
         implicit_root_dynamics,
         node=Node.ALL_SHOOTING,

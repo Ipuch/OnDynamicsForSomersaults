@@ -10,7 +10,7 @@ from miller_viz import add_custom_plots
 from custom_dynamics.enums import MillerDynamics
 
 
-def main(dynamics_type: MillerDynamics, thread: int = 1, solver: OdeSolver = OdeSolver.RK4, extra_obj: bool = False):
+def main(dynamics_type: MillerDynamics, thread: int = 1, solver: OdeSolver = OdeSolver.RK4, extra_obj: bool = False, n_shooting: tuple = (125, 25)):
     """
     Main function for running the Miller optimal control problem with 15-dof human.
 
@@ -25,7 +25,7 @@ def main(dynamics_type: MillerDynamics, thread: int = 1, solver: OdeSolver = Ode
     extra_obj : bool
         Whether to use the extra objective (only for implicit dynamics).
     """
-    n_shooting = (125, 25)
+
     model_path = "Model_JeCh_15DoFs.bioMod"
 
     # --- Solve the program --- #

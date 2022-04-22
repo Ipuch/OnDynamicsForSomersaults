@@ -11,15 +11,15 @@ import plotly.express as px
 import numpy as np
 import biorbd
 
-df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
+df_results = pd.read_pickle("Dataframe_convergence_metrics_5.pkl")
 out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
 
 df_results = df_results[df_results["status"] == 0]
-# only the one that were in the main cluster
-df_results = df_results[df_results["main_cluster"] == True]
-# only one trial by cluster
+
+n_shooting_tot = df_results["n_shooting_tot"].unique()
 for d in MillerDynamics:
-    df_results = df_results.drop(df_results[df_results["dynamics_type"] == d].index[1:])
+    for n in n_shooting_tot:
+        df_results = df_results.drop(df_results[(df_results["dynamics_type"] == d) & (df_results["n_shooting_tot"] == n)].index[1:])
 
 df_results["grps"] = None
 df_results.loc[df_results["dynamics_type"] == MillerDynamics.EXPLICIT, "grps"] = "Explicit"
@@ -103,19 +103,17 @@ def plot_all_dof(fig, key: str, df_results, list_dof, idx_rows, idx_cols):
                     if first_riqdddot == 0:
                         showleg = True
 
-            # tt = [0]
-            # for i in range(0,125):
-            #     tt.extend([4+6*i, 5+6*i])
-            # t =row.t_integrated[[0,4,5]]
             coef = 180 / np.pi if i_dof > 2 and "q" in key else 1
+            c = px.colors.hex_to_rgb(px.colors.qualitative.D3[row.dyn_num])
+            color_str = f"rgba({c[0]},{c[1]},{c[2]},{row.n_shooting_tot/840})"
             fig.add_scatter(
                 x=row.t_integrated,
                 y=row[key][i_dof] * coef,
                 mode="lines",
                 marker=dict(
                     size=0.2,
-                    color=px.colors.qualitative.D3[row.dyn_num],
-                    line=dict(width=3, color=px.colors.qualitative.D3[row.dyn_num]),
+                    color=color_str,
+                    line=dict(width=3, color=color_str),
                 ),
                 name=row.dynamics_type_label,
                 legendgroup=row.grps,
@@ -171,11 +169,6 @@ for i in range(2, rows + 1):
 for i in range(1, cols + 1):
     fig.update_xaxes(row=rows, col=i, title=r"$\text{Time (s)}$")
 fig.show()
-fig.write_image(out_path_file + "/tau_integrated.png")
-fig.write_image(out_path_file + "/tau_integrated.pdf")
-fig.write_html(out_path_file + "/tau_integrated.html", include_mathjax="cdn")
-fig.write_image(out_path_file + "/tau_integrated.eps")
-
 
 fig = make_subplots(rows=rows, cols=cols, subplot_titles=list_dof_label, vertical_spacing=0.05, shared_xaxes=True)
 fig = plot_all_dof(fig, "q_integrated", df_results, list_dof, idx_rows, idx_cols)
@@ -185,10 +178,6 @@ for i in range(2, rows + 1):
 for i in range(1, cols + 1):
     fig.update_xaxes(row=rows, col=i, title=r"$\text{Time (s)}$")
 fig.show()
-fig.write_image(out_path_file + "/q_integrated.png")
-fig.write_image(out_path_file + "/q_integrated.pdf")
-fig.write_image(out_path_file + "/q_integrated.eps")
-fig.write_html(out_path_file + "/q_integrated.html", include_mathjax="cdn")
 
 fig = make_subplots(rows=rows, cols=cols, subplot_titles=list_dof_label, vertical_spacing=0.05, shared_xaxes=True)
 fig = plot_all_dof(fig, "qdot_integrated", df_results, list_dof, idx_rows, idx_cols)
@@ -207,3 +196,6 @@ for i in range(2, rows + 1):
 for i in range(1, cols + 1):
     fig.update_xaxes(row=rows, col=i, title=r"$\text{Time (s)}$")
 fig.show()
+
+# l'intégration des termes non-piecewise constant est grandement influencée par l'intégration carré dans la fonction de cout
+# on observe que les pics sont réduit au fur et à mesure que la fonction converge.
