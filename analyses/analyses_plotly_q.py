@@ -32,7 +32,6 @@ df_results.loc[df_results["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDO
 dyn = df_results["dynamics_type_label"].unique()
 grps = ["Explicit", "Root_Explicit", "Implicit_qddot", "Root_Implicit_qddot", "Implicit_qdddot", "Root_Implicit_qdddot"]
 dyn = dyn[[2, 4, 3, 5, 0, 1]]
-print(dyn)
 
 # select only the one who converged
 df_results = df_results[df_results["status"] == 0]

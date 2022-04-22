@@ -36,7 +36,6 @@ for index, row in df_results.iterrows():
     d = row.dynamics_type
     rand_n = row.irand
     for i, file in enumerate(all_files):
-        print(i)
         if f".{d.name}_i" in file:
             if file.endswith(".bo") and f"irand{rand_n}" in file:
                 files.append(file)

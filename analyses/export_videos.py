@@ -39,7 +39,6 @@ for index, row in df_results.iterrows():
             if file.endswith(".bo") and f"irand{rand_n}" in file:
                 files.append(file)
 
-for f in files[3:]:
-    print(f)
+for f in files:
     ocp, solution = OptimalControlProgram.load(my_path + f)
     generate_video(solution, save_path, f.replace(".bo", "").replace(".", "_"))

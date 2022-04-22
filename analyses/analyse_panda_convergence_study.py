@@ -28,7 +28,7 @@ import math
 import numpy as np
 import pandas as pd
 
-out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_convergence_18_03_22"
+out_path_raw = "/home/puchaud/Projets_Python/OnDynamicsForSommersaults_results/raw_effect_of_mesh_points_18_03_22"
 model = "../Model_JeCh_15DoFs.bioMod"
 # open files
 files = os.listdir(out_path_raw)
@@ -164,9 +164,6 @@ for index, row in df_results.iterrows():
         if dt > 1e-10:  # instaed of !=0, because sometime the dt is e-16 and I get NaNs when I integrate
             int_T += np.trapz(T[j : j + 2], dx=dt)
 
-    if math.isnan(int_T[0]):
-        print("HOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-
     # Rotation residuals
     R = residual_torque_time_series(m, q_integrated, qdot_integrated, qddot_integrated)[3:]
     R = np.linalg.norm(R, axis=0)
@@ -175,9 +172,6 @@ for index, row in df_results.iterrows():
         dt = np.diff(t_integrated[j : j + 2])[0]
         if dt > 1e-10:  # instaed of !=0, because sometime the dt is e-16 and I get NaNs when I integrate
             int_R += np.trapz(R[j : j + 2], dx=dt)
-
-    if math.isnan(int_R[0]):
-        print("HOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
 
     # store also all tau_integrated (already computed for EXPLICIT)
     if row.dynamics_type != MillerDynamics.EXPLICIT:
