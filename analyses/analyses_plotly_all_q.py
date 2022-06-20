@@ -6,8 +6,10 @@ It requires the dataframe of all results to run the script.
 
 from custom_dynamics.enums import MillerDynamics
 import pandas as pd
+from pandas import DataFrame
 from plotly.subplots import make_subplots
 import plotly.express as px
+import plotly.graph_objects as go
 import numpy as np
 import biorbd
 
@@ -69,7 +71,31 @@ list_dof_label = [
 ]
 
 
-def plot_all_dof(fig, key: str, df_results, list_dof, idx_rows, idx_cols):
+def plot_all_dof(fig: go.Figure , key: str, df_results: DataFrame, list_dof: list, idx_rows: list, idx_cols: list):
+    """
+    This function plots all generalized coordinates and all torques for all MillerDynamics
+    contained in the main cluster of optimal costs
+
+    Parameters
+    ----------
+    fig : go.Figure
+        Figure to plot on
+    key : str
+        Key of the dataframe to plot
+    df_results : DataFrame
+        Dataframe of all results
+    list_dof : list
+        List of all dofs
+    idx_rows : list
+        List of the rows to plot
+    idx_cols : list
+        List of the columns to plot
+
+    Returns
+    -------
+    fig : go.Figure
+        Figure with all plots
+    """
     first_e = 0
     first_re = 0
     first_i = 0
@@ -103,6 +129,11 @@ def plot_all_dof(fig, key: str, df_results, list_dof, idx_rows, idx_cols):
                     if first_riqdddot == 0:
                         showleg = True
 
+            if row.dynamics_type == MillerDynamics.EXPLICIT or row.dynamics_type == MillerDynamics.IMPLICIT or row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
+                linestyle = "solid"
+            else:
+                linestyle = "dot"
+
             # tt = [0]
             # for i in range(0,125):
             #     tt.extend([4+6*i, 5+6*i])
@@ -115,8 +146,8 @@ def plot_all_dof(fig, key: str, df_results, list_dof, idx_rows, idx_cols):
                 marker=dict(
                     size=0.2,
                     color=px.colors.qualitative.D3[row.dyn_num],
-                    line=dict(width=3, color=px.colors.qualitative.D3[row.dyn_num]),
                 ),
+                line=dict(width=3, color=px.colors.qualitative.D3[row.dyn_num], dash=linestyle),
                 name=row.dynamics_type_label,
                 legendgroup=row.grps,
                 showlegend=showleg,
