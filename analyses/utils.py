@@ -410,7 +410,7 @@ def my_traces(
 
 def my_shaded_trace(
     fig: go.Figure, df: DataFrame, d: str, color: str, grps: list, key: str, col=None, row=None, show_legend=True
-):
+) -> go.Figure:
     """
     Add a shaded trace to a plotly figure
 
@@ -428,6 +428,17 @@ def my_shaded_trace(
         The legend groups
     key : str
         The data key such as "tau" or "qddot" or "qddot_joints" or "q"
+    col : int
+        The column of the subplot
+    row : int
+        The row of the subplot
+    show_legend : bool
+        If true, the legend is shown
+
+    Returns
+    -------
+    fig : go.Figure
+        The figure with the trace added
     """
     my_boolean = df["dynamics_type_label"] == d
 
@@ -493,6 +504,11 @@ def mean_confidence_interval(data, confidence: float = 0.95):
         Sample data.
     confidence : float
         The desired confidence level.
+
+    Returns
+    -------
+    mean : float
+        The mean of the data, the mean minus the confidence interval, and the mean plus the confidence interval.
     """
     a = 1.0 * np.array(data)
     n = len(a)
@@ -511,6 +527,11 @@ def fn_ci_up(data, confidence: float = 0.95):
         Sample data.
     confidence : float
         The desired confidence level.
+
+    Returns
+    -------
+    mean : float
+        The mean of the data plus the confidence interval.
     """
     a = 1.0 * np.array(data)
     n = len(a)
@@ -529,6 +550,11 @@ def fn_ci_low(data, confidence: float = 0.95):
         Sample data.
     confidence : float
         The desired confidence level.
+
+    Returns
+    -------
+    mean : float
+        The mean of the data minus the confidence interval.
     """
     a = 1.0 * np.array(data)
     n = len(a)
