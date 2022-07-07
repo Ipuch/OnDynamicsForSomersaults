@@ -81,7 +81,7 @@ def plot_all_dof(fig: go.Figure , key: str, df_results: DataFrame, list_dof: lis
     fig : go.Figure
         Figure to plot on
     key : str
-        Key of the dataframe to plot
+        Key of the dataframe to plot (q_integrated, qdot_integrated, qddot_integrated, tau_integrated)
     df_results : DataFrame
         Dataframe of all results
     list_dof : list
