@@ -58,12 +58,13 @@ fig.update_layout(
 fig.show()
 
 ## fig 2
-fig = make_subplots(rows=2, cols=1, vertical_spacing=0.02, shared_xaxes=True)
+fig = make_subplots(rows=2, cols=1, vertical_spacing=0.02, shared_xaxes=True, shared_yaxes=True)
 fig = my_traces(fig, dyn, grps, df_results, "cost_J", 1, 1, None, ylog=False)
 temp = df_results.drop(df_results[df_results["dynamics_type"] == MillerDynamics.IMPLICIT].index)
 temp = temp.drop(temp[temp["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT].index)
 # fig.update_yaxes(range=[np.log10(temp["cost_J"].min() * 0.9), np.log10(temp["cost_J"].max() * 1.1)], row=1, col=1)
-fig.update_yaxes(range=[temp["cost_J"].min() * 0.95, temp["cost_J"].max() * 1.1], row=1, col=1)
+r = [temp["cost_J"].min() * 0.95, temp["cost_J"].max() * 1.1]
+fig.update_yaxes(range=r, row=1, col=1)
 fig.update_xaxes(visible=False, row=1, col=1)
 
 fig = my_traces(fig, dyn, grps, df_results, "cost_J", 2, 1, None, ylog=False)
@@ -71,8 +72,8 @@ temp = df_results.drop(df_results[df_results["dynamics_type"] == MillerDynamics.
 temp = temp.drop(temp[temp["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT].index)
 temp = temp.drop(temp[temp["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT].index)
 temp = temp.drop(temp[temp["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT].index)
-# fig.update_yaxes(range=[np.log10(temp["cost_J"].min() * 0.9), np.log10(temp["cost_J"].max() * 1.1)], row=2, col=1)
-fig.update_yaxes(range=[temp["cost_J"].min() * 0.95, temp["cost_J"].max() * 1.1], row=2, col=1)
+fig.update_yaxes(range=[r[0]-8.5, r[1]-8.5], row=2, col=1)
+# fig.update_yaxes(range=[temp["cost_J"].min() * 0.95, temp["cost_J"].max() * 1.1], row=2, col=1)
 
 # fig = my_traces(fig, dyn, grps, df_results, "cost_angular_momentum", 1, 2, r'$\mathcal{M}_1$')
 fig.add_annotation(
