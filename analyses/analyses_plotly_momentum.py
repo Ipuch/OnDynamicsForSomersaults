@@ -8,6 +8,8 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
 from utils import add_annotation_letter
+from custom_dynamics.enums import MillerDynamics
+import numpy as np
 
 out_path_file = "../../OnDynamicsForSommersaults_results/figures/V5"
 df_results = pd.read_pickle("Dataframe_results_metrics_5.pkl")
@@ -39,7 +41,6 @@ fig = make_subplots(
 
 # select only the one who converged
 df_results = df_results[df_results["status"] == 0]
-
 
 def my_traces(fig, dyn, grps, c, df, key, row, col, ylabel, title_str: str = None):
     if col > 1 or row > 1:
@@ -149,6 +150,29 @@ fig = add_annotation_letter(fig, "A", x=0.01, y=0.99, on_paper=True)
 fig = add_annotation_letter(fig, "B", x=0.56, y=0.99, on_paper=True)
 fig = add_annotation_letter(fig, "C", x=0.01, y=0.44, on_paper=True)
 fig = add_annotation_letter(fig, "D", x=0.56, y=0.44, on_paper=True)
+
+# update the y axis for each subplot yaxis_tickformat = "0.1r"
+
+fig.update_yaxes(
+    row=1,
+    col=1,
+    tickformat="0.1r",
+)
+fig.update_yaxes(
+    row=1,
+    col=2,
+    tickformat="0.1r",
+)
+fig.update_yaxes(
+    row=2,
+    col=1,
+    tickformat="0.1r",
+)
+fig.update_yaxes(
+    row=2,
+    col=2,
+    tickformat="0.1r",
+)
 
 
 fig.show()

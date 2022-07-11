@@ -53,6 +53,17 @@ fig.update_layout(
 fig = add_annotation_letter(fig, "A", x=0.01, y=0.99, on_paper=True)
 fig = add_annotation_letter(fig, "B", x=0.56, y=0.99, on_paper=True)
 
+fig.update_yaxes(
+    row=1,
+    col=1,
+    tickformat="0.1r",
+)
+fig.update_yaxes(
+    row=1,
+    col=2,
+    tickformat="0.1r",
+)
+
 fig.show()
 
 fig.write_image(out_path_file + "/analyse_time_iter.png")

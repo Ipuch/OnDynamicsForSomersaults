@@ -178,6 +178,27 @@ fig = add_annotation_letter(fig, "B", x=0.59, y=0.99, on_paper=True)
 fig = add_annotation_letter(fig, "C", x=0.01, y=0.44, on_paper=True)
 fig = add_annotation_letter(fig, "D", x=0.59, y=0.44, on_paper=True)
 
+fig.update_yaxes(
+    row=1,
+    col=1,
+    tickformat="0.1r",
+)
+fig.update_yaxes(
+    row=1,
+    col=2,
+    tickformat="0.1r",
+)
+fig.update_yaxes(
+    row=2,
+    col=1,
+    tickformat="0.1r",
+)
+fig.update_yaxes(
+    row=2,
+    col=2,
+    tickformat="0.1r",
+)
+
 fig.show()
 fig.write_image(out_path_file + "/analyse_convergence.png")
 fig.write_image(out_path_file + "/analyse_convergence.pdf")

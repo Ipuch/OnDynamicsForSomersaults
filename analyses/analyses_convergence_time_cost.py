@@ -110,6 +110,16 @@ fig.update_layout(
     template="simple_white",
 )
 
+fig.update_yaxes(
+    row=1,
+    col=1,
+    tickformat="0.1r",
+)
+fig.update_yaxes(
+    row=1,
+    col=2,
+    tickformat="0.1r",
+)
 
 fig.show()
 fig.write_image(out_path_file + "/analyse_convergence_time_cost.png")
