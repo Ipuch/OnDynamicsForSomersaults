@@ -3,7 +3,7 @@ This file is a demo to run optimal control problem of a miller with the chosen d
 """
 
 import numpy as np
-from bioptim import OdeSolver, CostType
+from bioptim import OdeSolver, CostType, InitialGuessList
 from bioptim import Solver
 from miller_ocp import MillerOcp
 from miller_viz import add_custom_plots
@@ -16,6 +16,8 @@ def main(
     solver: OdeSolver = OdeSolver.RK4,
     extra_obj: bool = False,
     n_shooting: tuple = (125, 25),
+    initial_u: InitialGuessList = None,
+    initial_x: InitialGuessList = None,
 ):
     """
     Main function for running the Miller optimal control problem with 15-dof human.
@@ -32,6 +34,10 @@ def main(
         Whether to use the extra objective (only for implicit dynamics).
     n_shooting : tuple
         Number of shooting nodes.
+    initial_u : InitialGuessList
+        Initial guess for the control.
+    initial_x : InitialGuessList
+        Initial guess for the states.
     """
 
     model_path = "Model_JeCh_15DoFs.bioMod"
@@ -47,6 +53,8 @@ def main(
         twists=6 * np.pi,
         use_sx=False,
         extra_obj=extra_obj,
+        initial_u=initial_u,
+        initial_x=initial_x,
     )
 
     add_custom_plots(miller.ocp, dynamics_type)
