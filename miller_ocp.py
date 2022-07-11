@@ -59,7 +59,7 @@ class MillerOcp:
         n_shooting: tuple = (125, 25),
         phase_durations: tuple = (1.351875, 0.193125),  # t_tot = 1.545 (7/8, 1/8)
         n_threads: int = 8,
-        ode_solver: OdeSolver = OdeSolver.COLLOCATION(),
+        ode_solver: OdeSolver = OdeSolver.RK4(),
         dynamics_type: MillerDynamics = MillerDynamics.EXPLICIT,
         vertical_velocity_0: float = 9.2,  # Real data 9.2 before
         somersaults: float = 4 * np.pi,
