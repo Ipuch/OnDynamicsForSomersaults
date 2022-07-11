@@ -66,6 +66,8 @@ class MillerOcp:
         twists: float = 6 * np.pi,
         use_sx: bool = False,
         extra_obj: bool = False,
+        initial_x: InitialGuessList = None,
+        initial_u: InitialGuessList = None,
     ):
         """
         Parameters
@@ -92,6 +94,10 @@ class MillerOcp:
             use SX for the dynamics
         extra_obj : bool
             use extra objective to the extra controls of implicit dynamics (algebraic states)
+        initial_x : InitialGuessList
+            initial guess for the states
+        initial_u : InitialGuessList
+            initial guess for the controls
         """
         self.biorbd_model_path = biorbd_model_path
         self.extra_obj = extra_obj
@@ -177,12 +183,15 @@ class MillerOcp:
             self.x_bounds = BoundsList()
             self.u_bounds = BoundsList()
             self.initial_states = []
-            self.x_init = InitialGuessList()
-            self.u_init = InitialGuessList()
+            self.x_init = InitialGuessList() if initial_x is None else initial_x
+            self.u_init = InitialGuessList() if initial_u is None else initial_u
             self.mapping = BiMappingList()
 
             self._set_boundary_conditions()
-            self._set_initial_guesses()
+            if initial_x is None:
+                self._set_initial_guesses()
+            if initial_u is None:
+                self._set_initial_controls()
             self._set_initial_momentum()
             self._set_dynamics()
             self._set_objective_functions()
@@ -448,7 +457,6 @@ class MillerOcp:
             self.x = np.vstack((self.x, qddot_random))
 
         self._set_initial_states(self.x)
-        self._set_initial_controls()
 
     def _set_initial_states(self, X0: np.array = None):
         """
