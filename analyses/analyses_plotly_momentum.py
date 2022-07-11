@@ -42,6 +42,7 @@ fig = make_subplots(
 # select only the one who converged
 df_results = df_results[df_results["status"] == 0]
 
+
 def my_traces(fig, dyn, grps, c, df, key, row, col, ylabel, title_str: str = None):
     if col > 1 or row > 1:
         showleg = False

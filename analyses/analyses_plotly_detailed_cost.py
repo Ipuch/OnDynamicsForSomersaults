@@ -72,7 +72,7 @@ temp = df_results.drop(df_results[df_results["dynamics_type"] == MillerDynamics.
 temp = temp.drop(temp[temp["dynamics_type"] == MillerDynamics.ROOT_EXPLICIT].index)
 temp = temp.drop(temp[temp["dynamics_type"] == MillerDynamics.ROOT_IMPLICIT_QDDDOT].index)
 temp = temp.drop(temp[temp["dynamics_type"] == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT].index)
-fig.update_yaxes(range=[r[0]-8.5, r[1]-8.5], row=2, col=1)
+fig.update_yaxes(range=[r[0] - 8.5, r[1] - 8.5], row=2, col=1)
 # fig.update_yaxes(range=[temp["cost_J"].min() * 0.95, temp["cost_J"].max() * 1.1], row=2, col=1)
 
 # fig = my_traces(fig, dyn, grps, df_results, "cost_angular_momentum", 1, 2, r'$\mathcal{M}_1$')

@@ -71,7 +71,7 @@ list_dof_label = [
 ]
 
 
-def plot_all_dof(fig: go.Figure , key: str, df_results: DataFrame, list_dof: list, idx_rows: list, idx_cols: list):
+def plot_all_dof(fig: go.Figure, key: str, df_results: DataFrame, list_dof: list, idx_rows: list, idx_cols: list):
     """
     This function plots all generalized coordinates and all torques for all MillerDynamics
     contained in the main cluster of optimal costs
@@ -129,7 +129,11 @@ def plot_all_dof(fig: go.Figure , key: str, df_results: DataFrame, list_dof: lis
                     if first_riqdddot == 0:
                         showleg = True
 
-            if row.dynamics_type == MillerDynamics.EXPLICIT or row.dynamics_type == MillerDynamics.IMPLICIT or row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT:
+            if (
+                row.dynamics_type == MillerDynamics.EXPLICIT
+                or row.dynamics_type == MillerDynamics.IMPLICIT
+                or row.dynamics_type == MillerDynamics.IMPLICIT_TAU_DRIVEN_QDDDOT
+            ):
                 linestyle = "solid"
             else:
                 # linestyle = "dot"
@@ -148,7 +152,7 @@ def plot_all_dof(fig: go.Figure , key: str, df_results: DataFrame, list_dof: lis
                 if i_dof <= 5:
                     y = np.zeros(row.t.shape)
                 else:
-                    print(i_dof, i_dof-6)
+                    print(i_dof, i_dof - 6)
                     y = row[key][i_dof - 6] * coef
             y[-1] = np.nan
 
