@@ -30,6 +30,8 @@ def main(
         Type of solver to use.
     extra_obj : bool
         Whether to use the extra objective (only for implicit dynamics).
+    n_shooting : tuple
+        Number of shooting nodes.
     """
 
     model_path = "Model_JeCh_15DoFs.bioMod"
