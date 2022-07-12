@@ -110,7 +110,7 @@ class MillerOcp:
         self.x = None
         self.u = None
 
-        self.phase_durations = phase_durations
+        self.phase_durations = (1.351875, 0.193125) if phase_durations is None else phase_durations
         self.duration = np.sum(self.phase_durations)
         self.phase_proportions = (self.phase_durations[0] / self.duration, self.phase_durations[1] / self.duration)
 
