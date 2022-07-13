@@ -3,8 +3,8 @@ This file is a demo to run optimal control problem of a miller with the chosen d
 """
 
 import numpy as np
-from bioptim import OdeSolver, CostType, InitialGuessList
-from bioptim import Solver
+from bioptim import OdeSolver, CostType, InitialGuessList, Solver
+
 from miller_ocp import MillerOcp
 from miller_viz import add_custom_plots
 from custom_dynamics.enums import MillerDynamics
@@ -12,12 +12,13 @@ from custom_dynamics.enums import MillerDynamics
 
 def main(
     dynamics_type: MillerDynamics,
-    thread: int = 1,
+    thread: int = 8,
     solver: OdeSolver = OdeSolver.RK4,
     extra_obj: bool = False,
     n_shooting: tuple = (125, 25),
     initial_u: InitialGuessList = None,
     initial_x: InitialGuessList = None,
+    phase_durations: tuple = None,
 ):
     """
     Main function for running the Miller optimal control problem with 15-dof human.
@@ -38,6 +39,8 @@ def main(
         Initial guess for the control.
     initial_x : InitialGuessList
         Initial guess for the states.
+    phase_durations : tuple
+        Time of each phase.
     """
 
     model_path = "Model_JeCh_15DoFs.bioMod"
@@ -55,6 +58,7 @@ def main(
         extra_obj=extra_obj,
         initial_u=initial_u,
         initial_x=initial_x,
+        phase_durations=phase_durations,
     )
 
     add_custom_plots(miller.ocp, dynamics_type)
@@ -62,16 +66,18 @@ def main(
     np.random.seed(203)
 
     solver = Solver.IPOPT(show_online_optim=False, show_options=dict(show_bounds=True))
-    solver.set_maximum_iterations(2000)
+    solver.set_maximum_iterations(1000)
     solver.set_print_level(5)
     solver.set_linear_solver("ma57")
 
     sol = miller.ocp.solve(solver)
 
     # --- Show results --- #
-    sol.print()
+    sol.print_cost()
     sol.graphs(show_bounds=True)
     sol.animate(show_meshes=True)
+
+    return miller.ocp, sol
 
 
 if __name__ == "__main__":
