@@ -74,8 +74,8 @@ def main(
 
     # --- Show results --- #
     sol.print_cost()
-    sol.graphs(show_bounds=True)
-    sol.animate(show_meshes=True)
+    # sol.graphs(show_bounds=True)
+    # sol.animate(show_meshes=True)
 
     return miller.ocp, sol
 
