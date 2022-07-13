@@ -38,12 +38,12 @@ if __name__ == "__main__":
 
     # compute inverse dynamics from the solution of the root explicit OCP
     model = biorbd.Model(sol_root_exp.ocp.nlp[0].model.path().absolutePath().to_string())
-    tau = [np.zeros((u['all'].shape[0], u['all'].shape[1])) for u in sol_root_exp.controls]
+    tau = [np.zeros((u["all"].shape[0], u["all"].shape[1])) for u in sol_root_exp.controls]
     for i, tau_i in enumerate(tau):
         for j, tau_ij in enumerate(tau_i):
-            q = sol_root_exp.states[i]['q'][:, j]
-            qdot = sol_root_exp.states[i]['qdot'][:, j]
-            qddot_joint = sol_root_exp.controls[i]['qddot_joint'][:, j]
+            q = sol_root_exp.states[i]["q"][:, j]
+            qdot = sol_root_exp.states[i]["qdot"][:, j]
+            qddot_joint = sol_root_exp.controls[i]["qddot_joint"][:, j]
             qddot_base = root_explicit_dynamics(m=model, q=q, qdot=qdot, qddot_joints=qddot_joint)
             qddot = np.concatenate((qddot_base, qddot_joint))
             tau[i][:, j] = model.InverseDynamics(q, qdot, qddot).to_array()[6::]
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         False,
         initial_u=initial_u,
         initial_x=initial_x,
-        phase_durations=tuple(sol_root_exp.parameters['time'].toarray().T[0].tolist()),
+        phase_durations=tuple(sol_root_exp.parameters["time"].toarray().T[0].tolist()),
     )
 
     ocp_exp.save(sol_exp, f"miller_exp.bo", stand_alone=True)
