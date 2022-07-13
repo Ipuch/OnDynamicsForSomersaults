@@ -147,13 +147,13 @@ def plot_all_dof(fig: go.Figure, key: str, df_results: DataFrame, list_dof: list
 
             # snippet to handle not integrated decision variables (q, qdot, qddot, tau)
             if len(list_dof) == row[key].__len__():
-                y = row[key][i_dof] * coef
+                y = row[key][i_dof]
             else:
                 if i_dof <= 5:
                     y = np.zeros(row.t.shape)
                 else:
                     print(i_dof, i_dof - 6)
-                    y = row[key][i_dof - 6] * coef
+                    y = row[key][i_dof - 6]
             y[-1] = np.nan
 
             fig.add_scatter(
