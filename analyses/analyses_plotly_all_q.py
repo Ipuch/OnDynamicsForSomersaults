@@ -161,7 +161,7 @@ def plot_all_dof(fig: go.Figure, key: str, df_results: DataFrame, list_dof: list
                 y=y * coef,
                 mode="lines",
                 marker=dict(
-                    size=0.2,
+                    size=2,
                     color=px.colors.qualitative.D3[row.dyn_num],
                 ),
                 line=dict(width=1.5, color=px.colors.qualitative.D3[row.dyn_num], dash=linestyle),
@@ -225,9 +225,9 @@ fig.write_html(out_path_file + "/tau_integrated.html", include_mathjax="cdn")
 fig.write_image(out_path_file + "/tau_integrated.eps")
 
 # zoom on x-axis between 0.7 and 0.75 for each subplot of the figure on the plotly object fig
-for i in range(1, rows + 1):
-    for j in range(1, cols + 1):
-        fig.update_xaxes(row=i, col=j, range=[0.7, 0.75])
+for i in range(1, 3):
+    for j in range(1, 4):
+        fig.update_yaxes(row=i, col=j, range=[-1, 1])
 fig.show()
 fig.write_image(out_path_file + "/tau_zoom.png")
 fig.write_image(out_path_file + "/tau_zoom.pdf")
