@@ -171,6 +171,7 @@ def plot_all_dof(fig: go.Figure, key: str, df_results: DataFrame, list_dof: list
                 row=idx_row,
                 col=idx_col,
             )
+            fig.update_yaxes(tickfont=dict(size=11))
 
             if row.dynamics_type == MillerDynamics.EXPLICIT:
                 first_e = 1
@@ -192,7 +193,7 @@ def plot_all_dof(fig: go.Figure, key: str, df_results: DataFrame, list_dof: list
         plot_bgcolor="rgba(255,255,255,1)",
         legend=dict(
             title_font_family="Times New Roman",
-            font=dict(family="Times New Roman", color="black", size=15),
+            font=dict(family="Times New Roman", color="black", size=18),
             orientation="h",
             yanchor="bottom",
             y=1.05,
@@ -201,7 +202,7 @@ def plot_all_dof(fig: go.Figure, key: str, df_results: DataFrame, list_dof: list
             valign="top",
         ),
         font=dict(
-            size=12,
+            size=19,
             family="Times New Roman",
         ),
         yaxis=dict(color="black"),
@@ -212,17 +213,21 @@ def plot_all_dof(fig: go.Figure, key: str, df_results: DataFrame, list_dof: list
 
 
 fig = make_subplots(rows=rows, cols=cols, subplot_titles=list_dof_label, vertical_spacing=0.05, shared_xaxes=True)
+# update the font size of the subplot_titles
+for i in fig['layout']['annotations']:
+    i['font'] = dict(size=18)
 fig = plot_all_dof(fig, "tau_integrated", df_results, list_dof, idx_rows, idx_cols)
 fig.update_yaxes(row=1, col=1, title=r"$\boldsymbol{\tau} \; \text{(N)}$")
 for i in range(2, rows + 1):
     fig.update_yaxes(row=i, col=1, title=r"$\boldsymbol{\tau} \; \text{(Nm)}$")
 for i in range(1, cols + 1):
-    fig.update_xaxes(row=rows, col=i, title=r"$\text{Time (s)}$")
+    fig.update_xaxes(row=rows, col=i, title=r"Time (s)")
 fig.show()
-fig.write_image(out_path_file + "/tau_integrated.png")
+
 fig.write_image(out_path_file + "/tau_integrated.pdf")
-fig.write_html(out_path_file + "/tau_integrated.html", include_mathjax="cdn")
 fig.write_image(out_path_file + "/tau_integrated.eps")
+fig.write_html(out_path_file + "/tau_integrated.html", include_mathjax="cdn")
+fig.write_image(out_path_file + "/tau_integrated.png")
 
 # zoom on x-axis between 0.7 and 0.75 for each subplot of the figure on the plotly object fig
 for i in range(1, 3):
@@ -236,16 +241,19 @@ fig.write_image(out_path_file + "/tau_zoom.eps")
 
 
 fig = make_subplots(rows=rows, cols=cols, subplot_titles=list_dof_label, vertical_spacing=0.05, shared_xaxes=True)
+# update the font size of the subplot_titles
+for i in fig['layout']['annotations']:
+    i['font'] = dict(size=18)
 fig = plot_all_dof(fig, "q_integrated", df_results, list_dof, idx_rows, idx_cols)
-fig.update_yaxes(row=1, col=1, title=r"$\boldsymbol{q} \; \text{(m)}$")
+fig.update_yaxes(row=1, col=1, title="q (m)")
 for i in range(2, rows + 1):
-    fig.update_yaxes(row=i, col=1, title=r"$\boldsymbol{q}\; \text{(degree)}$")
+    fig.update_yaxes(row=i, col=1, title="q (degree)")
 for i in range(1, cols + 1):
-    fig.update_xaxes(row=rows, col=i, title=r"$\text{Time (s)}$")
+    fig.update_xaxes(row=rows, col=i,  title="Time (s)")
 fig.show()
-fig.write_image(out_path_file + "/q_integrated.png")
 fig.write_image(out_path_file + "/q_integrated.pdf")
 fig.write_image(out_path_file + "/q_integrated.eps")
+fig.write_image(out_path_file + "/q_integrated.png")
 fig.write_html(out_path_file + "/q_integrated.html", include_mathjax="cdn")
 
 fig = make_subplots(rows=rows, cols=cols, subplot_titles=list_dof_label, vertical_spacing=0.05, shared_xaxes=True)

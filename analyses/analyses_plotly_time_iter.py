@@ -36,14 +36,14 @@ fig.update_layout(
     plot_bgcolor="rgba(255,255,255,1)",
     legend=dict(
         title_font_family="Times New Roman",
-        font=dict(family="Times New Roman", color="black", size=11),
+        font=dict(family="Times New Roman", color="black", size=15),
         orientation="h",
         xanchor="center",
         x=0.5,
         y=-0.05,
     ),
     font=dict(
-        size=12,
+        size=15,
         family="Times New Roman",
     ),
     yaxis=dict(color="black"),
@@ -57,11 +57,14 @@ fig.update_yaxes(
     row=1,
     col=1,
     tickformat="0.1r",
+    tickfont=dict(size=11),
 )
+
 fig.update_yaxes(
     row=1,
     col=2,
     tickformat="0.1r",
+    tickfont=dict(size=11),
 )
 
 fig.show()

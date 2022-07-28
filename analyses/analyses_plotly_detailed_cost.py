@@ -80,7 +80,7 @@ fig.add_annotation(
     x=-0.15,
     y=0.5,
     text=r"$\mathcal{J}_1 + \mathcal{J}_2$",
-    font=dict(color="black", size=18),
+    font=dict(color="black", size=25),
     textangle=270,
     showarrow=False,
     xref="paper",
@@ -94,16 +94,29 @@ fig.update_layout(
     plot_bgcolor="rgba(255,255,255,1)",
     legend=dict(
         title_font_family="Times New Roman",
-        font=dict(family="Times New Roman", color="black", size=11),
+        font=dict(family="Times New Roman", color="black", size=15),
     ),
     font=dict(
-        size=12,
+        size=15,
         family="Times New Roman",
     ),
     yaxis=dict(color="black"),
     template="simple_white",
     boxgap=0.2,
 )
+
+fig.update_yaxes(
+    row=1,
+    col=1,
+    tickfont=dict(size=11),
+)
+
+fig.update_yaxes(
+    row=2,
+    col=1,
+    tickfont=dict(size=11),
+)
+
 fig.show()
 fig.write_image(out_path_file + "/detailed_cost.png")
 fig.write_image(out_path_file + "/detailed_cost.pdf")

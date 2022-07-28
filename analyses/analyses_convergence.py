@@ -39,6 +39,10 @@ fig = make_subplots(
     horizontal_spacing=0.15,
 )
 
+# update the font size of the subplot_titles
+for i in fig['layout']['annotations']:
+    i['font'] = dict(size=22)
+
 # select only the one who converged
 df_results = df_results[df_results["status"] == 0]
 df_results = df_results[df_results["n_shooting_tot"] >= 150]
@@ -160,13 +164,13 @@ fig.update_layout(
     plot_bgcolor="rgba(255,255,255,1)",
     legend=dict(
         title_font_family="Times New Roman",
-        font=dict(family="Times New Roman", color="black", size=15),
+        font=dict(family="Times New Roman", color="black", size=16),
         orientation="h",
         xanchor="center",
         x=0.5,
     ),
     font=dict(
-        size=17,
+        size=16,
         family="Times New Roman",
     ),
     xaxis=dict(color="black"),
@@ -182,21 +186,25 @@ fig.update_yaxes(
     row=1,
     col=1,
     tickformat="0.1r",
+    tickfont=dict(size=11),
 )
 fig.update_yaxes(
     row=1,
     col=2,
     tickformat="0.1r",
+    tickfont=dict(size=11),
 )
 fig.update_yaxes(
     row=2,
     col=1,
     tickformat="0.1r",
+    tickfont=dict(size=11),
 )
 fig.update_yaxes(
     row=2,
     col=2,
     tickformat="0.1r",
+    tickfont=dict(size=11),
 )
 
 fig.show()
