@@ -9,7 +9,7 @@ from bioptim import OptimalControlProgram
 filename = "raw/miller_MillerDynamics.ROOT_IMPLICIT_irand0_extraobjTrue_125_25.bo"
 
 
-def show_animation(model_path: str, q: np.ndarray, fixed_floating_base: bool = True):
+def show_animation(model_path: str, q: np.ndarray, fixed_floating_base: bool = False):
     """
     Show the animation of the model
 
@@ -19,6 +19,8 @@ def show_animation(model_path: str, q: np.ndarray, fixed_floating_base: bool = T
         Model to animate
     q : np.ndarray
         Array of the states to animate
+    fixed_floating_base : bool
+        If the floating base is fixed or not when the motion is played
 
     Returns
     -------
