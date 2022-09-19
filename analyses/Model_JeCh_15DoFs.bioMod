@@ -20,7 +20,7 @@ external_forces 0
 			0.0000000000	0.0001	0.0000000000
 			0.0000000000	0.0000000000	0.0001
 		com		0.0000000000		0.0000000000		0.0000000000
-		meshfile Model_mesh/pelvis.stl
+		meshfile mesh/pelvis.stl
 	endsegment
 
 	// Markers
@@ -51,7 +51,7 @@ external_forces 0
 			0.0000000000	0.5645	0.0000000000
 			0.0000000000	0.0000000000	0.2255
 		com		0         0    0.1760
-	    meshfile Model_mesh/thorax.stl
+	    meshfile mesh/thorax.stl
 
 	endsegment
 
@@ -71,7 +71,7 @@ external_forces 0
 			0.0000000000	0.0974	0.0000000000
 			0.0000000000	0.0000000000	0.0203
 		com		0         0    0.1182
-	    meshfile Model_mesh/tete.stl
+	    meshfile mesh/tete.stl
 
 	endsegment
 
@@ -109,7 +109,7 @@ external_forces 0
 			0.0000000000	0.0134	0.0000000000
 			0.0000000000	0.0000000000	0.0031
 		com		0         0    -0.1214
-	    meshfile Model_mesh/bras.stl
+	    meshfile mesh/bras.stl
 
 	endsegment
 
@@ -140,7 +140,7 @@ external_forces 0
 			0.0000000000	0.0065	0.0000000000
 			0.0000000000	0.0000000000	0.0010
 		com		0         0    -0.1248
-	    meshfile Model_mesh/avantbras.stl
+	    meshfile mesh/avantbras.stl
 	endsegment
 
 	// Markers
@@ -170,7 +170,7 @@ external_forces 0
 			0.0000000000	0.0025 	0.0000000000
 			0.0000000000	0.0000000000	0.0003
 		com		0.0255838836	-0.0346156093	-0.0344497047
-		meshfile Model_mesh/main.stl
+		meshfile mesh/main.stl
 	endsegment
 
 	// Markers
@@ -215,7 +215,7 @@ external_forces 0
 			0.0000000000	0.0134 	0.0000000000
 			0.0000000000	0.0000000000	0.0031
 		com		0         0    -0.1214
-	    meshfile Model_mesh/bras.stl
+	    meshfile mesh/bras.stl
 	endsegment
 
 	// Markers
@@ -245,7 +245,7 @@ external_forces 0
 			0.0000000000	0.0065	0.0000000000
 			0.0000000000	0.0000000000	0.0010
 		com		0         0    -0.1248
-	    meshfile Model_mesh/avantbras.stl
+	    meshfile mesh/avantbras.stl
 	endsegment
 
 	// Markers
@@ -276,7 +276,7 @@ external_forces 0
 			0.0000000000	0.0025 	0.0000000000
 			0.0000000000	0.0000000000	0.0003
 		com		-0.0271839495	0.0277505879	-0.0414542613
-		meshfile Model_mesh/main.stl
+		meshfile mesh/main.stl
 	endsegment
 
 	// Markers
@@ -304,7 +304,7 @@ external_forces 0
 			0.0000000000	0.1565 	0.0000000000
 			0.0000000000	0.0000000000	0.0764
 		com		 0         0    -0.1855
-		meshfile Model_mesh/cuisse.stl
+		meshfile mesh/cuisse.stl
 
 	endsegment
 
@@ -337,7 +337,7 @@ external_forces 0
 			0.0000000000	0.0565	0.0000000000
 			0.0000000000	0.0000000000	0.0112
 		com		0         0    0.1732
-		meshfile Model_mesh/jambe.stl
+		meshfile mesh/jambe.stl
 
 	endsegment
 
@@ -369,7 +369,7 @@ external_forces 0
 			0.0000000000	0.0076 	0.0000000000
 			0.0000000000	0.0000000000	0.0009
 		com		0         0    0.0403
-		meshfile Model_mesh/pied.stl
+		meshfile mesh/pied.stl
 	endsegment
 	
 		// Markers
