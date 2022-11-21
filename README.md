@@ -24,12 +24,16 @@ and includes scripts, models and materials to reproduce figures and results of t
 
 Puchaud, Pierre; Charbonneau, Eve; Michaud, Benjamin; Begon, Mickael (2022), “Simulation data of optimal control problems - Comparison of free-floating base and full-body dynamics for Trampoline Miller acrobatic”, Mendeley Data, V1, doi: 10.17632/rz8t786st8.1
 
+
 ## Status
 
 | Type | Status |
 |---|---|
 | License | <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-success" alt="License"/></a> |
 | Zenodo  | [![DOI](https://zenodo.org/badge/440930554.svg)](https://zenodo.org/badge/latestdoi/440930554) |
+| Data | [<img src="https://img.shields.io/badge/DOI-10.17632%2Frz8t786st8.1-red">](https://data.mendeley.com/datasets/rz8t786st8)|
+
+
 
 # Requirements
 In order to run the code, you need to install the following packages from pyomeca:
