@@ -29,6 +29,7 @@ Puchaud, Pierre; Charbonneau, Eve; Michaud, Benjamin; Begon, Mickael (2022), “
 | Type | Status |
 |---|---|
 | License | <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-success" alt="License"/></a> |
+| Zenodo  | [![DOI](https://zenodo.org/badge/440930554.svg)](https://zenodo.org/badge/latestdoi/440930554) |
 
 # Requirements
 In order to run the code, you need to install the following packages from pyomeca:
