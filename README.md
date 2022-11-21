@@ -1,6 +1,7 @@
  ![MillerKinogram](doc/kinogram.png)
 # Introduction
-This repository contains the source code for a submitted article. It investigates the effect of 
+This repository contains the source code for an accepted article in Mechanism and Machine Theory.
+It investigates the effect of
 equations of motion and optimal control problems formulations (explicit and implicit)
 to solve trampoline Miller optimal control problems with direct multiple shooting.
 
@@ -8,14 +9,13 @@ The repository is made available as accompanying material of [this publication](
 
 ```bibtex
 @article{Puchaud2022,
-  title={to be published},
+  title={Optimality equivalence and computational advantages of free-floating base dynamics compared to full-body dynamics},
   author={Puchaud, Pierre and Charbonneau, Eve and Michaud, Benjamin and Begon, Mickael},
-  journal={to be published},
-  volume={to be published},
-  number={to be published},
-  pages={to be published},
-  year={to be published},
-  publisher={to be published},
+  journal={Mechanism and Machine Theory},
+  volume={},
+  number={},
+  pages={},
+  year={2022},
 }
 ```
 and includes scripts, models and materials to reproduce figures and results of that work.
