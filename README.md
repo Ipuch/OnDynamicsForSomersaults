@@ -5,7 +5,7 @@ It investigates the effect of
 equations of motion and optimal control problems formulations (explicit and implicit)
 to solve trampoline Miller optimal control problems with direct multiple shooting.
 
-The repository is made available as accompanying material of [this publication](tobepublished):
+The repository is made available as accompanying material of [this publication](https://www.sciencedirect.com/science/article/abs/pii/S0094114X22004098):
 
 ```bibtex
 @article{Puchaud2022,
